@@ -24,17 +24,19 @@ public class StaticAnalysis {
 	private final Method entry;
 	private final FormulaFactory f;
 
-	/**
-	 * Each value is represented by an array of propositional formulas, where each formula corresponds to the value of a single bit.
-	 * The first array entry represents the most significant bit and so on
-	 */
-	private final Map<Integer, Formula[]> valsToLogicVars;
-
 	public StaticAnalysis(Program program) throws InvalidClassFileException {
 		this.program = program;
 		this.entry = program.getEntryMethod();
 		this.f = new FormulaFactory();
-		this.valsToLogicVars = new HashMap<>();
+	}
+
+	/*
+	constructor used for testing
+	 */
+	public StaticAnalysis(FormulaFactory ff) {
+		this.program = null;
+		this.entry = null;
+		this.f = ff;
 	}
 
 	private Formula[] createVars(int valNum, Type type) {
@@ -83,14 +85,6 @@ public class StaticAnalysis {
 		return trimmed;
 	}
 
-	private Formula[] getFormulaOrCreateConstant(int valNum) {
-		if (entry.isConstant(valNum)) {
-			return asFormulaArray(entry.getIntConstant(valNum));
-		} else {
-			return program.getDepsForValue(valNum);
-		}
-	}
-
 	public void computeSATDeps() {
 
 		// create literals for method parameters
@@ -100,54 +94,56 @@ public class StaticAnalysis {
 		}
 
 		entry.getIr().visitAllInstructions(new SATVisitor());
-		for(int key: valsToLogicVars.keySet()) {
-			System.out.println(key + " " + Arrays.toString(valsToLogicVars.get(key)));
-		}
 	}
 
-	private class SATVisitor extends SSAInstruction.Visitor {
+	public class SATVisitor extends SSAInstruction.Visitor {
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
 			System.out.println("Visiting " + instruction);
 
-			int op1 = instruction.getUse(0);
-			int op2 = instruction.getUse(1);
+			int op1ValNum = instruction.getUse(0);
+			int op2ValNum = instruction.getUse(1);
 
-
-			if (!program.hasValue(op1)) {
-				createConstant(op1);
+			if (!program.hasValue(op1ValNum)) {
+				// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
+				createConstant(op1ValNum);
 			}
+			Formula[] op1 = program.getDepsForValue(op1ValNum);
 
-			if (!program.hasValue(op2)) {
-				createConstant(op2);
+			if (!program.hasValue(op2ValNum)) {
+				createConstant(op2ValNum);
 			}
+			Formula[] op2 = program.getDepsForValue(op2ValNum);
 
 			int def = instruction.getDef();
 
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
 
 			// make sure Value object for def exists
-			program.getOrCreateValue(def, Type.getResultType(operator, program.type(op1), program.type(op2)), entry);
+			program.getOrCreateValue(def, Type.getResultType(operator, program.type(op1ValNum), program.type(op2ValNum)), entry);
 			Formula[] defForm = null;
 			switch (operator) {
 			case ADD:
+				defForm = add(op1, op2);
 				break;
 			case SUB:
+				defForm = sub(op1, op2);
 				break;
 			case MUL:
+				defForm = mult(op1, op2);
 				break;
 			case DIV:
 				break;
 			case REM:
 				break;
 			case AND:
-				defForm = parseAndFormula(def, op1, op2);
+				defForm = and(op1, op2);
 				break;
 			case OR:
-				defForm = parseOrFormula(def, op1, op2);
+				defForm = or(op1, op2);
 				break;
 			case XOR:
-				defForm = parseXorFormula(def, op1, op2);
+				defForm = xor(op1, op2);
 				break;
 			}
 			program.setDepsForvalue(def, defForm);
@@ -156,69 +152,111 @@ public class StaticAnalysis {
 		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
 			System.out.println("Visiting " + instruction);
 			int def = instruction.getDef();
-			int op = instruction.getUse(0);
+			int opValNum = instruction.getUse(0);
 
-			if (!program.hasValue(op)) {
-				createConstant(op);
+			if (!program.hasValue(opValNum)) {
+				createConstant(opValNum);
 			}
+			Formula[] op = program.getDepsForValue(opValNum);
 
 			IUnaryOpInstruction.Operator operator = (IUnaryOpInstruction.Operator) instruction.getOpcode();
 
 			// make sure Value object for def exists
-			program.getOrCreateValue(def, Type.getResultType(operator, program.type(op)), entry);
+			program.getOrCreateValue(def, Type.getResultType(operator, program.type(opValNum)), entry);
 
 			switch(operator) {
 			case NEG:
-				program.setDepsForvalue(def, parseNotFormula(def, op));
+				program.setDepsForvalue(def, not(op));
 				break;
 			}
 		}
 
 		// create formula for bitwise or of op1 and op2 and assign to def
-		private Formula[] parseOrFormula(int def, int op1, int op2) {
-			Formula[] op1Formula = getFormulaOrCreateConstant(op1);
-			Formula[] op2Formula = getFormulaOrCreateConstant(op2);
+		public Formula[] or(Formula[] op1, Formula[] op2) {
+			Formula[] defForm = new Formula[op1.length];
 
-			Formula[] defForm = new Formula[op1Formula.length];
-
-			for (int i = 0; i < op1Formula.length; i++) {
-				defForm[i] = f.or(op1Formula[i], op2Formula[i]);
+			for (int i = 0; i < op1.length; i++) {
+				defForm[i] = f.or(op1[i], op2[i]);
 			}
 			return defForm;
 		}
 
 		// create formula for bitwise or of op1 and op2 and assign to def
-		private Formula[] parseXorFormula(int def, int op1, int op2) {
-			Formula[] op1Formula = getFormulaOrCreateConstant(op1);
-			Formula[] op2Formula = getFormulaOrCreateConstant(op2);
+		public Formula[] xor(Formula[] op1, Formula[] op2) {
+			Formula[] defForm = new Formula[op1.length];
 
-			Formula[] defForm = new Formula[op1Formula.length];
-
-			for (int i = 0; i < op1Formula.length; i++) {
-				defForm[i] = f.and(f.or(op1Formula[i], op2Formula[i]), f.or(f.not(op1Formula[i]), f.not(op2Formula[i]))) ;
+			for (int i = 0; i < op1.length; i++) {
+				defForm[i] = xor(op1[i], op2[i]);
 			}
 			return defForm;
+		}
+
+		public Formula xor(Formula op1, Formula op2) {
+			return f.and(f.or(op1, op2), f.or(f.not(op1), f.not(op2)));
 		}
 
 		// create formula for bitwise or of op1 and op2 and assign to def
-		private Formula[] parseAndFormula(int def, int op1, int op2) {
-			Formula[] op1Formula = getFormulaOrCreateConstant(op1);
-			Formula[] op2Formula = getFormulaOrCreateConstant(op2);
+		public Formula[] and(Formula[] op1, Formula[] op2) {
 
-			Formula[] defForm = new Formula[op1Formula.length];
+			Formula[] defForm = new Formula[op1.length];
 
-			for (int i = 0; i < op1Formula.length; i++) {
-				defForm[i] = f.and(op1Formula[i], op2Formula[i]);
+			for (int i = 0; i < op1.length; i++) {
+				defForm[i] = f.and(op1[i], op2[i]);
 			}
 			return defForm;
 		}
 
-		private Formula[] parseNotFormula(int def, int op) {
-			Formula[] opForm = getFormulaOrCreateConstant(op);
-			Formula[] defForm = new Formula[opForm.length];
+		public Formula[] add(Formula[] op1, Formula[] op2) {
+			Formula[] res = new Formula[op1.length];
+			Formula carry = f.constant(false);
 
-			for (int i = 0; i < opForm.length; i++) {
-				defForm[i] = f.not(opForm[i]);
+			for (int i = op1.length - 1; i >= 0; i--) {
+				res[i] = xor(xor(op1[i], op2[i]), carry);
+				carry = f.or(f.or(f.and(op1[i], op2[i]), f.and(op1[i], carry), f.and(op2[i], carry)));
+			}
+			return res;
+		}
+
+		public Formula[] sub(Formula[] a, Formula[] b) {
+			Formula carry = f.constant(false);
+			Formula[] res = new Formula[a.length];
+
+			for (int i = a.length - 1; i >= 0; i--) {
+				res[i] = f.and(f.or(a[i], xor(b[i], carry)), f.or(f.not(a[i]), f.equivalence(b[i], carry)));
+				carry = f.or(f.and(a[i], b[i], carry), f.and(f.not(a[i]), f.or(b[i], carry)));
+			}
+
+			return res;
+		}
+
+		public Formula[] mult(Formula[] op1, Formula[] op2) {
+			Formula[][]carry = new Formula[op1.length][op1.length];
+
+			for (int i = op1.length - 1; i >= 0; i--) {
+
+				for (int j = op1.length - 1; j >= 0; j--) {
+					if (j > i) {
+						carry[i][j] = f.constant(false);
+					} else {
+						carry[i][j] = f.and(op1[i], op2[j + (op1.length - i - 1)]);
+					}
+				}
+			}
+
+			Formula[] res = asFormulaArray(0);
+			for(int i = 0; i < op1.length; i++) {
+				res = add(res, carry[i]);
+			}
+
+			return res;
+		}
+
+
+		public Formula[] not(Formula[] op) {
+			Formula[] defForm = new Formula[op.length];
+
+			for (int i = 0; i < op.length; i++) {
+				defForm[i] = f.not(op[i]);
 			}
 			return defForm;
 		}

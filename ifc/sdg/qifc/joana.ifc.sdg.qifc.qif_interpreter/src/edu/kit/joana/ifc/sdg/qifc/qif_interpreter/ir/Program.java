@@ -132,5 +132,7 @@ public class Program {
 		return programValues.getOrDefault(valNum, null);
 	}
 
-
+	public String getClassName() {
+		return className;
+	}
 }

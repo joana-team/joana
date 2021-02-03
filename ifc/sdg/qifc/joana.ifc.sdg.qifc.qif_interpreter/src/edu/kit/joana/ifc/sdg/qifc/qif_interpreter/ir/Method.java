@@ -24,6 +24,7 @@ public class Method {
 	private IR ir;
 	private SDGMethod sdgMethod;
 	private CGNode cg;
+	private CFG cfg;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -32,6 +33,7 @@ public class Method {
 		m.cg = m.pdg.cgNode;
 		m.ir = m.cg.getIR();
 		m.sdgMethod = findEntryMethod(p).snd;
+		m.cfg = CFG.buildCFG(m);
 
 		return m;
 	}
@@ -44,7 +46,7 @@ public class Method {
 	public Type getParamType(int i) {
 		String name = pdg.getParamType(i).getName().toString();
 
-		switch(name) {
+		switch (name) {
 		case "I":
 			return Type.INTEGER;
 		default:
@@ -127,4 +129,11 @@ public class Method {
 		return pdg;
 	}
 
+	public Program getProg() {
+		return prog;
+	}
+
+	public CFG getCFG() {
+		return cfg;
+	}
 }

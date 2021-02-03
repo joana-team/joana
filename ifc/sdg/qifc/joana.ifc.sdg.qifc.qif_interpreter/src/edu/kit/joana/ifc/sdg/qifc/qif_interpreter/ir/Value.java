@@ -43,6 +43,8 @@ public abstract class Value {
 		}
 	}
 
+	public abstract boolean verifyType(Object val);
+
 	// --------------------------- getters and setters ---------------------------------------
 
 	public int getValNum() {
@@ -74,6 +76,9 @@ public abstract class Value {
 	}
 
 	public void setVal(Object val) {
+		if(!verifyType(val)) {
+			throw new IllegalArgumentException("Error: Wrong input parameter. Expected type " + this.type);
+		}
 		this.val = val;
 	}
 

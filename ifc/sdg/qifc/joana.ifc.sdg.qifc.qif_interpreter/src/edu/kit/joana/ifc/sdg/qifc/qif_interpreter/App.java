@@ -48,7 +48,6 @@ public class App {
 			e.printStackTrace();
 		}
 
-
 		String classFilePath;
 		String programPath = jArgs.inputFiles.get(0);
 		String jarPath = null;

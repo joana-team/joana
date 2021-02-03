@@ -17,6 +17,10 @@ public class Int extends Value {
 		this.setWidth(Type.INTEGER.bitwidth());
 	}
 
+	@Override public boolean verifyType(Object val) {
+		return val instanceof Integer;
+	}
+
 	private static Int createConstant(int n, Formula[] deps) {
 			Int newConst = new Int(-1);
 			newConst.setVal(n);

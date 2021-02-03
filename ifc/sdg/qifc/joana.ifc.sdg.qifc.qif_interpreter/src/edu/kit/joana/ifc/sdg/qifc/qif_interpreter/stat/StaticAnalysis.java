@@ -3,9 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import com.ibm.wala.ssa.SSABinaryOpInstruction;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAUnaryOpInstruction;
+import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Int;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
@@ -15,8 +13,6 @@ import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 public class StaticAnalysis {
 
@@ -61,7 +57,7 @@ public class StaticAnalysis {
 	 */
 	private Formula[] asFormulaArray(int n) {
 		char[] binary = Integer.toBinaryString(n).toCharArray();
-		binary = trim(binary, Type.INTEGER.bitwidth(), '0');
+		binary = trim(binary, Type.INTEGER.bitwidth());
 		Formula[] form = new Formula[Type.INTEGER.bitwidth()];
 
 		int startIdx = binary.length - Type.INTEGER.bitwidth();
@@ -76,17 +72,16 @@ public class StaticAnalysis {
 	}
 
 	// trim the array arr to the specified size. If arr is longer than size, the front is cut off.
-	// If arr is shorter than size, it is prefixed with the appropriate amount of the placeholder char
-	private char[] trim(char[] arr, int size, char placeholder) {
+	// If arr is shorter than size, it is prefixed with the appropriate amount of the placeholder char 0
+	private char[] trim(char[] arr, int size) {
 		char[] trimmed = new char[size];
 		for (int i = 0; i < size; i++) {
-			trimmed[size - 1 - i] = (arr.length - 1 - i >= 0) ? arr[arr.length - 1 - i] : placeholder;
+			trimmed[size - 1 - i] = (arr.length - 1 - i >= 0) ? arr[arr.length - 1 - i] : (char) 0;
 		}
 		return trimmed;
 	}
 
 	public void computeSATDeps() {
-
 		// create literals for method parameters
 		int[] params = this.entry.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
@@ -98,12 +93,41 @@ public class StaticAnalysis {
 
 	public class SATVisitor extends SSAInstruction.Visitor {
 
-		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			System.out.println("Visiting " + instruction);
+		@Override
+		public void visitGoto(SSAGotoInstruction instruction) {
+			System.out.println(instruction);
+		}
 
+		@Override
+		public void visitComparison(SSAComparisonInstruction instruction) {
+			System.out.println(instruction);
+		}
+
+		@Override
+		public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
+			System.out.println(instruction);
+		}
+
+		@Override
+		public void visitReturn(SSAReturnInstruction instruction) {
+			System.out.println(instruction);
+		}
+
+		@Override
+		public void visitPhi(SSAPhiInstruction instruction) {
+			System.out.println(instruction);
+		}
+
+		@Override
+		public void visitPi(SSAPiInstruction instruction) {
+			System.out.println(instruction);
+		}
+
+		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
 			int op1ValNum = instruction.getUse(0);
 			int op2ValNum = instruction.getUse(1);
 
+			assert program != null;
 			if (!program.hasValue(op1ValNum)) {
 				// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
 				createConstant(op1ValNum);
@@ -133,7 +157,6 @@ public class StaticAnalysis {
 				defForm = mult(op1, op2);
 				break;
 			case DIV:
-				break;
 			case REM:
 				break;
 			case AND:
@@ -146,14 +169,16 @@ public class StaticAnalysis {
 				defForm = xor(op1, op2);
 				break;
 			}
+
+			assert defForm != null;
 			program.setDepsForvalue(def, defForm);
 		}
 
 		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
-			System.out.println("Visiting " + instruction);
 			int def = instruction.getDef();
 			int opValNum = instruction.getUse(0);
 
+			assert program != null;
 			if (!program.hasValue(opValNum)) {
 				createConstant(opValNum);
 			}
@@ -164,10 +189,8 @@ public class StaticAnalysis {
 			// make sure Value object for def exists
 			program.getOrCreateValue(def, Type.getResultType(operator, program.type(opValNum)), entry);
 
-			switch(operator) {
-			case NEG:
+			if (operator == IUnaryOpInstruction.Operator.NEG) {
 				program.setDepsForvalue(def, not(op));
-				break;
 			}
 		}
 
@@ -250,7 +273,6 @@ public class StaticAnalysis {
 
 			return res;
 		}
-
 
 		public Formula[] not(Formula[] op) {
 			Formula[] defForm = new Formula[op.length];

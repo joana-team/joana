@@ -78,7 +78,12 @@ public class Program {
 
 	public Value getOrCreateValue(int valNum, Type type, Method method) {
 		if (!programValues.containsKey(valNum)) {
-			programValues.put(valNum,Value.createByType(valNum, type));
+			Value val = Value.createByType(valNum, type);
+
+			if (method.isConstant(valNum)) {
+				val.setVal(method.getIntConstant(valNum));
+			}
+			programValues.put(valNum, val);
 		}
 		return programValues.get(valNum);
 	}
@@ -128,8 +133,21 @@ public class Program {
 		return sdg;
 	}
 
+	public Map<Integer, Value> getProgramValues() {
+		return programValues;
+	}
+
 	public Value getValue(int valNum) {
 		return programValues.getOrDefault(valNum, null);
+	}
+
+	// TODO: needs overhaul if we add different types
+	// add type as argument and create value objects accordingly
+	public void setValue(int valNum, Object value) {
+		if(!hasValue(valNum)) {
+			createValue(valNum, new Int(valNum));
+		}
+		programValues.get(valNum).setVal(value);
 	}
 
 	public String getClassName() {

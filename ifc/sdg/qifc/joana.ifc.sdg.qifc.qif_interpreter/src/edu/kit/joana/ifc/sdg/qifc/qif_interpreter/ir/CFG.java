@@ -58,4 +58,12 @@ public class CFG {
 	public Set<BBlock> getBlocks() {
 		return blocks;
 	}
+
+	public Method getMethod() {
+		return m;
+	}
+
+	public BBlock entry() {
+		return BBlock.bBlock(m.getCFG().walaCFG.entry());
+	}
 }

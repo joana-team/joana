@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class BBlock {
 
 	private static final BiMap<SSACFG.BasicBlock, BBlock> repMap = HashBiMap.create();
+
 	private final SSACFG.BasicBlock walaBBlock;
 	private final CFG g;
 	private final List<BBlock> succs;
@@ -97,6 +98,10 @@ public class BBlock {
 		return repMap.inverse().get(this);
 	}
 
+	public static BBlock bBlock(SSACFG.BasicBlock walaBBlock) {
+		return repMap.get(walaBBlock);
+	}
+
 	public void print() {
 		System.out.println("-------------------------------------------");
 		System.out.println(walaBBlock.toString());
@@ -112,5 +117,9 @@ public class BBlock {
 		for(SSAInstruction i: instructions) {
 			System.out.println(i.toString());
 		}
+	}
+
+	public CFG getCFG() {
+		return this.g;
 	}
 }

@@ -3,12 +3,11 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
+import org.logicng.formulas.Formula;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +25,7 @@ public class Method {
 	private SDGMethod sdgMethod;
 	private CGNode cg;
 	private CFG cfg;
+	private final Map<Integer, Value> programValues;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -35,8 +35,22 @@ public class Method {
 		m.ir = m.cg.getIR();
 		m.sdgMethod = findEntryMethod(p).snd;
 		m.cfg = CFG.buildCFG(m);
+		m.createParamValues();
 
 		return m;
+	}
+
+	public Method() {
+		this.programValues = new HashMap<>();
+	}
+
+	private void createParamValues() {
+		int numParam = this.getIr().getNumberOfParameters();
+		for (int i = 1; i < numParam; i++) {
+			int valNum = this.getIr().getParameter(i);
+			Type type = Type.from(this.getPdg().getParamType(i));
+			programValues.put(valNum, Value.createByType(valNum, type));
+		}
 	}
 
 	/**
@@ -142,6 +156,50 @@ public class Method {
 		return block.get();
 	}
 
+	public Value getOrCreateValue(int valNum, Type type, Method method) {
+		if (!programValues.containsKey(valNum)) {
+			Value val = Value.createByType(valNum, type);
+
+			if (method.isConstant(valNum)) {
+				val.setVal(method.getIntConstant(valNum));
+			}
+			programValues.put(valNum, val);
+		}
+		return programValues.get(valNum);
+	}
+
+	public void createValue(int valNum, Value val) {
+		programValues.put(valNum, val);
+	}
+
+	public boolean hasValue(int valNum) {
+		return programValues.containsKey(valNum);
+	}
+
+	public void setDepsForvalue(int valueNum, Formula[] deps) {
+		if (!(deps.length == programValues.get(valueNum).getWidth())) {
+			throw new IllegalArgumentException("Different bitwidth: Cannot assign dependencies to value.");
+		}
+		this.programValues.get(valueNum).setDeps(deps);
+	}
+
+	public Formula[] getDepsForValue(int valNum) {
+		return programValues.get(valNum).getDeps();
+	}
+
+	public Type type(int valNum) {
+		return programValues.get(valNum).getType();
+	}
+
+	// TODO: needs overhaul if we add different types
+	// add type as argument and create value objects accordingly
+	public void setValue(int valNum, Object value) {
+		if(!hasValue(valNum)) {
+			createValue(valNum, new Int(valNum));
+		}
+		programValues.get(valNum).setVal(value);
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -166,5 +224,13 @@ public class Method {
 
 	public CFG getCFG() {
 		return cfg;
+	}
+
+	public Map<Integer, Value> getProgramValues() {
+		return programValues;
+	}
+
+	public Value getValue(int valNum) {
+		return programValues.getOrDefault(valNum, null);
 	}
 }

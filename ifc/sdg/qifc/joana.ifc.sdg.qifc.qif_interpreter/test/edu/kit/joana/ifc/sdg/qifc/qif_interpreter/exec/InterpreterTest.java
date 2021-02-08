@@ -45,7 +45,7 @@ class InterpreterTest {
 		List<String> args = Arrays.asList("1", "0");
 
 		i.applyArgs(args, p, p.getEntryMethod());
-		Map<Integer, Value> argValues = p.getProgramValues();
+		Map<Integer, Value> argValues = p.getEntryMethod().getProgramValues();
 
 		assertEquals(2, argValues.size());
 		assertEquals(1, argValues.get(2).getVal());

@@ -12,8 +12,6 @@ import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
-import java.util.Arrays;
-
 public class StaticAnalysis {
 
 	private final Program program;
@@ -85,7 +83,7 @@ public class StaticAnalysis {
 		// create literals for method parameters
 		int[] params = this.entry.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
-			program.setDepsForvalue(params[i], createVars(params[i], entry.getParamType(i)));
+			entry.setDepsForvalue(params[i], createVars(params[i], entry.getParamType(i)));
 		}
 
 		entry.getIr().visitAllInstructions(new SATVisitor());
@@ -128,23 +126,23 @@ public class StaticAnalysis {
 			int op2ValNum = instruction.getUse(1);
 
 			assert program != null;
-			if (!program.hasValue(op1ValNum)) {
+			if (!entry.hasValue(op1ValNum)) {
 				// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
 				createConstant(op1ValNum);
 			}
-			Formula[] op1 = program.getDepsForValue(op1ValNum);
+			Formula[] op1 = entry.getDepsForValue(op1ValNum);
 
-			if (!program.hasValue(op2ValNum)) {
+			if (!entry.hasValue(op2ValNum)) {
 				createConstant(op2ValNum);
 			}
-			Formula[] op2 = program.getDepsForValue(op2ValNum);
+			Formula[] op2 = entry.getDepsForValue(op2ValNum);
 
 			int def = instruction.getDef();
 
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
 
 			// make sure Value object for def exists
-			program.getOrCreateValue(def, Type.getResultType(operator, program.type(op1ValNum), program.type(op2ValNum)), entry);
+			entry.getOrCreateValue(def, Type.getResultType(operator, entry.type(op1ValNum), entry.type(op2ValNum)), entry);
 			Formula[] defForm = null;
 			switch (operator) {
 			case ADD:
@@ -171,7 +169,7 @@ public class StaticAnalysis {
 			}
 
 			assert defForm != null;
-			program.setDepsForvalue(def, defForm);
+			entry.setDepsForvalue(def, defForm);
 		}
 
 		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
@@ -179,18 +177,18 @@ public class StaticAnalysis {
 			int opValNum = instruction.getUse(0);
 
 			assert program != null;
-			if (!program.hasValue(opValNum)) {
+			if (!entry.hasValue(opValNum)) {
 				createConstant(opValNum);
 			}
-			Formula[] op = program.getDepsForValue(opValNum);
+			Formula[] op = entry.getDepsForValue(opValNum);
 
 			IUnaryOpInstruction.Operator operator = (IUnaryOpInstruction.Operator) instruction.getOpcode();
 
 			// make sure Value object for def exists
-			program.getOrCreateValue(def, Type.getResultType(operator, program.type(opValNum)), entry);
+			entry.getOrCreateValue(def, Type.getResultType(operator, entry.type(opValNum)), entry);
 
 			if (operator == IUnaryOpInstruction.Operator.NEG) {
-				program.setDepsForvalue(def, not(op));
+				entry.setDepsForvalue(def, not(op));
 			}
 		}
 
@@ -287,6 +285,6 @@ public class StaticAnalysis {
 	private void createConstant(int op1) {
 		Int constant = Int.getOrCreateConstant(entry.getIntConstant(op1), asFormulaArray(entry.getIntConstant(op1)));
 		constant.setDeps(asFormulaArray(entry.getIntConstant(op1)));
-		program.createValue(op1, constant);
+		entry.createValue(op1, constant);
 	}
 }

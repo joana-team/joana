@@ -10,7 +10,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 
-import javax.swing.plaf.basic.BasicBorders;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
@@ -36,7 +35,7 @@ public class Interpreter {
 			throw new ParameterException("Wrong input parameter for program.");
 		}
 
-		ExecutionVisitor ev = new ExecutionVisitor();
+		ExecutionVisitor ev = new ExecutionVisitor(program.getEntryMethod());
 		int returnValue = executeMethod(program.getEntryMethod(), args);
 
 		return true;
@@ -49,7 +48,7 @@ public class Interpreter {
 	 * @throws OutOfScopeException if the method cintains an instruction that is not implemented for this interpreter
 	 */
 	public int executeMethod(Method m, List<String> args) throws OutOfScopeException {
-		ExecutionVisitor ev = new ExecutionVisitor();
+		ExecutionVisitor ev = new ExecutionVisitor(m);
 
 		int prevBlock = -1;
 		int currentBlock = program.getEntryMethod().getCFG().entry().idx();
@@ -91,7 +90,7 @@ public class Interpreter {
 			}
 
 			int valNum = m.getIr().getParameter(paramNum);
-			Value param = p.getOrCreateValue(valNum, m.getParamType(paramNum), m);
+			Value param = m.getOrCreateValue(valNum, m.getParamType(paramNum), m);
 			param.setVal(paramVal);
 		}
 		return true;
@@ -101,8 +100,8 @@ public class Interpreter {
 
 		private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
+		private final Method m;
 		private BBlock block;
-		private int currBlockIdx;
 		private int prevBlockIdx;
 		private int nextBlockIdx;
 
@@ -110,6 +109,10 @@ public class Interpreter {
 		private SSAInstruction outOfScopeInstruction;
 
 		private int returnValue = -1;
+
+		public ExecutionVisitor(Method m) {
+			this.m = m;
+		}
 
 		/**
 		 * executes a single basic block and returns the index of tha basic block to be executed next. If the return value is -1, the program is terminated
@@ -123,7 +126,6 @@ public class Interpreter {
 			}
 
 			block = start;
-			this.currBlockIdx = start.getWalaBasicBLock().getNumber();
 			this.prevBlockIdx = prevBlockIdx;
 			this.nextBlockIdx = -1;
 
@@ -162,10 +164,10 @@ public class Interpreter {
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			Integer op1 = (Integer) program.getOrCreateValue(instruction.getUse(0),
+			Integer op1 = (Integer) m.getOrCreateValue(instruction.getUse(0),
 					Type.INTEGER,
 					block.getCFG().getMethod()).getVal();
-			Integer op2 = (Integer) program.getOrCreateValue(instruction.getUse(1),
+			Integer op2 = (Integer) m.getOrCreateValue(instruction.getUse(1),
 					Type.INTEGER,
 					block.getCFG().getMethod()).getVal();
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
@@ -199,17 +201,17 @@ public class Interpreter {
 			default:
 				throw new IllegalStateException("Unexpected value: " + operator);
 			}
-			program.setValue(instruction.getDef(), def);
+			m.setValue(instruction.getDef(), def);
 		}
 
 		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
-			int use = (Integer) program.getOrCreateValue(instruction.getUse(0),
+			int use = (Integer) m.getOrCreateValue(instruction.getUse(0),
 					Type.INTEGER,
 					block.getCFG().getMethod()).getVal();
 			if (!instruction.getOpcode().equals(IUnaryOpInstruction.Operator.NEG)) {
 				throw new IllegalStateException("Unexpected value: " + IUnaryOpInstruction.Operator.NEG);
 			} else {
-				program.setValue(instruction.getDef(), -use);
+				m.setValue(instruction.getDef(), -use);
 			}
 		}
 
@@ -222,8 +224,8 @@ public class Interpreter {
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
-			Integer op1 = (Integer) program.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal();
-			Integer op2 = (Integer) program.getOrCreateValue(instruction.getUse(1), Type.INTEGER, block.getCFG().getMethod()).getVal();
+			Integer op1 = (Integer) m.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal();
+			Integer op2 = (Integer) m.getOrCreateValue(instruction.getUse(1), Type.INTEGER, block.getCFG().getMethod()).getVal();
 
 			IConditionalBranchInstruction.Operator operator = (IConditionalBranchInstruction.Operator) instruction.getOperator();
 			boolean result;
@@ -293,8 +295,8 @@ public class Interpreter {
 				i++;
 			}
 			System.out.println("Using pred no. " + i);
-			Integer op = (Integer) program.getOrCreateValue(instruction.getUse(i), Type.INTEGER, block.getCFG().getMethod()).getVal();
-			program.setValue(instruction.getDef(), op);
+			Integer op = (Integer) m.getOrCreateValue(instruction.getUse(i), Type.INTEGER, block.getCFG().getMethod()).getVal();
+			m.setValue(instruction.getDef(), op);
 		}
 
 		@Override public void visitPi(SSAPiInstruction instruction) {
@@ -316,7 +318,7 @@ public class Interpreter {
 		public void visitInvoke(SSAInvokeInstruction instruction) {
 
 			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
-				out.println(program.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal());
+				out.println(m.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal());
 			}
 		}
 

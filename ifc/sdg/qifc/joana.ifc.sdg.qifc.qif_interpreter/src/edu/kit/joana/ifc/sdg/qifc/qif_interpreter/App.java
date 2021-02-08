@@ -6,11 +6,15 @@ import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.JavacException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
@@ -66,13 +70,9 @@ public class App {
 		SimpleLogger.log("Starting compilation with javac");
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
-				String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s -classpath %s", jArgs.outputDirectory, programPath, jarPath);
-				Process compilation = Runtime.getRuntime().exec(cmd);
-				int exitCode = compilation.waitFor();
-				// if (exitCode != 0) { throw new IOException("Error: Couldn't compile input program"); }
-			} catch (IOException | InterruptedException e) {
-				e.printStackTrace();
-				System.exit(1);
+				compile(jArgs.outputDirectory, programPath, jarPath);
+			} catch (IOException | InterruptedException | JavacException e) {
+				ErrorHandler.fatal(e);
 			}
 			classFilePath = jArgs.outputDirectory + "/" + FilenameUtils.getBaseName(programPath) + CLASS_FILE_EXT;
 		} else {
@@ -114,6 +114,26 @@ public class App {
 
 		if (!jArgs.onlyStatic) {
 			// run the program
+		}
+	}
+
+	private static void compile(String outputDirectory, String programPath, String jarPath)
+			throws IOException, InterruptedException, JavacException {
+		String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s -classpath %s", outputDirectory, programPath, jarPath);
+		Process compilation = Runtime.getRuntime().exec(cmd);
+
+		InputStreamReader isr = new InputStreamReader(compilation.getErrorStream());
+		BufferedReader rdr = new BufferedReader(isr);
+		String line;
+		StringBuilder sb = new StringBuilder();
+		while((line = rdr.readLine()) != null) {
+			sb.append(line);
+		}
+
+		int exitCode = compilation.waitFor();
+
+		if (exitCode != 0) {
+			throw new JavacException(sb.toString());
 		}
 	}
 

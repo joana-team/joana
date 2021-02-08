@@ -9,6 +9,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,12 +95,25 @@ public class BBlock {
 		isCondHeader = condHeader;
 	}
 
+	public boolean isExitBlock() {
+		return walaBBlock.isExitBlock();
+	}
+
 	public SSACFG.BasicBlock getWalaBasicBLock() {
 		return repMap.inverse().get(this);
 	}
 
 	public static BBlock bBlock(SSACFG.BasicBlock walaBBlock) {
 		return repMap.get(walaBBlock);
+	}
+
+	public static BBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
+		SSACFG.BasicBlock walaBlock = g.getWalaCFG().getBlockForInstruction(i.iindex);
+		return repMap.values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
+	}
+
+	private boolean hasInstruction(SSAInstruction i) {
+		return this.walaBBlock.getAllInstructions().contains(i);
 	}
 
 	public void print() {
@@ -115,11 +129,19 @@ public class BBlock {
 			System.out.println("Part of Loop");
 		}
 		for(SSAInstruction i: instructions) {
-			System.out.println(i.toString());
+			System.out.println(i.iindex + " -- " + i.toString());
 		}
 	}
 
 	public CFG getCFG() {
 		return this.g;
+	}
+
+	public int idx() {
+		return this.walaBBlock.getNumber();
+	}
+
+	public static BBlock getBlockForIdx(int idx) {
+		return repMap.get(repMap.keySet().stream().filter(b -> b.getNumber() == idx).findFirst().get());
 	}
 }

@@ -1,13 +1,18 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
+import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 
+import javax.swing.plaf.basic.BasicBorders;
 import java.io.PrintStream;
+import java.util.Iterator;
 import java.util.List;
 
 public class Interpreter {
@@ -24,15 +29,41 @@ public class Interpreter {
 		this(p, System.out);
 	}
 
-	public boolean execute(List<String> args) throws ParameterException {
 
-		if(!applyArgs(args, program, program.getEntryMethod())) {
-			throw new ParameterException("Wrong input parameter for function.");
+	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException {
+
+		if (!applyArgs(args, program, program.getEntryMethod())) {
+			throw new ParameterException("Wrong input parameter for program.");
 		}
 
 		ExecutionVisitor ev = new ExecutionVisitor();
-		ev.executeFrom(program.getEntryMethod().getCFG().entry());
+		int returnValue = executeMethod(program.getEntryMethod(), args);
+
 		return true;
+	}
+
+	/**
+	 * @param m the method to execute
+	 * @param args input parameters for the method
+	 * @return the value number of the return value or -1 if method is void
+	 * @throws OutOfScopeException if the method cintains an instruction that is not implemented for this interpreter
+	 */
+	public int executeMethod(Method m, List<String> args) throws OutOfScopeException {
+		ExecutionVisitor ev = new ExecutionVisitor();
+
+		int prevBlock = -1;
+		int currentBlock = program.getEntryMethod().getCFG().entry().idx();
+		System.out.println("Executing  block: " + program.getEntryMethod().getCFG().entry().idx());
+		int nextBlock = ev.executeBlock(program.getEntryMethod().getCFG().entry(), prevBlock);
+
+		while (nextBlock != -1) {
+			prevBlock = currentBlock;
+			currentBlock = nextBlock;
+			BBlock next = BBlock.getBlockForIdx(nextBlock);
+			System.out.println("Executing  block: " + next.idx() + " -- Coming from: " + prevBlock);
+			nextBlock = ev.executeBlock(next, prevBlock);
+		}
+		return ev.returnValue;
 	}
 
 	public boolean applyArgs(List<String> args, Program p, Method m) {
@@ -66,29 +97,68 @@ public class Interpreter {
 		return true;
 	}
 
-	public class ExecutionVisitor extends SSAInstruction.Visitor {
+	public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
 		private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
-		int currBlockIdx;
-		int prevBlockIdx;
-		BBlock block;
+		private BBlock block;
+		private int currBlockIdx;
+		private int prevBlockIdx;
+		private int nextBlockIdx;
 
-		public void executeFrom(BBlock start) {
-			currBlockIdx = start.getWalaBasicBLock().getNumber();
+		private boolean containsOutOfScopeInstruction;
+		private SSAInstruction outOfScopeInstruction;
+
+		private int returnValue = -1;
+
+		/**
+		 * executes a single basic block and returns the index of tha basic block to be executed next. If the return value is -1, the program is terminated
+		 * @param start the basic block to execute
+		 * @param prevBlockIdx the idx of the basic block that was previously executed (needed to  correctly evaluate phis). If it is the first block of a program to be executed, this value should be -1
+		 * @return the index of the next block to be executed or -1 if the execution is finished
+		 */
+		public int executeBlock(BBlock start, int prevBlockIdx) throws OutOfScopeException {
+			if (start.isExitBlock()) {
+				return -1;
+			}
+
 			block = start;
-			for(SSAInstruction i: start.instructions()) {
+			this.currBlockIdx = start.getWalaBasicBLock().getNumber();
+			this.prevBlockIdx = prevBlockIdx;
+			this.nextBlockIdx = -1;
+
+			start.getWalaBasicBLock().iteratePhis().forEachRemaining(this::visitPhi);
+
+			for (SSAInstruction i: start.instructions()) {
 				i.visit(this);
 			}
 
-			if (!block.isCondHeader() && !block.isLoopHeader() &&!start.succs().isEmpty()) {
-				prevBlockIdx = currBlockIdx;
-				executeFrom(start.succs().get(0));
+			if (containsOutOfScopeInstruction) {
+				throw new OutOfScopeException(outOfScopeInstruction);
+			}
+
+			if (nextBlockIdx != -1) {
+				// idx of the next block has already been set by a conditional / jump instruction. We can directly return it
+				return nextBlockIdx;
+			} else {
+				// no control flow relevant instruction has been executed, so we simply continue w/ the next basic block.
+				// we can be sure it exists because {@code} start is not the exit block
+				List<ISSABasicBlock> normalSuccs = Util.asList(start.getCFG().getWalaCFG().getNormalSuccessors(start.getWalaBasicBLock()));
+				assert(normalSuccs.size() == 1);
+				return normalSuccs.get(0).getNumber();
 			}
 		}
 
 		@Override public void visitGoto(SSAGotoInstruction instruction) {
+			nextBlockIdx = block.getCFG().getMethod().getBlockStartingAt(instruction.getTarget()).idx();
+		}
 
+		@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+		}
+
+		@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
+			containsOutOfScopeInstruction = true;
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
@@ -143,24 +213,103 @@ public class Interpreter {
 			}
 		}
 
-		@Override public void visitComparison(SSAComparisonInstruction instruction) {
+		@Override public void visitConversion(SSAConversionInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+		}
 
+		@Override public void visitComparison(SSAComparisonInstruction instruction) {
+			containsOutOfScopeInstruction = true;
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
+			Integer op1 = (Integer) program.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal();
+			Integer op2 = (Integer) program.getOrCreateValue(instruction.getUse(1), Type.INTEGER, block.getCFG().getMethod()).getVal();
 
+			IConditionalBranchInstruction.Operator operator = (IConditionalBranchInstruction.Operator) instruction.getOperator();
+			boolean result;
+
+			switch (operator) {
+			case EQ:
+				result = op1.equals(op2);
+				break;
+			case NE:
+				result = !op1.equals(op2);
+				break;
+			case LT:
+				result = op1 < op2;
+				break;
+			case GE:
+				result = op1 >= op2;
+				break;
+			case GT:
+				result = op1 > op2;
+				break;
+			case LE:
+				result = op1 <= op2;
+				break;
+			default:
+				throw new IllegalStateException("Unexpected value: " + operator);
+			}
+
+			List<ISSABasicBlock> succs = Util.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBLock()));
+			assert(succs.size() == 2);
+
+
+			BBlock trueTargetBlock = block.getCFG().getMethod().getBlockStartingAt(instruction.getTarget());
+			succs.removeIf(b -> b.getNumber() == trueTargetBlock.idx());
+			assert(succs.size() == 1);
+
+			nextBlockIdx = (result) ? trueTargetBlock.idx() : succs.get(0).getNumber();
+		}
+
+		@Override public void visitSwitch(SSASwitchInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
 		}
 
 		@Override public void visitReturn(SSAReturnInstruction instruction) {
+			this.returnValue = instruction.getResult();
+		}
 
+		@Override public void visitGet(SSAGetInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitPut(SSAPutInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
 		}
 
 		@Override public void visitPhi(SSAPhiInstruction instruction) {
+			Iterator<ISSABasicBlock> orderedPredsIter = block.getCFG().getWalaCFG().getPredNodes(block.getWalaBasicBLock());
 
+			int i = 0;
+			while(orderedPredsIter.hasNext()) {
+				int blockNum = orderedPredsIter.next().getNumber();
+				if (blockNum == prevBlockIdx) {
+					break;
+				}
+				i++;
+			}
+			System.out.println("Using pred no. " + i);
+			Integer op = (Integer) program.getOrCreateValue(instruction.getUse(i), Type.INTEGER, block.getCFG().getMethod()).getVal();
+			program.setValue(instruction.getDef(), op);
 		}
 
 		@Override public void visitPi(SSAPiInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
 
+		@Override public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
 		}
 
 		@Override
@@ -169,6 +318,36 @@ public class Interpreter {
 			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
 				out.println(program.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal());
 			}
+		}
+
+		@Override public void visitNew(SSANewInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitThrow(SSAThrowInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitMonitor(SSAMonitorInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitCheckCast(SSACheckCastInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
+		}
+
+		@Override public void visitInstanceof(SSAInstanceofInstruction instruction) {
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
 		}
 	}
 }

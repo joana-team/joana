@@ -28,6 +28,7 @@ class AppTest {
 		p.getEntryMethod().getCFG().print();
 
 		CFG g = p.getEntryMethod().getCFG();
+
 		assertEquals(1, g.getBlocks().stream().filter(BBlock::isLoopHeader).count());
 		assertTrue(g.getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get().getWalaBasicBLock().getLastInstruction().toString().contains("conditional branch"));
 	}

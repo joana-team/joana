@@ -2,14 +2,15 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -109,6 +110,36 @@ public class Method {
 			}
 		}
 		throw new IllegalStateException("No entrypoint method found");
+	}
+
+	/**
+	 * Doesn't work for Phi's !!!
+	 * @param idx
+	 * @return
+	 */
+	public SSAInstruction getInstructionByIdx(int idx) {
+		Optional<SSAInstruction> instruction;
+
+		Set<BBlock> blocks = this.getCFG().getBlocks();
+		for (BBlock bb: blocks) {
+			instruction = bb.getWalaBasicBLock().getAllInstructions().stream().filter(i -> i.iindex == idx).findAny();
+			if (instruction.isPresent()) {
+				return instruction.get();
+			}
+
+		}
+
+		throw new IllegalStateException("Error: Missing instruction. Looking for iindex " + idx);
+	}
+
+	public BBlock getBlockStartingAt(int idx) {
+		Optional<BBlock> block = this.getCFG().getBlocks().stream().filter(b -> b.getWalaBasicBLock().getFirstInstructionIndex() == idx).findAny();
+
+		if (!block.isPresent()) {
+			throw new IllegalStateException("Couldn't find block starting at index " + idx);
+		}
+
+		return block.get();
 	}
 
 	// ----------------------- getters and setters ------------------------------------------

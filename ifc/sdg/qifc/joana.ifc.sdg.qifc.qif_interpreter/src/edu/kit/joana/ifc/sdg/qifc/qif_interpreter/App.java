@@ -98,6 +98,7 @@ public class App {
 		}
 
 		Program p = builder.getProgram();
+
 		try {
 			StaticAnalysis sa = new StaticAnalysis(p);
 			sa.computeSATDeps();

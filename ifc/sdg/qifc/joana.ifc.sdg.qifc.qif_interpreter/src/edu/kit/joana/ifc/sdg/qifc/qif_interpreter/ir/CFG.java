@@ -66,4 +66,8 @@ public class CFG {
 	public BBlock entry() {
 		return BBlock.bBlock(m.getCFG().walaCFG.entry());
 	}
+
+	public SSACFG getWalaCFG() {
+		return walaCFG;
+	}
 }

@@ -5,10 +5,12 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
 
+import javax.xml.bind.ValidationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,7 +75,7 @@ public class Method {
 		return ir.getSymbolTable().isConstant(valueNum);
 	}
 
-	public int getIntConstant(int valNum) {
+	private int getIntConstant(int valNum) {
 		assert (ir.getSymbolTable().isIntegerConstant(valNum));
 		return (int) ir.getSymbolTable().getConstantValue(valNum);
 	}
@@ -142,7 +144,6 @@ public class Method {
 			}
 
 		}
-
 		throw new IllegalStateException("Error: Missing instruction. Looking for iindex " + idx);
 	}
 
@@ -156,19 +157,26 @@ public class Method {
 		return block.get();
 	}
 
-	public Value getOrCreateValue(int valNum, Type type, Method method) {
+	/**
+	 * Values should be accessed via this method only!
+	 * @param valNum value number of the wanted value
+	 * @param type expected type of the value
+	 * @return the required Value
+	 */
+	public Value getValueOrConstant(int valNum, Type type) throws MissingValueException {
 		if (!programValues.containsKey(valNum)) {
-			Value val = Value.createByType(valNum, type);
-
-			if (method.isConstant(valNum)) {
-				val.setVal(method.getIntConstant(valNum));
+			if (this.isConstant(valNum)) {
+				Value val = Value.createByType(valNum, type);
+				val.setVal(this.getIntConstant(valNum));
+				programValues.put(valNum, val);
+			} else {
+				throw new MissingValueException(valNum);
 			}
-			programValues.put(valNum, val);
 		}
 		return programValues.get(valNum);
 	}
 
-	public void createValue(int valNum, Value val) {
+	public void addValue(int valNum, Value val) {
 		programValues.put(valNum, val);
 	}
 
@@ -193,9 +201,9 @@ public class Method {
 
 	// TODO: needs overhaul if we add different types
 	// add type as argument and create value objects accordingly
-	public void setValue(int valNum, Object value) {
+	public void setValue(int valNum, Object value) throws MissingValueException {
 		if(!hasValue(valNum)) {
-			createValue(valNum, new Int(valNum));
+			throw new MissingValueException(valNum);
 		}
 		programValues.get(valNum).setVal(value);
 	}
@@ -230,7 +238,10 @@ public class Method {
 		return programValues;
 	}
 
-	public Value getValue(int valNum) {
-		return programValues.getOrDefault(valNum, null);
+	public Value getValue(int valNum) throws MissingValueException {
+		if (!programValues.containsKey(valNum)) {
+			throw new MissingValueException(valNum);
+		}
+		return programValues.get(valNum);
 	}
 }

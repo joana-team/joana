@@ -8,6 +8,8 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Int;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
@@ -142,7 +144,10 @@ public class StaticAnalysis {
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
 
 			// make sure Value object for def exists
-			entry.getOrCreateValue(def, Type.getResultType(operator, entry.type(op1ValNum), entry.type(op2ValNum)), entry);
+			if (!entry.hasValue(def)) {
+				Value defVal = Value.createByType(def, Type.getResultType(operator, entry.type(op1ValNum), entry.type(op2ValNum)));
+				entry.addValue(def, defVal);
+			}
 			Formula[] defForm = null;
 			switch (operator) {
 			case ADD:
@@ -185,7 +190,10 @@ public class StaticAnalysis {
 			IUnaryOpInstruction.Operator operator = (IUnaryOpInstruction.Operator) instruction.getOpcode();
 
 			// make sure Value object for def exists
-			entry.getOrCreateValue(def, Type.getResultType(operator, entry.type(opValNum)), entry);
+			if (!entry.hasValue(def)) {
+				Value defVal = Value.createByType(def, Type.getResultType(operator, entry.type(opValNum)));
+				entry.addValue(def, defVal);
+			}
 
 			if (operator == IUnaryOpInstruction.Operator.NEG) {
 				entry.setDepsForvalue(def, not(op));
@@ -283,8 +291,12 @@ public class StaticAnalysis {
 	}
 
 	private void createConstant(int op1) {
-		Int constant = Int.getOrCreateConstant(entry.getIntConstant(op1), asFormulaArray(entry.getIntConstant(op1)));
-		constant.setDeps(asFormulaArray(entry.getIntConstant(op1)));
-		entry.createValue(op1, constant);
+		Int constant = null;
+		try {
+			constant = (Int) entry.getValueOrConstant(op1, Type.INTEGER);
+		} catch (MissingValueException e) {
+			e.printStackTrace();
+		}
+		constant.setDeps(asFormulaArray((Integer) constant.getVal()));
 	}
 }

@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import org.junit.jupiter.api.Test;
@@ -20,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InterpreterTest {
 
-	@Test public void arithmeticTest() throws IOException, InterruptedException, ParameterException,
-			OutOfScopeException {
+	@Test public void arithmeticTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
 
 		Program p = TestUtils.build("SimpleArithmetic");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -35,7 +36,8 @@ class InterpreterTest {
 
 	}
 
-	@Test public void applyArgsTest() throws IOException, InterruptedException, ParameterException {
+	@Test public void applyArgsTest()
+			throws IOException, InterruptedException, ParameterException, MissingValueException {
 
 		Program p = TestUtils.build("OnlyArgs");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -52,8 +54,8 @@ class InterpreterTest {
 		assertEquals(0, argValues.get(3).getVal());
 	}
 
-	@Test public void simplePhiTestFalse() throws IOException, InterruptedException, ParameterException,
-			OutOfScopeException {
+	@Test public void simplePhiTestFalse()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
 
 		Program p = TestUtils.build("If2");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -69,8 +71,8 @@ class InterpreterTest {
 
 	}
 
-	@Test public void simplePhiTestTrue() throws IOException, InterruptedException, ParameterException,
-			OutOfScopeException {
+	@Test public void simplePhiTestTrue()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
 
 		Program p = TestUtils.build("If2");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

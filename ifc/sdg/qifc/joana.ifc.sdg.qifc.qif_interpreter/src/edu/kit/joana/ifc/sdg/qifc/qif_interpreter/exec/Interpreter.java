@@ -7,6 +7,7 @@ import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 
@@ -29,7 +30,7 @@ public class Interpreter {
 	}
 
 
-	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException {
+	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException, MissingValueException {
 
 		if (!applyArgs(args, program, program.getEntryMethod())) {
 			throw new ParameterException("Wrong input parameter for program.");
@@ -65,7 +66,7 @@ public class Interpreter {
 		return ev.returnValue;
 	}
 
-	public boolean applyArgs(List<String> args, Program p, Method m) {
+	public boolean applyArgs(List<String> args, Program p, Method m) throws MissingValueException {
 		if (!(m.getCg().getMethod().getNumberOfParameters() - 1 == args.size())) {
 			return false;
 		}
@@ -90,7 +91,7 @@ public class Interpreter {
 			}
 
 			int valNum = m.getIr().getParameter(paramNum);
-			Value param = m.getOrCreateValue(valNum, m.getParamType(paramNum), m);
+			Value param = m.getValueOrConstant(valNum, m.getParamType(paramNum));
 			param.setVal(paramVal);
 		}
 		return true;
@@ -164,13 +165,20 @@ public class Interpreter {
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			Integer op1 = (Integer) m.getOrCreateValue(instruction.getUse(0),
-					Type.INTEGER,
-					block.getCFG().getMethod()).getVal();
-			Integer op2 = (Integer) m.getOrCreateValue(instruction.getUse(1),
-					Type.INTEGER,
-					block.getCFG().getMethod()).getVal();
+			Integer op1 = null;
+			Integer op2 = null;
+			try {
+				op1 = (Integer) m.getValueOrConstant(instruction.getUse(0),
+						Type.INTEGER).getVal();
+				op2 = (Integer) m.getValueOrConstant(instruction.getUse(1),
+						Type.INTEGER).getVal();
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
+
+			assert(op1 != null);
+			assert(op2 != null);
 
 			int def;
 			switch (operator) {
@@ -201,17 +209,38 @@ public class Interpreter {
 			default:
 				throw new IllegalStateException("Unexpected value: " + operator);
 			}
-			m.setValue(instruction.getDef(), def);
+			if (!m.hasValue(instruction.getDef())) {
+				Value defVal = Value.createByType(instruction.getDef(), Type.getResultType(operator, m.type(instruction.getUse(0)), m.type(instruction.getUse(1))));
+				m.addValue(instruction.getDef(), defVal);
+			}
+			try {
+				m.setValue(instruction.getDef(), def);
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
-			int use = (Integer) m.getOrCreateValue(instruction.getUse(0),
-					Type.INTEGER,
-					block.getCFG().getMethod()).getVal();
+			int use = 0;
+			try {
+				use = (Integer) m.getValueOrConstant(instruction.getUse(0),
+						Type.INTEGER).getVal();
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
 			if (!instruction.getOpcode().equals(IUnaryOpInstruction.Operator.NEG)) {
-				throw new IllegalStateException("Unexpected value: " + IUnaryOpInstruction.Operator.NEG);
+				throw new IllegalStateException("Unexpected value: " + instruction.getOpcode());
 			} else {
-				m.setValue(instruction.getDef(), -use);
+				if (!m.hasValue(instruction.getDef())) {
+					Value defVal = Value.createByType(instruction.getDef(), Type.getResultType(
+							(IUnaryOpInstruction.Operator) instruction.getOpcode(), m.type(instruction.getUse(0))));
+					m.addValue(instruction.getDef(), defVal);
+				}
+				try {
+					m.setValue(instruction.getDef(), -use);
+				} catch (MissingValueException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
@@ -224,8 +253,16 @@ public class Interpreter {
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
-			Integer op1 = (Integer) m.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal();
-			Integer op2 = (Integer) m.getOrCreateValue(instruction.getUse(1), Type.INTEGER, block.getCFG().getMethod()).getVal();
+			Integer op1 = null;
+			Integer op2 = null;
+			try {
+				op1 = (Integer) m.getValueOrConstant(instruction.getUse(0),
+						Type.INTEGER).getVal();
+				op2 = (Integer) m.getValueOrConstant(instruction.getUse(1),
+						Type.INTEGER).getVal();
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
 
 			IConditionalBranchInstruction.Operator operator = (IConditionalBranchInstruction.Operator) instruction.getOperator();
 			boolean result;
@@ -294,9 +331,17 @@ public class Interpreter {
 				}
 				i++;
 			}
-			System.out.println("Using pred no. " + i);
-			Integer op = (Integer) m.getOrCreateValue(instruction.getUse(i), Type.INTEGER, block.getCFG().getMethod()).getVal();
-			m.setValue(instruction.getDef(), op);
+			Integer op = null;
+			try {
+				op = (Integer) m.getValueOrConstant(instruction.getUse(i), Type.INTEGER).getVal();
+				if (!m.hasValue(instruction.getDef())) {
+					Value defVal = Value.createByType(instruction.getDef(), m.getValue(instruction.getUse(i)).getType());
+					m.addValue(instruction.getDef(), defVal);
+				}
+				m.setValue(instruction.getDef(), op);
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override public void visitPi(SSAPiInstruction instruction) {
@@ -318,7 +363,11 @@ public class Interpreter {
 		public void visitInvoke(SSAInvokeInstruction instruction) {
 
 			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
-				out.println(m.getOrCreateValue(instruction.getUse(0), Type.INTEGER, block.getCFG().getMethod()).getVal());
+				try {
+					out.println(m.getValueOrConstant(instruction.getUse(0), Type.INTEGER).getVal());
+				} catch (MissingValueException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 

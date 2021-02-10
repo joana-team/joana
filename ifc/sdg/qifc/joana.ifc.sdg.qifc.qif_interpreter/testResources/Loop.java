@@ -13,6 +13,7 @@ public class Loop {
 		int l = 0;
 		while(h > 0) {
 			l++;
+			h--;
 		}
 		Out.print(l);
 		return l;

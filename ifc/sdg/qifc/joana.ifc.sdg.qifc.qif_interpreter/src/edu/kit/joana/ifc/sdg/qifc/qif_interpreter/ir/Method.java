@@ -28,6 +28,7 @@ public class Method {
 	private CGNode cg;
 	private CFG cfg;
 	private final Map<Integer, Value> programValues;
+	private int returnValue;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -208,6 +209,18 @@ public class Method {
 		programValues.get(valNum).setVal(value);
 	}
 
+	public boolean isVoid() {
+		return (returnValue == -1);
+	}
+
+	public Value getReturnValue() {
+		return programValues.get(returnValue);
+	}
+
+	public Type getReturnType() {
+		return programValues.get(returnValue).getType();
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -243,5 +256,10 @@ public class Method {
 			throw new MissingValueException(valNum);
 		}
 		return programValues.get(valNum);
+	}
+
+	public void setReturnValue(int valNum) {
+		assert(valNum == -1 || programValues.containsKey(valNum));
+		this.returnValue = valNum;
 	}
 }

@@ -37,7 +37,7 @@ public class Interpreter {
 		}
 
 		ExecutionVisitor ev = new ExecutionVisitor(program.getEntryMethod());
-		int returnValue = executeMethod(program.getEntryMethod(), args);
+		executeMethod(program.getEntryMethod(), args);
 
 		return true;
 	}
@@ -45,25 +45,22 @@ public class Interpreter {
 	/**
 	 * @param m the method to execute
 	 * @param args input parameters for the method
-	 * @return the value number of the return value or -1 if method is void
-	 * @throws OutOfScopeException if the method cintains an instruction that is not implemented for this interpreter
+	 * @throws OutOfScopeException if the method contains an instruction that is not implemented for this interpreter
 	 */
-	public int executeMethod(Method m, List<String> args) throws OutOfScopeException {
+	public void executeMethod(Method m, List<String> args) throws OutOfScopeException {
 		ExecutionVisitor ev = new ExecutionVisitor(m);
 
 		int prevBlock = -1;
 		int currentBlock = program.getEntryMethod().getCFG().entry().idx();
-		System.out.println("Executing  block: " + program.getEntryMethod().getCFG().entry().idx());
 		int nextBlock = ev.executeBlock(program.getEntryMethod().getCFG().entry(), prevBlock);
 
 		while (nextBlock != -1) {
 			prevBlock = currentBlock;
 			currentBlock = nextBlock;
 			BBlock next = BBlock.getBlockForIdx(nextBlock);
-			System.out.println("Executing  block: " + next.idx() + " -- Coming from: " + prevBlock);
 			nextBlock = ev.executeBlock(next, prevBlock);
 		}
-		return ev.returnValue;
+		m.setReturnValue(ev.returnValue);
 	}
 
 	public boolean applyArgs(List<String> args, Program p, Method m) throws MissingValueException {

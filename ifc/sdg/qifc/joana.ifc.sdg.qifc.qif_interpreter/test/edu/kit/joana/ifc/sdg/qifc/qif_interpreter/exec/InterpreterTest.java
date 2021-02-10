@@ -86,4 +86,19 @@ class InterpreterTest {
 
 	}
 
+	@Test public void loopTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("Loop");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("3");
+
+		i.execute(args);
+		assertEquals("3\n", baos.toString());
+
+	}
+
 }

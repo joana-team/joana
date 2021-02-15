@@ -5,9 +5,12 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.JavacException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
 import org.apache.commons.io.FilenameUtils;
 
@@ -18,6 +21,7 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -99,10 +103,26 @@ public class App {
 
 		Program p = builder.getProgram();
 
+		/*
 		try {
 			StaticAnalysis sa = new StaticAnalysis(p);
 			sa.computeSATDeps();
 		} catch (InvalidClassFileException e) {
+			e.printStackTrace();
+		}
+		*/
+
+
+		try {
+			Interpreter interpreter = new Interpreter(p);
+			StaticAnalysis sa = new StaticAnalysis(p);
+			interpreter.execute(jArgs.args);
+			sa.computeSATDeps();
+
+			System.out.println("------- Program values -------");
+			p.getEntryMethod().getProgramValues().values().forEach(v -> System.out.println(v.toString()));
+
+		} catch (InvalidClassFileException | edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException | MissingValueException | OutOfScopeException e) {
 			e.printStackTrace();
 		}
 

@@ -1,12 +1,22 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -140,6 +150,14 @@ class StaticAnalysisTest {
 		assertArrayEquals(twoF, sv.neg(minusTwoF));
 		assertArrayEquals(minusTwoF, sv.neg(twoF));
 		assertArrayEquals(zeroF, sv.neg(zeroF));
+	}
+
+	@Test void piTest() throws IOException, InterruptedException, InvalidClassFileException {
+		Program p = TestUtils.build("If2");
+		StaticAnalysis sa = new StaticAnalysis(p);
+		
+		sa.computeSATDeps();
+
 	}
 
 }

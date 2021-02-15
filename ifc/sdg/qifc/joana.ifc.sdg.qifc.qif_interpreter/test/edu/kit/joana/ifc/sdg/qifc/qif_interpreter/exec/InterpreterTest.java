@@ -36,6 +36,36 @@ class InterpreterTest {
 
 	}
 
+	@Test public void andTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("And");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Arrays.asList("1", "2");
+
+		i.execute(args);
+		assertEquals("0\n", baos.toString());
+
+	}
+
+	@Test public void orTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("Or");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Arrays.asList("1", "2");
+
+		i.execute(args);
+		assertEquals("3\n", baos.toString());
+
+	}
+
 	@Test public void applyArgsTest()
 			throws IOException, InterruptedException, ParameterException, MissingValueException {
 
@@ -95,6 +125,7 @@ class InterpreterTest {
 		Interpreter i = new Interpreter(p, ps);
 
 		List<String> args = Collections.singletonList("3");
+		p.getEntryMethod().getCFG().print();
 
 		i.execute(args);
 		assertEquals("3\n", baos.toString());

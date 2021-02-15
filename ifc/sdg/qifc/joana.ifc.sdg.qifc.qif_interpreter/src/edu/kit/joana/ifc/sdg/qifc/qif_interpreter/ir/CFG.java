@@ -70,4 +70,14 @@ public class CFG {
 	public SSACFG getWalaCFG() {
 		return walaCFG;
 	}
+
+	/**
+	 * checks if the block b is dominated by the block w/ no. blockNumber
+	 * @param b
+	 * @param blockNumber
+	 * @return
+	 */
+	public boolean isDominatedBy(BBlock b, int blockNumber) {
+		return doms.dominators(b).stream().anyMatch(dom -> dom.idx() == blockNumber);
+	}
 }

@@ -10,7 +10,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
 
-import javax.xml.bind.ValidationException;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,6 +39,7 @@ public class Method {
 		m.sdgMethod = findEntryMethod(p).snd;
 		m.cfg = CFG.buildCFG(m);
 		m.createParamValues();
+		m.initConstants();
 
 		return m;
 	}
@@ -54,6 +55,26 @@ public class Method {
 			Type type = Type.from(this.getPdg().getParamType(i));
 			programValues.put(valNum, Value.createByType(valNum, type));
 		}
+	}
+
+	private void initConstants() {
+		for(BBlock current: this.getCFG().getBlocks()) {
+			for (SSAInstruction i: current.instructions()) {
+				for (int j = 0; j < i.getNumberOfUses(); j++) {
+					if (isConstant(i.getUse(j)) && !this.programValues.containsKey(i.getUse(j))) {
+						Type type = getConstType(i.getUse(j));
+						programValues.put(i.getUse(j), Value.createConstant(i.getUse(j), type, getConstantValue(i.getUse(j), type)));
+					}
+				}
+			}
+		}
+	}
+
+	private Object getConstantValue(int valNum, Type type) {
+		if (type == Type.INTEGER) {
+			return getIntConstant(valNum);
+		}
+		return null;
 	}
 
 	/**
@@ -72,6 +93,14 @@ public class Method {
 		}
 	}
 
+	public Type getConstType(int i) {
+		if (ir.getSymbolTable().isIntegerConstant(i)) {
+			return Type.INTEGER;
+		} else {
+			return Type.CUSTOM;
+		}
+	}
+
 	public boolean isConstant(int valueNum) {
 		return ir.getSymbolTable().isConstant(valueNum);
 	}
@@ -79,17 +108,6 @@ public class Method {
 	private int getIntConstant(int valNum) {
 		assert (ir.getSymbolTable().isIntegerConstant(valNum));
 		return (int) ir.getSymbolTable().getConstantValue(valNum);
-	}
-
-	// TODO: how do we find out what type a local variable is ????
-	// is the information already stored somewhere or do we have to keep track of it ourselves ???
-	public Type getType(int valueNum) {
-		if (ir.getSymbolTable().isConstant(valueNum)) {
-			if (ir.getSymbolTable().isIntegerConstant(valueNum)) {
-				return Type.INTEGER;
-			}
-		}
-		return null;
 	}
 
 	public static PDG findEntrypointPDG(Program p) {
@@ -129,25 +147,6 @@ public class Method {
 		throw new IllegalStateException("No entrypoint method found");
 	}
 
-	/**
-	 * Doesn't work for Phi's !!!
-	 * @param idx
-	 * @return
-	 */
-	public SSAInstruction getInstructionByIdx(int idx) {
-		Optional<SSAInstruction> instruction;
-
-		Set<BBlock> blocks = this.getCFG().getBlocks();
-		for (BBlock bb: blocks) {
-			instruction = bb.getWalaBasicBLock().getAllInstructions().stream().filter(i -> i.iindex == idx).findAny();
-			if (instruction.isPresent()) {
-				return instruction.get();
-			}
-
-		}
-		throw new IllegalStateException("Error: Missing instruction. Looking for iindex " + idx);
-	}
-
 	public BBlock getBlockStartingAt(int idx) {
 		Optional<BBlock> block = this.getCFG().getBlocks().stream().filter(b -> b.getWalaBasicBLock().getFirstInstructionIndex() == idx).findAny();
 
@@ -156,25 +155,6 @@ public class Method {
 		}
 
 		return block.get();
-	}
-
-	/**
-	 * Values should be accessed via this method only!
-	 * @param valNum value number of the wanted value
-	 * @param type expected type of the value
-	 * @return the required Value
-	 */
-	public Value getValueOrConstant(int valNum, Type type) throws MissingValueException {
-		if (!programValues.containsKey(valNum)) {
-			if (this.isConstant(valNum)) {
-				Value val = Value.createByType(valNum, type);
-				val.setVal(this.getIntConstant(valNum));
-				programValues.put(valNum, val);
-			} else {
-				throw new MissingValueException(valNum);
-			}
-		}
-		return programValues.get(valNum);
 	}
 
 	public void addValue(int valNum, Value val) {
@@ -213,14 +193,6 @@ public class Method {
 		return (returnValue == -1);
 	}
 
-	public Value getReturnValue() {
-		return programValues.get(returnValue);
-	}
-
-	public Type getReturnType() {
-		return programValues.get(returnValue).getType();
-	}
-
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -231,16 +203,8 @@ public class Method {
 		return cg;
 	}
 
-	public SDGMethod getSdgMethod() {
-		return sdgMethod;
-	}
-
 	public PDG getPdg() {
 		return pdg;
-	}
-
-	public Program getProg() {
-		return prog;
 	}
 
 	public CFG getCFG() {
@@ -251,11 +215,8 @@ public class Method {
 		return programValues;
 	}
 
-	public Value getValue(int valNum) throws MissingValueException {
-		if (!programValues.containsKey(valNum)) {
-			throw new MissingValueException(valNum);
-		}
-		return programValues.get(valNum);
+	public  Value getValue(int valNum) {
+		return programValues.getOrDefault(valNum, null);
 	}
 
 	public void setReturnValue(int valNum) {

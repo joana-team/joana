@@ -12,6 +12,6 @@ public class OnlyArgs {
 	public int f(int h1, int h2) {
 		Out.print(h1); // 2
 		Out.print(h2); // 1
-		return 0;
+		return h1;
 	}
 }

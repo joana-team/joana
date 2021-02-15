@@ -1,27 +1,35 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
+import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.*;
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
+
+import java.util.Stack;
+import java.util.stream.IntStream;
 
 public class StaticAnalysis {
 
 	private final Program program;
 	private final Method entry;
 	private final FormulaFactory f;
+	private final Stack<Pair<Formula, Integer>> condHeads;
 
 	public StaticAnalysis(Program program) throws InvalidClassFileException {
 		this.program = program;
 		this.entry = program.getEntryMethod();
 		this.f = new FormulaFactory();
+		this.condHeads = new Stack<>();
 	}
 
 	/*
@@ -31,6 +39,7 @@ public class StaticAnalysis {
 		this.program = null;
 		this.entry = null;
 		this.f = ff;
+		this.condHeads = new Stack<>();
 	}
 
 	private Formula[] createVars(int valNum, Type type) {
@@ -115,14 +124,50 @@ public class StaticAnalysis {
 		for (int i = 1; i < params.length; i++) {
 			entry.setDepsForvalue(params[i], createVars(params[i], entry.getParamType(i)));
 		}
+
+		// initialize formula arrays for all constant values
+		entry.getProgramValues().values().stream().filter(Value::isConstant).forEach(c -> {
+			try {
+				c.setDeps(asFormulaArray(binaryRep(c.getVal(), c.getType())));
+			} catch (UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
+		});
+
+		SATVisitor sv = new SATVisitor();
+
+		for (BBlock bBlock: program.getEntryMethod().getCFG().getBlocks()) {
+			try {
+				sv.visitBlock(program.getEntryMethod(), bBlock, -1);
+			} catch (OutOfScopeException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private char[] binaryRep(Object val, Type type) throws UnexpectedTypeException {
+		if (type == Type.INTEGER) {
+			return twosComplement((Integer) val, Type.INTEGER.bitwidth());
+		} else {
+			throw new UnexpectedTypeException(type);
+		}
 	}
 
 	public class SATVisitor implements SSAInstruction.IVisitor {
+		private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
 		private boolean containsOutOfScopeInstruction;
 		private SSAInstruction outOfScopeInstruction;
+		private BBlock block;
+		private Method m;
 
 		public void visitBlock(Method m, BBlock b, int prevBlock) throws OutOfScopeException {
+			this.block = b;
+			this.m = m;
+
+			for (SSAInstruction i: b.getWalaBasicBLock().getAllInstructions()) {
+				i.visit(this);
+			}
 
 			if (containsOutOfScopeInstruction) {
 				throw new OutOfScopeException(outOfScopeInstruction);
@@ -158,8 +203,58 @@ public class StaticAnalysis {
 
 		@Override
 		public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
-			containsOutOfScopeInstruction = true;
-			outOfScopeInstruction = instruction;
+			int op1ValNum = instruction.getUse(0);
+			int op2ValNum = instruction.getUse(1);
+
+			assert program != null;
+			if (entry.getValue(op1ValNum).getDeps() == null) {
+				// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
+				createConstant(op1ValNum);
+			}
+			Formula[] op1 = entry.getDepsForValue(op1ValNum);
+
+			if (entry.getValue(op2ValNum).getDeps() == null) {
+				createConstant(op2ValNum);
+			}
+			Formula[] op2 = entry.getDepsForValue(op2ValNum);
+
+			IConditionalBranchInstruction.Operator operator = (IConditionalBranchInstruction.Operator) instruction.getOperator();
+
+			Formula defForm;
+			Formula[] diff = sub(op1, op2);
+
+			switch (operator) {
+			case EQ:
+				defForm = equalsZero(diff);
+				break;
+			case NE:
+				defForm = f.not(equalsZero(diff));
+				break;
+			case LT:
+				defForm = f.equivalence(f.constant(true), diff[0]);
+				break;
+			case GE:
+				defForm = f.equivalence(f.constant(false), diff[0]);
+				break;
+			case GT:
+				defForm = f.and(f.not(equalsZero(diff)), f.equivalence(f.constant(false), diff[0]));
+				break;
+			case LE:
+				defForm = f.or(equalsZero(diff), f.equivalence(f.constant(true), diff[0]));
+				break;
+			default:
+				throw new IllegalStateException("Unexpected value: " + operator);
+			}
+			condHeads.push(Pair.make(defForm, block.idx()));
+		}
+
+		private Formula equalsZero(Formula[] diff) {
+
+			Formula res = f.equivalence(f.constant(false), diff[0]);
+			for (int i = 1; i < diff.length; i++) {
+				res = f.and(f.equivalence(f.constant(false), diff[i]));
+			}
+			return res;
 		}
 
 		@Override public void visitSwitch(SSASwitchInstruction instruction) {
@@ -169,8 +264,7 @@ public class StaticAnalysis {
 
 		@Override
 		public void visitReturn(SSAReturnInstruction instruction) {
-			containsOutOfScopeInstruction = true;
-			outOfScopeInstruction = instruction;
+			// do nothing
 		}
 
 		@Override public void visitGet(SSAGetInstruction instruction) {
@@ -184,8 +278,9 @@ public class StaticAnalysis {
 		}
 
 		@Override public void visitInvoke(SSAInvokeInstruction instruction) {
-			containsOutOfScopeInstruction = true;
-			outOfScopeInstruction = instruction;
+			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
+				m.getValue(instruction.getUse(0)).leak();
+			}
 		}
 
 		@Override public void visitNew(SSANewInstruction instruction) {
@@ -245,13 +340,13 @@ public class StaticAnalysis {
 			int op2ValNum = instruction.getUse(1);
 
 			assert program != null;
-			if (!entry.hasValue(op1ValNum)) {
+			if (entry.getValue(op1ValNum).getDeps() == null) {
 				// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
 				createConstant(op1ValNum);
 			}
 			Formula[] op1 = entry.getDepsForValue(op1ValNum);
 
-			if (!entry.hasValue(op2ValNum)) {
+			if (entry.getValue(op2ValNum).getDeps() == null) {
 				createConstant(op2ValNum);
 			}
 			Formula[] op2 = entry.getDepsForValue(op2ValNum);
@@ -318,7 +413,8 @@ public class StaticAnalysis {
 		}
 
 		@Override public void visitConversion(SSAConversionInstruction instruction) {
-
+			containsOutOfScopeInstruction = true;
+			outOfScopeInstruction = instruction;
 		}
 
 		// create formula for bitwise or of op1 and op2 and assign to def
@@ -416,12 +512,8 @@ public class StaticAnalysis {
 	}
 
 	private void createConstant(int op1) {
-		Int constant = null;
-		try {
-			constant = (Int) entry.getValueOrConstant(op1, Type.INTEGER);
-		} catch (MissingValueException e) {
-			e.printStackTrace();
-		}
+		Int constant = (Int) entry.getValue(op1);
+		assert constant != null;
 		constant.setDeps(asFormulaArray(twosComplement((Integer) constant.getVal(), constant.getWidth())));
 	}
 }

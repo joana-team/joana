@@ -25,12 +25,14 @@ public class Interpreter {
 		this.out = out;
 	}
 
-	public Interpreter(Program p, List<String> args) {
+	public Interpreter(Program p) {
 		this(p, System.out);
 	}
 
 
 	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException, MissingValueException {
+
+		System.out.println("----------- Starting program execution -----------");
 
 		if (!applyArgs(args, program, program.getEntryMethod())) {
 			throw new ParameterException("Wrong input parameter for program.");
@@ -88,7 +90,7 @@ public class Interpreter {
 			}
 
 			int valNum = m.getIr().getParameter(paramNum);
-			Value param = m.getValueOrConstant(valNum, m.getParamType(paramNum));
+			Value param = m.getValue(valNum);
 			param.setVal(paramVal);
 		}
 		return true;
@@ -162,22 +164,16 @@ public class Interpreter {
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			Integer op1 = null;
-			Integer op2 = null;
-			try {
-				op1 = (Integer) m.getValueOrConstant(instruction.getUse(0),
-						Type.INTEGER).getVal();
-				op2 = (Integer) m.getValueOrConstant(instruction.getUse(1),
-						Type.INTEGER).getVal();
-			} catch (MissingValueException e) {
-				e.printStackTrace();
-			}
+			Value[] operands = getUses(instruction);
+			Integer op1 = (Integer) operands[0].getVal();
+			Integer op2 = (Integer) operands[1].getVal();
+
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
 
 			assert(op1 != null);
 			assert(op2 != null);
 
-			int def;
+			Object def;
 			switch (operator) {
 			case ADD:
 				def = op1 + op2;
@@ -206,38 +202,15 @@ public class Interpreter {
 			default:
 				throw new IllegalStateException("Unexpected value: " + operator);
 			}
-			if (!m.hasValue(instruction.getDef())) {
-				Value defVal = Value.createByType(instruction.getDef(), Type.getResultType(operator, m.type(instruction.getUse(0)), m.type(instruction.getUse(1))));
-				m.addValue(instruction.getDef(), defVal);
-			}
-			try {
-				m.setValue(instruction.getDef(), def);
-			} catch (MissingValueException e) {
-				e.printStackTrace();
-			}
+			setDefValue(instruction, Type.getResultType(operator, operands[0].getType(), operands[1].getType()), def);
 		}
 
 		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
-			int use = 0;
-			try {
-				use = (Integer) m.getValueOrConstant(instruction.getUse(0),
-						Type.INTEGER).getVal();
-			} catch (MissingValueException e) {
-				e.printStackTrace();
-			}
+			int use = (Integer) getUses(instruction)[0].getVal();
 			if (!instruction.getOpcode().equals(IUnaryOpInstruction.Operator.NEG)) {
 				throw new IllegalStateException("Unexpected value: " + instruction.getOpcode());
 			} else {
-				if (!m.hasValue(instruction.getDef())) {
-					Value defVal = Value.createByType(instruction.getDef(), Type.getResultType(
-							(IUnaryOpInstruction.Operator) instruction.getOpcode(), m.type(instruction.getUse(0))));
-					m.addValue(instruction.getDef(), defVal);
-				}
-				try {
-					m.setValue(instruction.getDef(), -use);
-				} catch (MissingValueException e) {
-					e.printStackTrace();
-				}
+				setDefValue(instruction, getUses(instruction)[0].getType(), -use);
 			}
 		}
 
@@ -250,16 +223,9 @@ public class Interpreter {
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
-			Integer op1 = null;
-			Integer op2 = null;
-			try {
-				op1 = (Integer) m.getValueOrConstant(instruction.getUse(0),
-						Type.INTEGER).getVal();
-				op2 = (Integer) m.getValueOrConstant(instruction.getUse(1),
-						Type.INTEGER).getVal();
-			} catch (MissingValueException e) {
-				e.printStackTrace();
-			}
+			Value[] operands = getUses(instruction);
+			Integer op1 = (Integer) operands[0].getVal();
+			Integer op2 = (Integer) operands[1].getVal();
 
 			IConditionalBranchInstruction.Operator operator = (IConditionalBranchInstruction.Operator) instruction.getOperator();
 			boolean result;
@@ -328,17 +294,8 @@ public class Interpreter {
 				}
 				i++;
 			}
-			Integer op = null;
-			try {
-				op = (Integer) m.getValueOrConstant(instruction.getUse(i), Type.INTEGER).getVal();
-				if (!m.hasValue(instruction.getDef())) {
-					Value defVal = Value.createByType(instruction.getDef(), m.getValue(instruction.getUse(i)).getType());
-					m.addValue(instruction.getDef(), defVal);
-				}
-				m.setValue(instruction.getDef(), op);
-			} catch (MissingValueException e) {
-				e.printStackTrace();
-			}
+			Object op = getUses(instruction)[i].getVal();
+			setDefValue(instruction, getUses(instruction)[i].getType(), op);
 		}
 
 		@Override public void visitPi(SSAPiInstruction instruction) {
@@ -360,11 +317,7 @@ public class Interpreter {
 		public void visitInvoke(SSAInvokeInstruction instruction) {
 
 			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
-				try {
-					out.println(m.getValueOrConstant(instruction.getUse(0), Type.INTEGER).getVal());
-				} catch (MissingValueException e) {
-					e.printStackTrace();
-				}
+					out.println(getUses(instruction)[0].getVal());
 			}
 		}
 
@@ -397,5 +350,26 @@ public class Interpreter {
 			containsOutOfScopeInstruction = true;
 			outOfScopeInstruction = instruction;
 		}
+
+		private Value[] getUses(SSAInstruction i) {
+			Value[] vals = new Value[i.getNumberOfUses()];
+			for (int j = 0; j < i.getNumberOfUses(); j++) {
+				vals[j] = m.getValue(i.getUse(j));
+			}
+			return vals;
+		}
+
+		private void setDefValue(SSAInstruction i, Type type, Object def) {
+			if (!m.hasValue(i.getDef())) {
+				Value defVal = Value.createByType(i.getDef(), type);
+				m.addValue(i.getDef(), defVal);
+			}
+			try {
+				m.setValue(i.getDef(), def);
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 }

@@ -6,7 +6,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.CFG;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.IBBlockVisitor;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,7 +38,7 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 	}
 
 	@Override public void visitStartNode(BBlock node) {
-
+		// nothing to do
 	}
 
 	@Override public void visitStandardNode(BBlock node) {

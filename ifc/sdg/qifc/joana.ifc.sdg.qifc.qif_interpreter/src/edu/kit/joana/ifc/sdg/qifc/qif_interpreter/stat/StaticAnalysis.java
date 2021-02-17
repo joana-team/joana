@@ -13,6 +13,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeExceptio
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
+import picocli.CommandLine;
 
 import java.util.List;
 
@@ -240,12 +241,7 @@ public class StaticAnalysis {
 			default:
 				throw new IllegalStateException("Unexpected value: " + operator);
 			}
-
-			List<ISSABasicBlock> succs = Util.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBLock()));
-			assert(succs.size() == 2);
-
-			int trueIdx = instruction.getTarget();
-			int falseIdx = succs.stream().filter(b -> b.getNumber() != instruction.getTarget()).findFirst().get().getNumber();
+			block.setCondExpr(defForm);
 		}
 
 		private Formula equalsZero(Formula[] diff) {
@@ -313,10 +309,22 @@ public class StaticAnalysis {
 			outOfScopeInstruction = instruction;
 		}
 
+		/**
+		 * Use fresh variables for the defined value, bc depending on the program, the values that this instruction depends on may not have been evaluated yet
+		 * Remember to add equality constraints later on!
+		 * @param instruction a phi instruction
+		 */
 		@Override
 		public void visitPhi(SSAPhiInstruction instruction) {
-			containsOutOfScopeInstruction = true;
-			outOfScopeInstruction = instruction;
+			Value defVal;
+			if (!m.hasValue(instruction.getDef())) {
+				defVal = Value.createByType(instruction.getDef(), m.getValue(instruction.getUse(0)).getType());
+				m.addValue(instruction.getDef(), defVal);
+			} else {
+				defVal = m.getValue(instruction.getDef());
+			}
+			assert defVal != null;
+			m.setDepsForvalue(instruction.getDef(), createVars(defVal.getValNum(), defVal.getType()));
 		}
 
 		@Override

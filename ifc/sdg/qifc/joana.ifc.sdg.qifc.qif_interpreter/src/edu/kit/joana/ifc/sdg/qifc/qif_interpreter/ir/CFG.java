@@ -4,8 +4,8 @@ import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.dominators.Dominators;
 
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * wrapper class for Wala CFG w/ some utility functions
@@ -14,7 +14,7 @@ public class CFG implements Graph<BBlock> {
 
 	private final Method m;
 	private final SSACFG walaCFG;
-	private Set<BBlock> blocks;
+	private final List<BBlock> blocks;
 	private final BBlock entry;
 	private Dominators<BBlock> walaDoms;
 	private edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<BBlock> nildumuDoms;
@@ -22,13 +22,17 @@ public class CFG implements Graph<BBlock> {
 	private CFG(Method m) {
 		this.m = m;
 		this.entry = new BBlock(m.getIr().getControlFlowGraph().entry(), this);
+		this.blocks = new ArrayList<>();
+		this.blocks.add(entry);
 		this.walaCFG = m.getIr().getControlFlowGraph();
 	}
 
 	public static CFG buildCFG(Method m) {
 		CFG cfg = new CFG(m);
-		cfg.entry.findSuccessorsRec(cfg.walaCFG);
-		cfg.blocks = BBlock.allBlocks();
+		cfg.entry.findSuccessorsRec(cfg);
+
+		// sorting these makes testing and debugging easier. However it should not be assumed that this list is sorted in the interpreter itself
+		cfg.blocks.sort(Comparator.comparingInt(BBlock::idx));
 
 		// loop and conditionals info
 		cfg.walaDoms = Dominators.make(cfg, cfg.entry);
@@ -45,7 +49,25 @@ public class CFG implements Graph<BBlock> {
 				}
 			}
 		}
+
+		cfg.addDummyBlocks();
 		return cfg;
+	}
+
+	private void addDummyBlocks() {
+		List<BBlock> decisionNodes = this.blocks.stream().filter(BBlock::splitsControlFlow).collect(Collectors.toList());
+		for (BBlock b: decisionNodes) {
+			List<BBlock> newSuccs = new ArrayList<>();
+			for (BBlock succ: b.succs()) {
+				BBlock newDummy = BBlock.createDummy(this);
+				if (succ.isPartOfLoop()) { newDummy.setPartOfLoop(true); }
+				this.addNode(newDummy);
+				this.addEdge(newDummy, succ);
+				newSuccs.add(newDummy);
+			}
+			this.removeOutgoingEdges(b);
+			newSuccs.forEach(d -> this.addEdge(b, d));
+		}
 	}
 
 	public void print() {
@@ -53,13 +75,13 @@ public class CFG implements Graph<BBlock> {
 			b.print();
 			StringBuilder succs = new StringBuilder("Successors: ");
 			for(BBlock s: b.succs()) {
-				succs.append(s.getWalaBasicBLock().toString()).append(" ");
+				succs.append(s.idx()).append(" ");
 			}
 			System.out.println(succs.toString());
 		}
 	}
 
-	public Set<BBlock> getBlocks() {
+	public List<BBlock> getBlocks() {
 		return blocks;
 	}
 

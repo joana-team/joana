@@ -5,31 +5,27 @@ import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.*;
-import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
-import java.util.Stack;
-import java.util.stream.IntStream;
+import java.util.List;
 
 public class StaticAnalysis {
 
 	private final Program program;
 	private final Method entry;
 	private final FormulaFactory f;
-	private final Stack<Pair<Formula, Integer>> condHeads;
 
 	public StaticAnalysis(Program program) throws InvalidClassFileException {
 		this.program = program;
 		this.entry = program.getEntryMethod();
 		this.f = new FormulaFactory();
-		this.condHeads = new Stack<>();
 	}
 
 	/*
@@ -39,7 +35,6 @@ public class StaticAnalysis {
 		this.program = null;
 		this.entry = null;
 		this.f = ff;
-		this.condHeads = new Stack<>();
 	}
 
 	private Formula[] createVars(int valNum, Type type) {
@@ -165,7 +160,7 @@ public class StaticAnalysis {
 			this.block = b;
 			this.m = m;
 
-			for (SSAInstruction i: b.getWalaBasicBLock().getAllInstructions()) {
+			for (SSAInstruction i: b.instructions()) {
 				i.visit(this);
 			}
 
@@ -245,7 +240,12 @@ public class StaticAnalysis {
 			default:
 				throw new IllegalStateException("Unexpected value: " + operator);
 			}
-			condHeads.push(Pair.make(defForm, block.idx()));
+
+			List<ISSABasicBlock> succs = Util.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBLock()));
+			assert(succs.size() == 2);
+
+			int trueIdx = instruction.getTarget();
+			int falseIdx = succs.stream().filter(b -> b.getNumber() != instruction.getTarget()).findFirst().get().getNumber();
 		}
 
 		private Formula equalsZero(Formula[] diff) {
@@ -336,20 +336,8 @@ public class StaticAnalysis {
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			int op1ValNum = instruction.getUse(0);
-			int op2ValNum = instruction.getUse(1);
-
-			assert program != null;
-			if (entry.getValue(op1ValNum).getDeps() == null) {
-				// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
-				createConstant(op1ValNum);
-			}
-			Formula[] op1 = entry.getDepsForValue(op1ValNum);
-
-			if (entry.getValue(op2ValNum).getDeps() == null) {
-				createConstant(op2ValNum);
-			}
-			Formula[] op2 = entry.getDepsForValue(op2ValNum);
+			Formula[] op1 = entry.getDepsForValue(instruction.getUse(0));
+			Formula[] op2 = entry.getDepsForValue(instruction.getUse(1));
 
 			int def = instruction.getDef();
 
@@ -357,7 +345,7 @@ public class StaticAnalysis {
 
 			// make sure Value object for def exists
 			if (!entry.hasValue(def)) {
-				Value defVal = Value.createByType(def, Type.getResultType(operator, entry.type(op1ValNum), entry.type(op2ValNum)));
+				Value defVal = Value.createByType(def, Type.getResultType(operator, entry.type(instruction.getUse(0)), entry.type(instruction.getUse(1))));
 				entry.addValue(def, defVal);
 			}
 			Formula[] defForm = null;

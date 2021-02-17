@@ -23,4 +23,36 @@ class CFGTest {
 		assertEquals(condBlock.get(), dom);
 	}
 
+	@Test public void startImmDom() throws IOException, InterruptedException {
+		Program p = TestUtils.build("If");
+		BBlock start = p.getEntryMethod().getCFG().entry();
+		BBlock dom = p.getEntryMethod().getCFG().getImmDom(start);
+		System.out.println(dom);
+	}
+
+	@Test public void bbTestIf() throws IOException, InterruptedException {
+		Program p = TestUtils.build("If");
+		int walaBBNum = p.getEntryMethod().getCFG().getWalaCFG().getNumberOfNodes();
+		int ownBBNum = p.getEntryMethod().getCFG().getNumberOfNodes();
+
+		assertEquals(walaBBNum + 2, ownBBNum);
+	}
+
+	@Test public void bbTestNoCF() throws IOException, InterruptedException {
+		Program p = TestUtils.build("SimpleArithmetic");
+		int walaBBNum = p.getEntryMethod().getCFG().getWalaCFG().getNumberOfNodes();
+		int ownBBNum = p.getEntryMethod().getCFG().getNumberOfNodes();
+
+		assertEquals(walaBBNum, ownBBNum);
+	}
+
+	@Test public void bbTestLoop() throws IOException, InterruptedException {
+		Program p = TestUtils.build("Loop");
+		int walaBBNum = p.getEntryMethod().getCFG().getWalaCFG().getNumberOfNodes();
+		int ownBBNum = p.getEntryMethod().getCFG().getNumberOfNodes();
+
+		p.getEntryMethod().getCFG().print();
+
+		assertEquals(walaBBNum + 2, ownBBNum);
+	}
 }

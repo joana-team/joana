@@ -55,12 +55,19 @@ public class Interpreter {
 		int prevBlock = -1;
 		int currentBlock = program.getEntryMethod().getCFG().entry().idx();
 		int nextBlock = ev.executeBlock(program.getEntryMethod().getCFG().entry(), prevBlock);
+		assert(nextBlock >= 0);
 
 		while (nextBlock != -1) {
 			prevBlock = currentBlock;
 			currentBlock = nextBlock;
-			BBlock next = BBlock.getBlockForIdx(nextBlock);
+			BBlock next = BBlock.getBlockForIdx(currentBlock);
 			nextBlock = ev.executeBlock(next, prevBlock);
+
+			// skip dummy Blocks
+			if (nextBlock < -1) {
+				BBlock dummy = BBlock.getBlockForIdx(nextBlock);
+				nextBlock = dummy.succs().get(0).idx();
+			}
 		}
 		m.setReturnValue(ev.returnValue);
 	}

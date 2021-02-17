@@ -11,11 +11,8 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.wala.core.SDGBuilder;
-import org.logicng.formulas.Formula;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 public class Program {

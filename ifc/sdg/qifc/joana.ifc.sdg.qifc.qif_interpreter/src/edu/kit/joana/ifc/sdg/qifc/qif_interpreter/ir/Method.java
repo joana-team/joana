@@ -10,7 +10,6 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 

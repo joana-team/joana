@@ -13,7 +13,7 @@ public class If {
 		Out.print(h);
 		int l = 0;
 		if (h > 0) {
-			l = 1;
+			l = 1 + l;
 		}
 		Out.print(l);
 		return l;

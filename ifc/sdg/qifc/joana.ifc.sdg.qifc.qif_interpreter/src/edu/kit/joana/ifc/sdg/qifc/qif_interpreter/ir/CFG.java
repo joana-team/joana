@@ -1,20 +1,23 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ssa.SSACFG;
-import edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.graph.dominators.Dominators;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
  * wrapper class for Wala CFG w/ some utility functions
  */
-public class CFG {
+public class CFG implements Graph<BBlock> {
 
 	private final Method m;
 	private final SSACFG walaCFG;
 	private Set<BBlock> blocks;
 	private final BBlock entry;
-	private Dominators<BBlock> doms;
+	private Dominators<BBlock> walaDoms;
+	private edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<BBlock> nildumuDoms;
 
 	private CFG(Method m) {
 		this.m = m;
@@ -28,11 +31,12 @@ public class CFG {
 		cfg.blocks = BBlock.allBlocks();
 
 		// loop and conditionals info
-		cfg.doms = new Dominators<>(cfg.entry, BBlock::succs);
+		cfg.walaDoms = Dominators.make(cfg, cfg.entry);
+		cfg.nildumuDoms = new edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<>(cfg.entry, (BBlock::succs));
 		for(BBlock bb: cfg.blocks) {
-			if (cfg.doms.isPartOfLoop(bb)) {
+			if (cfg.nildumuDoms.isPartOfLoop(bb)) {
 				bb.setPartOfLoop(true);
-				if(bb.equals(cfg.doms.loopHeader(bb))) {
+				if(bb.equals(cfg.nildumuDoms.loopHeader(bb))) {
 					bb.setLoopHeader(true);
 				}
 			} else {
@@ -71,13 +75,90 @@ public class CFG {
 		return walaCFG;
 	}
 
-	/**
-	 * checks if the block b is dominated by the block w/ no. blockNumber
-	 * @param b
-	 * @param blockNumber
-	 * @return
-	 */
-	public boolean isDominatedBy(BBlock b, int blockNumber) {
-		return doms.dominators(b).stream().anyMatch(dom -> dom.idx() == blockNumber);
+	public boolean isDominatedBy(BBlock node, BBlock potentialDom) {
+		return walaDoms.isDominatedBy(node, potentialDom);
+	}
+
+	public BBlock getImmDom(BBlock node) {
+		return walaDoms.getIdom(node);
+	}
+
+	@Override public void removeNodeAndEdges(BBlock n) throws UnsupportedOperationException {
+		this.blocks.remove(n);
+		for(BBlock b: blocks) {
+			b.preds().remove(n);
+			b.succs().remove(n);
+		}
+	}
+
+	@Override public Iterator<BBlock> getPredNodes(BBlock n) {
+		return n.preds().iterator();
+	}
+
+	@Override public int getPredNodeCount(BBlock n) {
+		return n.preds().size();
+	}
+
+	@Override public Iterator<BBlock> getSuccNodes(BBlock n) {
+		return n.succs().iterator();
+	}
+
+	@Override public int getSuccNodeCount(BBlock N) {
+		return N.succs().size();
+	}
+
+	@Override public void addEdge(BBlock src, BBlock dst) {
+		src.succs().add(dst);
+		dst.preds().add(src);
+	}
+
+	@Override public void removeEdge(BBlock src, BBlock dst) throws UnsupportedOperationException {
+		src.succs().remove(dst);
+		dst.preds().remove(src);
+	}
+
+	@Override public void removeAllIncidentEdges(BBlock node) throws UnsupportedOperationException {
+		removeIncomingEdges(node);
+		removeOutgoingEdges(node);
+	}
+
+	@Override public void removeIncomingEdges(BBlock node) throws UnsupportedOperationException {
+		node.emptyPreds();
+		for (BBlock b: blocks) {
+			b.succs().remove(node);
+		}
+	}
+
+	@Override public void removeOutgoingEdges(BBlock node) throws UnsupportedOperationException {
+		node.emptySuccs();
+		for (BBlock b: blocks) {
+			b.preds().remove(node);
+		}
+	}
+
+	@Override public boolean hasEdge(BBlock src, BBlock dst) {
+		assert(src.succs().contains(dst) == dst.preds().contains(src));
+		return src.succs().contains(dst);
+	}
+
+	@Override public Iterator<BBlock> iterator() {
+		return blocks.iterator();
+	}
+
+	@Override public int getNumberOfNodes() {
+		return blocks.size();
+	}
+
+	@Override public void addNode(BBlock n) {
+		blocks.add(n);
+	}
+
+	@Override public void removeNode(BBlock n) throws UnsupportedOperationException {
+		removeAllIncidentEdges(n);
+		blocks.remove(n);
+	}
+
+	@Override public boolean containsNode(BBlock n) {
+		return blocks.contains(n);
 	}
 }

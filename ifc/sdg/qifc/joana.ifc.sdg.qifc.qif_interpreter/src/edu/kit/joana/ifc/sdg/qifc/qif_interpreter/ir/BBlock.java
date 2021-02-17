@@ -18,8 +18,8 @@ public class BBlock {
 
 	private final SSACFG.BasicBlock walaBBlock;
 	private final CFG g;
-	private final List<BBlock> succs;
-	private final List<BBlock> preds;
+	private List<BBlock> succs;
+	private List<BBlock> preds;
 	private final List<SSAInstruction> instructions;
 	private boolean isLoopHeader = false;
 	private boolean isPartOfLoop = false;
@@ -143,4 +143,13 @@ public class BBlock {
 	public static BBlock getBlockForIdx(int idx) {
 		return repMap.get(repMap.keySet().stream().filter(b -> b.getNumber() == idx).findFirst().get());
 	}
+
+	public void emptyPreds() {
+		this.preds = new ArrayList<>();
+	}
+
+	public void emptySuccs() {
+		this.succs = new ArrayList<>();
+	}
+
 }

@@ -184,7 +184,9 @@ public class BBlock {
 	}
 
 	public void acceptVisitor(IBBlockVisitor v) {
-		if (this.walaBBlock.isEntryBlock()) {
+		if (isDummy) {
+			v.visitDummyNode(this);
+		} else if (this.walaBBlock.isEntryBlock()) {
 			v.visitStartNode(this);
 		} else if (isCondHeader || isLoopHeader) {
 			v.visitDecisionNode(this);
@@ -216,5 +218,9 @@ public class BBlock {
 
 	public boolean isPartOfLoop() {
 		return isPartOfLoop;
+	}
+
+	public boolean isDummy() {
+		return this.isDummy;
 	}
 }

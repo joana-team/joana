@@ -27,13 +27,15 @@ class CFGTest {
 		Program p = TestUtils.build("If");
 		BBlock start = p.getEntryMethod().getCFG().entry();
 		BBlock dom = p.getEntryMethod().getCFG().getImmDom(start);
-		System.out.println(dom);
+		assertNull(dom);
 	}
 
 	@Test public void bbTestIf() throws IOException, InterruptedException {
 		Program p = TestUtils.build("If");
 		int walaBBNum = p.getEntryMethod().getCFG().getWalaCFG().getNumberOfNodes();
 		int ownBBNum = p.getEntryMethod().getCFG().getNumberOfNodes();
+
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isDummy).forEach(b -> assertEquals(1, b.preds().size()));
 
 		assertEquals(walaBBNum + 2, ownBBNum);
 	}
@@ -42,6 +44,8 @@ class CFGTest {
 		Program p = TestUtils.build("SimpleArithmetic");
 		int walaBBNum = p.getEntryMethod().getCFG().getWalaCFG().getNumberOfNodes();
 		int ownBBNum = p.getEntryMethod().getCFG().getNumberOfNodes();
+
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isDummy).forEach(b -> assertEquals(1, b.preds().size()));
 
 		assertEquals(walaBBNum, ownBBNum);
 	}
@@ -54,5 +58,6 @@ class CFGTest {
 		p.getEntryMethod().getCFG().print();
 
 		assertEquals(walaBBNum + 2, ownBBNum);
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isDummy).forEach(b -> assertEquals(1, b.preds().size()));
 	}
 }

@@ -35,7 +35,6 @@ public class CFG implements Graph<BBlock> {
 		cfg.blocks.sort(Comparator.comparingInt(BBlock::idx));
 
 		// loop and conditionals info
-		cfg.walaDoms = Dominators.make(cfg, cfg.entry);
 		cfg.nildumuDoms = new edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<>(cfg.entry, (BBlock::succs));
 		for(BBlock bb: cfg.blocks) {
 			if (cfg.nildumuDoms.isPartOfLoop(bb)) {
@@ -51,6 +50,7 @@ public class CFG implements Graph<BBlock> {
 		}
 
 		cfg.addDummyBlocks();
+		cfg.walaDoms = Dominators.make(cfg, cfg.entry);
 		return cfg;
 	}
 
@@ -182,5 +182,9 @@ public class CFG implements Graph<BBlock> {
 
 	@Override public boolean containsNode(BBlock n) {
 		return blocks.contains(n);
+	}
+
+	public BBlock getBlock(int i) {
+		return blocks.stream().filter(b -> b.idx() == i).findFirst().get();
 	}
 }

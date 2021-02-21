@@ -1,22 +1,23 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class IfinIf {
+public class IfinLoop {
 
 	public  static void main(String[] args) {
 
-		IfinIf if_ = new IfinIf();
+		IfinLoop if_ = new IfinLoop();
 		if_.f(0);
 
 	}
 
 	public int f(int h) {
 		int l = 0;
-		if (h > 0) {
-			if (h <= 1) {
-				l = 1 + l;
+		while (h > 0) {
+			if (l > 0) {
+				l = l - 1;
 			} else {
-				l = 2 + l;
+				l = 3;
 			}
+			h--;
 		}
 		Out.print(l);
 		return l;

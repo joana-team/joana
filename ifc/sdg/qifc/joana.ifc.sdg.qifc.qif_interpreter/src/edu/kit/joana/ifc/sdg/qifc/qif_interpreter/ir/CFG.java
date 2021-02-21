@@ -42,10 +42,10 @@ public class CFG implements Graph<BBlock> {
 				if(bb.equals(cfg.nildumuDoms.loopHeader(bb))) {
 					bb.setLoopHeader(true);
 				}
-			} else {
-				if (bb.succs().stream().filter(s -> !s.getWalaBasicBLock().isExitBlock()).count() > 1) {
+			}
+				if (!bb.isLoopHeader() && bb.succs().stream().filter(s -> !s.getWalaBasicBLock().isExitBlock()).count() > 1) {
 					bb.setCondHeader(true);
-				}
+
 			}
 		}
 

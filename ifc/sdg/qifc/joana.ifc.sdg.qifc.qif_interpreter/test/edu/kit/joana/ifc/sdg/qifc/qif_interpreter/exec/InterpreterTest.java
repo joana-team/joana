@@ -132,4 +132,64 @@ class InterpreterTest {
 
 	}
 
+	@Test public void ifInifTest1()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("IfinIf");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("1");
+
+		i.execute(args);
+		assertEquals("1\n", baos.toString());
+
+	}
+
+	@Test public void ifInifTest2()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("IfinIf");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("0");
+
+		i.execute(args);
+		assertEquals("0\n", baos.toString());
+
+	}
+
+	@Test public void ifInifTest3()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("IfinIf");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("5");
+
+		i.execute(args);
+		assertEquals("2\n", baos.toString());
+
+	}
+
+	@Test public void ifInLoop()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+
+		Program p = TestUtils.build("IfinLoop");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("3");
+
+		i.execute(args);
+		assertEquals("1\n", baos.toString());
+
+	}
+
 }

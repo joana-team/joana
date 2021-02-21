@@ -2,7 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,20 +10,14 @@ import org.junit.jupiter.api.Test;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class StaticAnalysisTest {
 
 	private static StaticAnalysis sa;
-	private static StaticAnalysis.SATVisitor sv;
+	private static SATVisitor sv;
 	private static FormulaFactory ff;
 
 	private static final char[] zero = "0000".toCharArray();
@@ -48,7 +42,7 @@ class StaticAnalysisTest {
 	@BeforeEach void setUp() {
 		ff = new FormulaFactory();
 		sa = new StaticAnalysis(ff);
-		sv = sa.new SATVisitor();
+		sv = new SATVisitor(sa);
 	}
 
 	@AfterEach void tearDown() {
@@ -152,12 +146,14 @@ class StaticAnalysisTest {
 		assertArrayEquals(zeroF, sv.neg(zeroF));
 	}
 
-	@Test void piTest() throws IOException, InterruptedException, InvalidClassFileException {
-		Program p = TestUtils.build("If2");
-		StaticAnalysis sa = new StaticAnalysis(p);
-		
-		sa.computeSATDeps();
+	@Test void condExprTest() throws IOException, InterruptedException, InvalidClassFileException {
+		Program p = TestUtils.build("IfinLoop");
 
+		p.getEntryMethod().getCFG().print();
+
+		StaticAnalysis sa = new StaticAnalysis(p);
+		sa.computeSATDeps();
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::splitsControlFlow).forEach(b -> assertNotNull(b.getCondExpr()));
 	}
 
 }

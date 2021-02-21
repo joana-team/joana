@@ -8,6 +8,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -71,6 +72,15 @@ public class BBlock {
 				newSucc.findSuccessorsRec(g);
 			}
 		}
+	}
+
+	public Formula generateImplicitFlowFormula(FormulaFactory f) {
+		Formula iff = f.constant(true);
+		for (Pair<Integer, Boolean> p: implicitFlows) {
+			Formula x = this.g.getBlock(p.fst).condExpr;
+			iff = f.and(iff, (p.snd) ? x : f.not(x));
+		}
+		return iff;
 	}
 
 	public static BBlock createDummy(CFG g) {

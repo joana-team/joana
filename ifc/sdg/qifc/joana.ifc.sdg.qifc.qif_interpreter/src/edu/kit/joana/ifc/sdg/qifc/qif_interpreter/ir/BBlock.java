@@ -29,13 +29,16 @@ public class BBlock {
 	private boolean isCondHeader = false;
 	private final List<Pair<Integer, Boolean>> implicitFlows;
 	private Formula condExpr;
-	private final boolean isDummy;
 	private final int idx;
+
+	private final boolean isDummy;
+	private int replacedPredIdx;
 
 	public BBlock(SSACFG.BasicBlock walaBBlock, CFG g) {
 		this.walaBBlock = walaBBlock;
 		this.g = g;
-		this.instructions = walaBBlock.getAllInstructions().stream().filter(i -> !(i == null)).collect(Collectors.toList());
+		this.instructions = walaBBlock.getAllInstructions().stream().filter(i -> !(i == null))
+				.collect(Collectors.toList());
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
 		this.implicitFlows = new ArrayList<>();
@@ -44,9 +47,9 @@ public class BBlock {
 		repMap.put(walaBBlock, this);
 	}
 
-
-	private BBlock(CFG g, int idx) {
+	private BBlock(CFG g, int idx, int replacedPredIdx) {
 		this.isDummy = true;
+		this.replacedPredIdx = replacedPredIdx;
 		this.walaBBlock = null;
 		this.instructions = new ArrayList<>();
 		this.preds = new ArrayList<>();
@@ -57,10 +60,17 @@ public class BBlock {
 		dummies.put(this.idx, this);
 	}
 
+	/**
+	 * DFS over the CFG, creeates new Basic Blocks and adds successors accorsdingly
+	 * In order to build a complete CFG, the predecessors need to be generated separately
+	 * see {@code} findPredecessors
+	 *
+	 * @param g a cfg with an initialized start node and a walaCFG which is used to generate the rest of the CFG
+	 */
 	public void findSuccessorsRec(CFG g) {
 		SSACFG walaCFG = g.getWalaCFG();
 		List<ISSABasicBlock> succs = Util.asList(walaCFG.getSuccNodes(walaBBlock));
-		for(ISSABasicBlock ibb: succs) {
+		for (ISSABasicBlock ibb : succs) {
 			SSACFG.BasicBlock bb = (SSACFG.BasicBlock) ibb;
 
 			if (repMap.containsKey(bb)) {
@@ -68,23 +78,36 @@ public class BBlock {
 			} else {
 				BBlock newSucc = new BBlock(bb, this.g);
 				g.addNode(newSucc);
-				addEdge(this, newSucc);
+				this.succs.add(newSucc);
 				newSucc.findSuccessorsRec(g);
 			}
 		}
 	}
 
+	/**
+	 * computes the predecessors for a basic block and makes sure the order matches the order of walaCFG.getPredNdoes(b) which is used in the evaluation of SSA Phi instructions
+	 *
+	 * @param g a CFG, for which all nodes and their successors have already been initialized
+	 */
+	public void findPredecessors(CFG g) {
+		this.preds = new ArrayList<>();
+		for (Iterator<ISSABasicBlock> it = g.getWalaCFG().getPredNodes(this.getWalaBasicBLock()); it.hasNext(); ) {
+			ISSABasicBlock b = it.next();
+			this.preds.add(repMap.get(b));
+		}
+	}
+
 	public Formula generateImplicitFlowFormula(FormulaFactory f) {
 		Formula iff = f.constant(true);
-		for (Pair<Integer, Boolean> p: implicitFlows) {
+		for (Pair<Integer, Boolean> p : implicitFlows) {
 			Formula x = this.g.getBlock(p.fst).condExpr;
 			iff = f.and(iff, (p.snd) ? x : f.not(x));
 		}
 		return iff;
 	}
 
-	public static BBlock createDummy(CFG g) {
-		return new BBlock(g, dummyCtr--);
+	public static BBlock createDummy(CFG g, int replacedPredIdx) {
+		return new BBlock(g, dummyCtr--, replacedPredIdx);
 	}
 
 	private static void addEdge(BBlock from, BBlock to) {
@@ -100,6 +123,12 @@ public class BBlock {
 		return succs;
 	}
 
+	/**
+	 * Order of the list corresponds to walaCFG.getPredNodes(walaBasicBlock), hence can be used to evaluate phi instructions
+	 * If the list contains a dummy node, check {@code getReplacedIndex()} to find the block that contains the correct value for the phi operand
+	 *
+	 * @return ordered list of the blocks predecessors
+	 */
 	public List<BBlock> preds() {
 		return preds;
 	}
@@ -141,7 +170,6 @@ public class BBlock {
 	}
 
 	public static BBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
-		SSACFG.BasicBlock walaBlock = g.getWalaCFG().getBlockForInstruction(i.iindex);
 		return repMap.values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
 	}
 
@@ -222,7 +250,7 @@ public class BBlock {
 	}
 
 	public void setCondExpr(Formula condExpr) {
-		assert(splitsControlFlow());
+		assert (splitsControlFlow());
 		this.condExpr = condExpr;
 	}
 
@@ -232,5 +260,9 @@ public class BBlock {
 
 	public boolean isDummy() {
 		return this.isDummy;
+	}
+
+	public int getReplacedPredIdx() {
+		return replacedPredIdx;
 	}
 }

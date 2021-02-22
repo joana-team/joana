@@ -4,7 +4,10 @@ import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.dominators.Dominators;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -30,22 +33,22 @@ public class CFG implements Graph<BBlock> {
 	public static CFG buildCFG(Method m) {
 		CFG cfg = new CFG(m);
 		cfg.entry.findSuccessorsRec(cfg);
+		cfg.blocks.forEach(b -> b.findPredecessors(cfg));
 
 		// sorting these makes testing and debugging easier. However it should not be assumed that this list is sorted in the interpreter itself
 		cfg.blocks.sort(Comparator.comparingInt(BBlock::idx));
 
 		// loop and conditionals info
 		cfg.nildumuDoms = new edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<>(cfg.entry, (BBlock::succs));
-		for(BBlock bb: cfg.blocks) {
+		for (BBlock bb : cfg.blocks) {
 			if (cfg.nildumuDoms.isPartOfLoop(bb)) {
 				bb.setPartOfLoop(true);
-				if(bb.equals(cfg.nildumuDoms.loopHeader(bb))) {
+				if (bb.equals(cfg.nildumuDoms.loopHeader(bb))) {
 					bb.setLoopHeader(true);
 				}
 			}
 				if (!bb.isLoopHeader() && bb.succs().stream().filter(s -> !s.getWalaBasicBLock().isExitBlock()).count() > 1) {
 					bb.setCondHeader(true);
-
 			}
 		}
 
@@ -59,10 +62,12 @@ public class CFG implements Graph<BBlock> {
 		for (BBlock b: decisionNodes) {
 			List<BBlock> newSuccs = new ArrayList<>();
 			for (BBlock succ: b.succs()) {
-				BBlock newDummy = BBlock.createDummy(this);
-				if (succ.isPartOfLoop()) { newDummy.setPartOfLoop(true); }
+				BBlock newDummy = BBlock.createDummy(this, b.idx());
+				if (succ.isPartOfLoop()) {
+					newDummy.setPartOfLoop(true);
+				}
 				this.addNode(newDummy);
-				this.addEdge(newDummy, succ);
+				this.replaceEdge(newDummy, succ, b);
 				newSuccs.add(newDummy);
 			}
 			this.removeOutgoingEdges(b);
@@ -74,7 +79,11 @@ public class CFG implements Graph<BBlock> {
 		for(BBlock b: blocks) {
 			b.print();
 			StringBuilder succs = new StringBuilder("Successors: ");
-			for(BBlock s: b.succs()) {
+			for (BBlock s : b.succs()) {
+				succs.append(s.idx()).append(" ");
+			}
+			succs.append("\nPredecessors: ");
+			for (BBlock s : b.preds()) {
 				succs.append(s.idx()).append(" ");
 			}
 			System.out.println(succs.toString());
@@ -139,6 +148,13 @@ public class CFG implements Graph<BBlock> {
 		dst.preds().remove(src);
 	}
 
+	public void replaceEdge(BBlock src, BBlock dst, BBlock oldSrc) {
+		int pos = dst.preds().indexOf(oldSrc);
+		dst.preds().remove(pos);
+		dst.preds().add(pos, src);
+		src.succs().add(dst);
+	}
+
 	@Override public void removeAllIncidentEdges(BBlock node) throws UnsupportedOperationException {
 		removeIncomingEdges(node);
 		removeOutgoingEdges(node);
@@ -146,7 +162,7 @@ public class CFG implements Graph<BBlock> {
 
 	@Override public void removeIncomingEdges(BBlock node) throws UnsupportedOperationException {
 		node.emptyPreds();
-		for (BBlock b: blocks) {
+		for (BBlock b : blocks) {
 			b.succs().remove(node);
 		}
 	}

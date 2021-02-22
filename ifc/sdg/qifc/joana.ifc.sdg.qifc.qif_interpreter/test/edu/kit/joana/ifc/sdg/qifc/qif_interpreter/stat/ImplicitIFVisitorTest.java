@@ -88,4 +88,16 @@ class ImplicitIFVisitorTest {
 
 	}
 
+	@Test void implicitFlowTestIfinLoop() throws IOException, InterruptedException {
+
+		Program p = TestUtils.build("IfinLoop");
+
+		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
+		p.getEntryMethod().getCFG().print();
+		iifv.compute(p.getEntryMethod().getCFG());
+
+		p.getEntryMethod().getCFG().getBlocks().forEach(b -> System.out.println(b.idx() + " " + b.getImplicitFlows()));
+
+	}
+
 }

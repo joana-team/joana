@@ -110,7 +110,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		Formula res = staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[0]);
 		for (int i = 1; i < diff.length; i++) {
-			res = staticAnalysis.f.and(staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[i]));
+			res = staticAnalysis.f.and(staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[i]), res);
 		}
 		return res;
 	}

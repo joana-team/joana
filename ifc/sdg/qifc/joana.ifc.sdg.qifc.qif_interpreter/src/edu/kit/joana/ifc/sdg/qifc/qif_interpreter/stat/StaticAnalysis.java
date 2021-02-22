@@ -1,7 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -30,9 +29,18 @@ public class StaticAnalysis {
 		this.f = ff;
 	}
 
+	/*
+	constructor used for testing
+	 */
+	public StaticAnalysis(FormulaFactory ff, Program p) {
+		this.program = p;
+		this.entry = p.getEntryMethod();
+		this.f = ff;
+	}
+
 	public Formula[] createVars(int valNum, Type type) {
 		// For now we dont allow user-defined types
-		assert(type != Type.CUSTOM);
+		assert (type != Type.CUSTOM);
 
 		Formula[] vars = new Formula[type.bitwidth()];
 		for (int i = 0; i < type.bitwidth(); i++) {

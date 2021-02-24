@@ -41,10 +41,14 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 		// nothing to do
 	}
 
+	@Override public void visitExitNode(BBlock node) {
+		// do nothing
+	}
+
 	@Override public void visitStandardNode(BBlock node) {
 		// copy the implicit flows from our immediate dominator
 		BBlock immDom = g.getImmDom(node);
-		assert(immDom != null);
+		assert (immDom != null);
 		node.copyImplicitFlowsFrom(immDom.idx());
 	}
 

@@ -53,5 +53,10 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 		IntStream.range(0, op1.length)
 				.forEach(i -> deps[i] = f.or(f.and(op1[i], op1ImplicitFlow), f.and(op2[i], op2ImplicitFlow)));
 		phiDeps.put(instruction.getDef(), deps);
+
+		Formula[] oldDeps = m.getDepsForValue(instruction.getDef());
+		Formula[] newDeps = new Formula[oldDeps.length];
+		IntStream.range(0, oldDeps.length).forEach(i -> newDeps[i] = f.equivalence(oldDeps[i], deps[i]));
+		m.setDepsForvalue(instruction.getDef(), newDeps);
 	}
 }

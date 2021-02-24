@@ -27,6 +27,7 @@ public class BBlock {
 	private boolean isLoopHeader = false;
 	private boolean isPartOfLoop = false;
 	private boolean isCondHeader = false;
+	private boolean inScope = true;
 	private final List<Pair<Integer, Boolean>> implicitFlows;
 	private Formula condExpr;
 	private final int idx;
@@ -158,7 +159,7 @@ public class BBlock {
 	}
 
 	public boolean isExitBlock() {
-		return walaBBlock.isExitBlock();
+		return !isDummy && walaBBlock.isExitBlock();
 	}
 
 	public SSACFG.BasicBlock getWalaBasicBLock() {
@@ -193,7 +194,20 @@ public class BBlock {
 		if (isPartOfLoop) {
 			System.out.println("Part of Loop");
 		}
-		for(SSAInstruction i: instructions) {
+		if (isExitBlock()) {
+			System.out.println("Exit Block");
+		}
+		if (!isDummy && this.walaBBlock.isEntryBlock()) {
+			System.out.println("Entry Block");
+		}
+		if (!isDummy && this.walaBBlock.isCatchBlock()) {
+			System.out.println("Catch Block");
+		}
+		if (isReturnBlock()) {
+			System.out.println("Return Block");
+		}
+
+		for (SSAInstruction i : instructions) {
 			System.out.println(i.iindex + " -- " + i.toString());
 		}
 	}
@@ -228,6 +242,8 @@ public class BBlock {
 			v.visitStartNode(this);
 		} else if (isCondHeader || isLoopHeader) {
 			v.visitDecisionNode(this);
+		} else if (isExitBlock()) {
+			v.visitExitNode(this);
 		} else {
 			v.visitStandardNode(this);
 		}
@@ -262,7 +278,19 @@ public class BBlock {
 		return this.isDummy;
 	}
 
+	public boolean isReturnBlock() {
+		return !isDummy && instructions.stream().anyMatch(i -> i.toString().contains("return"));
+	}
+
 	public int getReplacedPredIdx() {
 		return replacedPredIdx;
+	}
+
+	public boolean isInScope() {
+		return inScope;
+	}
+
+	public void setInScope(boolean inScope) {
+		this.inScope = inScope;
 	}
 }

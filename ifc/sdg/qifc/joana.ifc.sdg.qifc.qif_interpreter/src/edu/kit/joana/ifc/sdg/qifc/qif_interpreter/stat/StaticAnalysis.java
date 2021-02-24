@@ -8,6 +8,8 @@ import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 
+import java.util.Arrays;
+
 public class StaticAnalysis {
 
 	private final Program program;
@@ -115,14 +117,18 @@ public class StaticAnalysis {
 	}
 
 	public void computeSATDeps() {
+		computeSATDeps(this.entry);
+	}
+
+	public void computeSATDeps(Method m) {
 		// create literals for method parameters
-		int[] params = this.entry.getIr().getParameterValueNumbers();
+		int[] params = m.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
-			entry.setDepsForvalue(params[i], createVars(params[i], entry.getParamType(i)));
+			m.setDepsForvalue(params[i], createVars(params[i], m.getParamType(i)));
 		}
 
 		// initialize formula arrays for all constant values
-		entry.getProgramValues().values().stream().filter(Value::isConstant).forEach(c -> {
+		m.getProgramValues().values().stream().filter(Value::isConstant).forEach(c -> {
 			try {
 				c.setDeps(asFormulaArray(binaryRep(c.getVal(), c.getType())));
 			} catch (UnexpectedTypeException e) {
@@ -130,14 +136,28 @@ public class StaticAnalysis {
 			}
 		});
 
+		// implicit IF
+		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
+		imIFVisitor.compute(m.getCFG());
+
+		// explicit IF
 		SATVisitor sv = new SATVisitor(this);
 
-		for (BBlock bBlock: program.getEntryMethod().getCFG().getBlocks()) {
+		for (BBlock bBlock : m.getCFG().getBlocks()) {
 			try {
-				sv.visitBlock(program.getEntryMethod(), bBlock, -1);
+				sv.visitBlock(m, bBlock, -1);
 			} catch (OutOfScopeException e) {
 				e.printStackTrace();
 			}
+		}
+
+		// handle Phi's
+		SimplePhiVisitor spv = new SimplePhiVisitor(m, this.f);
+		spv.computePhiDeps();
+
+		for (Value val : m.getProgramValues().values()) {
+			System.out.println(String.format("Valnum %d -- Value: %d", val.getValNum(), val.getVal()));
+			Arrays.stream(val.getDeps()).forEach(ff -> System.out.println(ff.cnf()));
 		}
 	}
 

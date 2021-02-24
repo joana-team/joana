@@ -21,7 +21,6 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -32,7 +31,8 @@ public class App {
 	private static final String CLASS_FILE_EXT = ".class";
 	private static final String DNNF_FILE_EXT = ".dnnf";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InvalidClassFileException, MissingValueException,
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException, OutOfScopeException {
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");
@@ -97,44 +97,18 @@ public class App {
 			e.printStackTrace();
 		}
 
-		if(jArgs.dumpGraphs) {
+		if (jArgs.dumpGraphs) {
 			builder.dumpGraph(jArgs.outputDirectory);
 		}
 
 		Program p = builder.getProgram();
 
-		/*
-		try {
-			StaticAnalysis sa = new StaticAnalysis(p);
-			sa.computeSATDeps();
-		} catch (InvalidClassFileException e) {
-			e.printStackTrace();
-		}
-		*/
+		// execute
+		Interpreter i = new Interpreter(p);
+		StaticAnalysis sa = new StaticAnalysis(p);
 
-
-		try {
-			Interpreter interpreter = new Interpreter(p);
-			StaticAnalysis sa = new StaticAnalysis(p);
-			interpreter.execute(jArgs.args);
-			sa.computeSATDeps();
-
-			System.out.println("------- Program values -------");
-			p.getEntryMethod().getProgramValues().values().forEach(v -> System.out.println(v.toString()));
-
-		} catch (InvalidClassFileException | edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException | MissingValueException | OutOfScopeException e) {
-			e.printStackTrace();
-		}
-
-		if (jArgs.doStatic) {
-
-		} else {
-			// load data from provided dnnf file
-		}
-
-		if (!jArgs.onlyStatic) {
-			// run the program
-		}
+		i.execute(jArgs.args);
+		sa.computeSATDeps();
 	}
 
 	private static void compile(String outputDirectory, String programPath, String jarPath)

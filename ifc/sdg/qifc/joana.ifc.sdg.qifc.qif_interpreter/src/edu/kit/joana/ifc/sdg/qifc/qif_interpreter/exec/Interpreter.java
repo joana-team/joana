@@ -324,7 +324,10 @@ public class Interpreter {
 		public void visitInvoke(SSAInvokeInstruction instruction) {
 
 			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
-					out.println(getUses(instruction)[0].getVal());
+				int leaked = instruction.getUse(0);
+				Value leakedVal = m.getValue(leaked);
+				leakedVal.leak();
+				out.println(getUses(instruction)[0].getVal());
 			}
 		}
 

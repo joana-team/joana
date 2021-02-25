@@ -9,6 +9,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 
 public class SATVisitor implements SSAInstruction.IVisitor {
@@ -77,42 +78,33 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				.getOperator();
 
 		Formula defForm;
-		Formula[] diff = sub(op1, op2);
+		Formula[] diff = LogicUtil.sub(op1, op2);
 
 		switch (operator) {
 		case EQ:
-			defForm = equalsZero(diff);
+			defForm = LogicUtil.equalsZero(diff);
 			break;
 		case NE:
-			defForm = staticAnalysis.f.not(equalsZero(diff));
+			defForm = LogicUtil.ff.not(LogicUtil.equalsZero(diff));
 			break;
 		case LT:
-			defForm = staticAnalysis.f.equivalence(staticAnalysis.f.constant(true), diff[0]);
+			defForm = LogicUtil.ff.equivalence(LogicUtil.ff.constant(true), diff[0]);
 			break;
 		case GE:
-			defForm = staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[0]);
+			defForm = LogicUtil.ff.equivalence(LogicUtil.ff.constant(false), diff[0]);
 			break;
 		case GT:
-			defForm = staticAnalysis.f.and(staticAnalysis.f.not(equalsZero(diff)),
-					staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[0]));
+			defForm = LogicUtil.ff.and(LogicUtil.ff.not(LogicUtil.equalsZero(diff)),
+					LogicUtil.ff.equivalence(LogicUtil.ff.constant(false), diff[0]));
 			break;
 		case LE:
-			defForm = staticAnalysis.f
-					.or(equalsZero(diff), staticAnalysis.f.equivalence(staticAnalysis.f.constant(true), diff[0]));
+			defForm = LogicUtil.ff
+					.or(LogicUtil.equalsZero(diff), LogicUtil.ff.equivalence(LogicUtil.ff.constant(true), diff[0]));
 			break;
 		default:
 			throw new IllegalStateException("Unexpected value: " + operator);
 		}
 		block.setCondExpr(defForm);
-	}
-
-	private Formula equalsZero(Formula[] diff) {
-
-		Formula res = staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[0]);
-		for (int i = 1; i < diff.length; i++) {
-			res = staticAnalysis.f.and(staticAnalysis.f.equivalence(staticAnalysis.f.constant(false), diff[i]), res);
-		}
-		return res;
 	}
 
 	@Override public void visitSwitch(SSASwitchInstruction instruction) {
@@ -190,7 +182,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			defVal = m.getValue(instruction.getDef());
 		}
 		assert defVal != null;
-		m.setDepsForvalue(instruction.getDef(), staticAnalysis.createVars(defVal.getValNum(), defVal.getType()));
+		m.setDepsForvalue(instruction.getDef(), LogicUtil.createVars(defVal.getValNum(), defVal.getType()));
 	}
 
 	@Override public void visitPi(SSAPiInstruction instruction) {
@@ -226,25 +218,25 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		Formula[] defForm = null;
 		switch (operator) {
 		case SUB:
-			defForm = sub(op1, op2);
+			defForm = LogicUtil.sub(op1, op2);
 			break;
 		case ADD:
-			defForm = add(op1, op2);
+			defForm = LogicUtil.add(op1, op2);
 			break;
 		case MUL:
-			defForm = mult(op1, op2);
+			defForm = LogicUtil.mult(op1, op2);
 			break;
 		case DIV:
 		case REM:
 			break;
 		case AND:
-			defForm = and(op1, op2);
+			defForm = LogicUtil.and(op1, op2);
 			break;
 		case OR:
-			defForm = or(op1, op2);
+			defForm = LogicUtil.or(op1, op2);
 			break;
 		case XOR:
-			defForm = xor(op1, op2);
+			defForm = LogicUtil.xor(op1, op2);
 			break;
 		}
 
@@ -271,7 +263,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		}
 
 		if (operator == IUnaryOpInstruction.Operator.NEG) {
-			m.setDepsForvalue(def, neg(op));
+			m.setDepsForvalue(def, LogicUtil.neg(op));
 		}
 	}
 
@@ -280,101 +272,4 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		outOfScopeInstruction = instruction;
 	}
 
-	// create formula for bitwise or of op1 and op2 and assign to def
-	public Formula[] or(Formula[] op1, Formula[] op2) {
-		Formula[] defForm = new Formula[op1.length];
-
-		for (int i = 0; i < op1.length; i++) {
-			defForm[i] = staticAnalysis.f.or(op1[i], op2[i]);
-		}
-		return defForm;
-	}
-
-	// create formula for bitwise or of op1 and op2 and assign to def
-	public Formula[] xor(Formula[] op1, Formula[] op2) {
-		Formula[] defForm = new Formula[op1.length];
-
-		for (int i = 0; i < op1.length; i++) {
-			defForm[i] = xor(op1[i], op2[i]);
-		}
-		return defForm;
-	}
-
-	public Formula xor(Formula op1, Formula op2) {
-		return staticAnalysis.f.and(staticAnalysis.f.or(op1, op2),
-				staticAnalysis.f.or(staticAnalysis.f.not(op1), staticAnalysis.f.not(op2)));
-	}
-
-	// create formula for bitwise or of op1 and op2 and assign to def
-	public Formula[] and(Formula[] op1, Formula[] op2) {
-
-		Formula[] defForm = new Formula[op1.length];
-
-		for (int i = 0; i < op1.length; i++) {
-			defForm[i] = staticAnalysis.f.and(op1[i], op2[i]);
-		}
-		return defForm;
-	}
-
-	public Formula[] add(Formula[] op1, Formula[] op2) {
-		Formula[] res = new Formula[op1.length];
-		Formula carry = staticAnalysis.f.constant(false);
-
-		for (int i = op1.length - 1; i >= 0; i--) {
-			res[i] = xor(xor(op1[i], op2[i]), carry);
-			carry = staticAnalysis.f.or(staticAnalysis.f
-					.or(staticAnalysis.f.and(op1[i], op2[i]), staticAnalysis.f.and(op1[i], carry),
-							staticAnalysis.f.and(op2[i], carry)));
-		}
-		return res;
-	}
-
-	public Formula[] sub(Formula[] a, Formula[] b) {
-		Formula carry = staticAnalysis.f.constant(false);
-		Formula[] res = new Formula[a.length];
-
-		for (int i = a.length - 1; i >= 0; i--) {
-			res[i] = staticAnalysis.f.and(staticAnalysis.f.or(a[i], xor(b[i], carry)),
-					staticAnalysis.f.or(staticAnalysis.f.not(a[i]), staticAnalysis.f.equivalence(b[i], carry)));
-			carry = staticAnalysis.f.or(staticAnalysis.f.and(a[i], b[i], carry),
-					staticAnalysis.f.and(staticAnalysis.f.not(a[i]), staticAnalysis.f.or(b[i], carry)));
-		}
-
-		return res;
-	}
-
-	public Formula[] mult(Formula[] op1, Formula[] op2) {
-		Formula[][] carry = new Formula[op1.length][op1.length];
-
-		for (int i = op1.length - 1; i >= 0; i--) {
-
-			for (int j = op1.length - 1; j >= 0; j--) {
-				if (j > i) {
-					carry[i][j] = staticAnalysis.f.constant(false);
-				} else {
-					carry[i][j] = staticAnalysis.f.and(op1[i], op2[j + (op1.length - i - 1)]);
-				}
-			}
-		}
-
-		Formula[] res = staticAnalysis.asFormulaArray(staticAnalysis.twosComplement(0, op1.length));
-		for (int i = 1; i < op1.length; i++) {
-			res = add(res, carry[i]);
-		}
-		res = sub(res, carry[0]);
-		return res;
-	}
-
-	public Formula[] neg(Formula[] op) {
-		Formula[] defForm = new Formula[op.length];
-
-		// invert
-		for (int i = 0; i < op.length; i++) {
-			defForm[i] = staticAnalysis.f.not(op[i]);
-		}
-
-		// add 1
-		defForm = add(defForm, staticAnalysis.asFormulaArray(staticAnalysis.twosComplement(1, defForm.length)));
-		return defForm;
-	}
 }

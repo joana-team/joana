@@ -6,9 +6,9 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
-import org.logicng.formulas.FormulaFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,11 +98,11 @@ public class BBlock {
 		}
 	}
 
-	public Formula generateImplicitFlowFormula(FormulaFactory f) {
-		Formula iff = f.constant(true);
+	public Formula generateImplicitFlowFormula() {
+		Formula iff = LogicUtil.ff.constant(true);
 		for (Pair<Integer, Boolean> p : implicitFlows) {
 			Formula x = this.g.getBlock(p.fst).condExpr;
-			iff = f.and(iff, (p.snd) ? x : f.not(x));
+			iff = LogicUtil.ff.and(iff, (p.snd) ? x : LogicUtil.ff.not(x));
 		}
 		return iff;
 	}

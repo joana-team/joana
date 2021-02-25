@@ -42,7 +42,7 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 	}
 
 	@Override public void visitExitNode(BBlock node) {
-		// do nothing
+		visitStandardNode(node);
 	}
 
 	@Override public void visitStandardNode(BBlock node) {

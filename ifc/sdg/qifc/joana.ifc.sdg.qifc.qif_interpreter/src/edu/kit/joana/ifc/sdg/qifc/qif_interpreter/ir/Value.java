@@ -91,8 +91,12 @@ public abstract class Value {
 		return val;
 	}
 
+	public boolean assigned() {
+		return !(val == null);
+	}
+
 	public void setVal(Object val) {
-		if(!verifyType(val)) {
+		if (!verifyType(val)) {
 			throw new IllegalArgumentException("Error: Wrong input parameter. Expected type " + this.type);
 		}
 		this.val = val;
@@ -120,5 +124,9 @@ public abstract class Value {
 
 	public void setConstant(boolean constant) {
 		isConstant = constant;
+	}
+
+	public boolean isLeaked() {
+		return leaked;
 	}
 }

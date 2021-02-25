@@ -6,12 +6,15 @@ import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.JavacException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedReader;
@@ -107,8 +110,18 @@ public class App {
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
-		i.execute(jArgs.args);
 		sa.computeSATDeps();
+		i.execute(jArgs.args);
+
+		Method entry = p.getEntryMethod();
+		entry.getProgramValues().values().stream().filter(Value::isLeaked).forEach(v -> {
+			try {
+				LogicUtil
+						.exportAsCNF(v.getDepForBit(2), jArgs.outputDirectory + "/" + v.getValNum() + "-leaked.dimacs");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	private static void compile(String outputDirectory, String programPath, String jarPath)

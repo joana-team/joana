@@ -2,8 +2,8 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.ssa.SSAInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.junit.jupiter.api.Test;
 import org.logicng.formulas.FormulaFactory;
 
@@ -16,13 +16,12 @@ class SimplePhiVisitorTest {
 
 	@Test void implicitFlowTest() throws IOException, InterruptedException {
 		Program p = TestUtils.build("Implicit");
-		FormulaFactory ff = new FormulaFactory();
 
-		StaticAnalysis sa = new StaticAnalysis(ff, p);
+		StaticAnalysis sa = new StaticAnalysis(p);
 		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
 		iifv.compute(p.getEntryMethod().getCFG());
 		sa.computeSATDeps();
-		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod(), ff);
+		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod());
 		spv.computePhiDeps();
 
 		List<? extends SSAInstruction> phis = Util.asList(p.getEntryMethod().getIr().iteratePhis());
@@ -35,11 +34,11 @@ class SimplePhiVisitorTest {
 		Program p = TestUtils.build("IfinIf");
 		FormulaFactory ff = new FormulaFactory();
 
-		StaticAnalysis sa = new StaticAnalysis(ff, p);
+		StaticAnalysis sa = new StaticAnalysis(p);
 		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
 		iifv.compute(p.getEntryMethod().getCFG());
 		sa.computeSATDeps();
-		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod(), ff);
+		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod());
 		spv.computePhiDeps();
 
 		List<? extends SSAInstruction> phis = Util.asList(p.getEntryMethod().getIr().iteratePhis());
@@ -52,11 +51,11 @@ class SimplePhiVisitorTest {
 		Program p = TestUtils.build("IfinLoop");
 		FormulaFactory ff = new FormulaFactory();
 
-		StaticAnalysis sa = new StaticAnalysis(ff, p);
+		StaticAnalysis sa = new StaticAnalysis(p);
 		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
 		iifv.compute(p.getEntryMethod().getCFG());
 		sa.computeSATDeps();
-		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod(), ff);
+		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod());
 		spv.computePhiDeps();
 
 		List<? extends SSAInstruction> phis = Util.asList(p.getEntryMethod().getIr().iteratePhis());
@@ -69,11 +68,11 @@ class SimplePhiVisitorTest {
 		Program p = TestUtils.build("If");
 		FormulaFactory ff = new FormulaFactory();
 
-		StaticAnalysis sa = new StaticAnalysis(ff, p);
+		StaticAnalysis sa = new StaticAnalysis(p);
 		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
 		iifv.compute(p.getEntryMethod().getCFG());
 		sa.computeSATDeps();
-		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod(), ff);
+		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod());
 		spv.computePhiDeps();
 
 		List<? extends SSAInstruction> phis = Util.asList(p.getEntryMethod().getIr().iteratePhis());
@@ -86,11 +85,11 @@ class SimplePhiVisitorTest {
 		Program p = TestUtils.build("Loop");
 		FormulaFactory ff = new FormulaFactory();
 
-		StaticAnalysis sa = new StaticAnalysis(ff, p);
+		StaticAnalysis sa = new StaticAnalysis(p);
 		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
 		iifv.compute(p.getEntryMethod().getCFG());
 		sa.computeSATDeps();
-		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod(), ff);
+		SimplePhiVisitor spv = new SimplePhiVisitor(p.getEntryMethod());
 		spv.computePhiDeps();
 
 		List<? extends SSAInstruction> phis = Util.asList(p.getEntryMethod().getIr().iteratePhis());

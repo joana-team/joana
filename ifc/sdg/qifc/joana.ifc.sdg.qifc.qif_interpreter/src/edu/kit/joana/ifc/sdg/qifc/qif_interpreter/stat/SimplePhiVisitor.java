@@ -2,11 +2,11 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
-import org.logicng.formulas.FormulaFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,12 +19,10 @@ import java.util.stream.IntStream;
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 	private Method m;
-	private FormulaFactory f;
 	private Map<Integer, Formula[]> phiDeps;
 
-	public SimplePhiVisitor(Method m, FormulaFactory f) {
+	public SimplePhiVisitor(Method m) {
 		this.m = m;
-		this.f = f;
 		this.phiDeps = new HashMap<>();
 	}
 
@@ -46,17 +44,17 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 		Formula[] op2 = m.getDepsForValue(instruction.getUse(1));
 
 		BBlock phiBlock = BBlock.getBBlockForInstruction(instruction, m.getCFG());
-		Formula op1ImplicitFlow = phiBlock.preds().get(0).generateImplicitFlowFormula(f);
-		Formula op2ImplicitFlow = phiBlock.preds().get(1).generateImplicitFlowFormula(f);
+		Formula op1ImplicitFlow = phiBlock.preds().get(0).generateImplicitFlowFormula();
+		Formula op2ImplicitFlow = phiBlock.preds().get(1).generateImplicitFlowFormula();
 
 		Formula[] deps = new Formula[op1.length];
-		IntStream.range(0, op1.length)
-				.forEach(i -> deps[i] = f.or(f.and(op1[i], op1ImplicitFlow), f.and(op2[i], op2ImplicitFlow)));
+		IntStream.range(0, op1.length).forEach(i -> deps[i] = LogicUtil.ff
+				.or(LogicUtil.ff.and(op1[i], op1ImplicitFlow), LogicUtil.ff.and(op2[i], op2ImplicitFlow)));
 		phiDeps.put(instruction.getDef(), deps);
 
 		Formula[] oldDeps = m.getDepsForValue(instruction.getDef());
 		Formula[] newDeps = new Formula[oldDeps.length];
-		IntStream.range(0, oldDeps.length).forEach(i -> newDeps[i] = f.equivalence(oldDeps[i], deps[i]));
+		IntStream.range(0, oldDeps.length).forEach(i -> newDeps[i] = LogicUtil.ff.equivalence(oldDeps[i], deps[i]));
 		m.setDepsForvalue(instruction.getDef(), newDeps);
 	}
 }

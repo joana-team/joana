@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
+package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util;
 
 import java.util.Iterator;
 import java.util.List;

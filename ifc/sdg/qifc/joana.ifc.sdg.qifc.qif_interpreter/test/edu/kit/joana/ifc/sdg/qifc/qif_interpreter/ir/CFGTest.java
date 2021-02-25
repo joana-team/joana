@@ -2,7 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Util;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

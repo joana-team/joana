@@ -218,13 +218,29 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		Formula[] defForm = null;
 		switch (operator) {
 		case SUB:
-			defForm = LogicUtil.sub(op1, op2);
+			if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 0) {
+				defForm = op1;
+			} else {
+				defForm = LogicUtil.sub(op1, op2);
+			}
 			break;
 		case ADD:
-			defForm = LogicUtil.add(op1, op2);
+			if (LogicUtil.isConstant(op1) && LogicUtil.numericValue(op1) == 0) {
+				defForm = op2;
+			} else if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 0) {
+				defForm = op1;
+			} else {
+				defForm = LogicUtil.add(op1, op2);
+			}
 			break;
 		case MUL:
-			defForm = LogicUtil.mult(op1, op2);
+			if (LogicUtil.isConstant(op1) && LogicUtil.numericValue(op1) == 1) {
+				defForm = op2;
+			} else if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 1) {
+				defForm = op1;
+			} else {
+				defForm = LogicUtil.mult(op1, op2);
+			}
 			break;
 		case DIV:
 		case REM:
@@ -239,7 +255,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			defForm = LogicUtil.xor(op1, op2);
 			break;
 		}
-
 		assert defForm != null;
 		m.setDepsForvalue(def, defForm);
 	}

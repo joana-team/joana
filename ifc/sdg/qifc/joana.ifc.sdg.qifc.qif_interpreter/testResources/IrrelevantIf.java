@@ -1,10 +1,10 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class If {
+public class IrrelevantIf {
 
 	public  static void main(String[] args) {
 
-		If if_ = new If();
+		IrrelevantIf if_ = new IrrelevantIf();
 		if_.f(0);
 
 	}
@@ -14,6 +14,7 @@ public class If {
 		if (h > 0) {
 			l = 1 + l;
 		}
+		l = 0;
 		Out.print(l);
 		return l;
 	}

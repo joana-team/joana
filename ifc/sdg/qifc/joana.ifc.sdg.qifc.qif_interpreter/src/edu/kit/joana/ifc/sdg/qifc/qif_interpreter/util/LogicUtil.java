@@ -8,6 +8,8 @@ import org.logicng.formulas.Variable;
 import org.logicng.io.writers.FormulaDimacsFileWriter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class LogicUtil {
 
@@ -206,6 +208,24 @@ public class LogicUtil {
 			trimmed[size - 1 - i] = (arr.length - 1 - i >= 0) ? arr[arr.length - 1 - i] : placeholder;
 		}
 		return trimmed;
+	}
+
+	public static boolean isConstant(Formula f) {
+		return f.isConstantFormula();
+	}
+
+	public static boolean isConstant(Formula[] formulas) {
+		return Arrays.stream(formulas).allMatch(Formula::isConstantFormula);
+	}
+
+	public static int numericValue(Formula[] binary) {
+		assert (isConstant(binary));
+
+		char[] binRep = new char[binary.length];
+		IntStream.range(0, binary.length).forEach(i -> binRep[i] = (binary[i].equals(ff.constant(true))) ? '1' : '0');
+
+		int num = Integer.parseInt(String.valueOf(binRep), 2);
+		return (binRep[0] == '0') ? num : num - (1 << binRep.length);
 	}
 
 }

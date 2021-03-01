@@ -5,6 +5,7 @@ import org.logicng.formulas.Formula;
 import org.logicng.io.parsers.ParserException;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class LogicUtilTest {
 
@@ -124,6 +125,27 @@ class LogicUtilTest {
 	@Test public void cnfTest() throws ParserException {
 		Formula p = LogicUtil.ff.parse("A & ~(B | ~C)");
 		System.out.println(p.cnf());
+	}
+
+	@Test public void numericValueTest() {
+		Formula[] oneF = LogicUtil.asFormulaArray(one);
+		Formula[] threeF = LogicUtil.asFormulaArray(three);
+		Formula[] twoF = LogicUtil.asFormulaArray(two);
+		Formula[] minusTwoF = LogicUtil.asFormulaArray(minusTwo);
+		Formula[] minusThreeF = LogicUtil.asFormulaArray(minusThree);
+		Formula[] minusOneF = LogicUtil.asFormulaArray(minusOne);
+		Formula[] sixF = LogicUtil.asFormulaArray(six);
+		Formula[] minusSixF = LogicUtil.asFormulaArray(minusSix);
+
+		assertEquals(1, LogicUtil.numericValue(oneF));
+		assertEquals(3, LogicUtil.numericValue(threeF));
+		assertEquals(2, LogicUtil.numericValue(twoF));
+		assertEquals(-1, LogicUtil.numericValue(minusOneF));
+		assertEquals(-6, LogicUtil.numericValue(minusSixF));
+		assertEquals(-2, LogicUtil.numericValue(minusTwoF));
+		assertEquals(-3, LogicUtil.numericValue(minusThreeF));
+		assertEquals(6, LogicUtil.numericValue(sixF));
+
 	}
 
 }

@@ -6,6 +6,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
@@ -27,6 +28,7 @@ public class Method {
 	private CGNode cg;
 	private CFG cfg;
 	private final Map<Integer, Value> programValues;
+	private Substitution varSubstitutions;
 	private int returnValue;
 
 	public static Method getEntryMethodFromProgram(Program p) {
@@ -182,7 +184,7 @@ public class Method {
 	// TODO: needs overhaul if we add different types
 	// add type as argument and create value objects accordingly
 	public void setValue(int valNum, Object value) throws MissingValueException {
-		if(!hasValue(valNum)) {
+		if (!hasValue(valNum)) {
 			throw new MissingValueException(valNum);
 		}
 		programValues.get(valNum).setVal(value);
@@ -190,6 +192,18 @@ public class Method {
 
 	public boolean isVoid() {
 		return (returnValue == -1);
+	}
+
+	public Substitution getVarSubstitutions() {
+		return varSubstitutions;
+	}
+
+	public void addVarSubstitutions(Substitution newSub) {
+		if (this.varSubstitutions == null) {
+			this.varSubstitutions = newSub;
+		} else {
+			this.varSubstitutions.join(newSub);
+		}
 	}
 
 	// ----------------------- getters and setters ------------------------------------------

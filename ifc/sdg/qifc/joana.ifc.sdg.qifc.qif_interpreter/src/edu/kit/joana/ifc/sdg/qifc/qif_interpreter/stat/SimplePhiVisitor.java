@@ -15,6 +15,7 @@ import java.util.stream.IntStream;
 
 /**
  * completes computation of program dependencies at phi instructions
+ * TODO: make method return substitution object instead of map
  */
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 

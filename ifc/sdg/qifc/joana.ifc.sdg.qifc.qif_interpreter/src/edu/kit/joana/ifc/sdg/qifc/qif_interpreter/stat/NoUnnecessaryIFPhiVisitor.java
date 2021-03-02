@@ -6,38 +6,34 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.datastructures.Tristate;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
 
 import static edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil.ff;
 
 public class NoUnnecessaryIFPhiVisitor extends SSAInstruction.Visitor {
 
 	private Method m;
-	private Map<Integer, Formula[]> phiDeps;
+	private Substitution phiDeps;
 
 	public NoUnnecessaryIFPhiVisitor(Method m) {
 		this.m = m;
-		this.phiDeps = new HashMap<>();
+		this.phiDeps = new Substitution();
 	}
 
-	public Map<Integer, Formula[]> computePhiDeps() {
+	public Substitution computePhiDeps() {
 
 		List<? extends SSAInstruction> phis = Util.asList(m.getIr().iteratePhis());
 		for (SSAInstruction phi : phis) {
 			phi.visit(this);
 		}
 		return phiDeps;
-	}
-
-	public Formula[] getPhiDeps(int valNum) {
-		return phiDeps.get(valNum);
 	}
 
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
@@ -57,21 +53,17 @@ public class NoUnnecessaryIFPhiVisitor extends SSAInstruction.Visitor {
 		Formula op1ImplicitFlow = phiBlock.preds().get(0).generateImplicitFlowFormula();
 		Formula op2ImplicitFlow = phiBlock.preds().get(1).generateImplicitFlowFormula();
 
-		Formula[] deps = new Formula[op1.length];
+		Formula[] oldDeps = m.getDepsForValue(instruction.getDef());
+		assert (Arrays.stream(oldDeps).allMatch(Formula::isAtomicFormula));
 
-		for (int i = 0; i < deps.length; i++) {
+		for (int i = 0; i < oldDeps.length; i++) {
 			if (identical[i]) {
-				deps[i] = op1[i];
+				phiDeps.addMapping((Variable) oldDeps[i], op1[i]);
 			} else {
-				deps[i] = ff.or(ff.and(op1[i], op1ImplicitFlow), ff.and(op2[i], op2ImplicitFlow));
+				phiDeps.addMapping((Variable) oldDeps[i],
+						ff.or(ff.and(op1[i], op1ImplicitFlow), ff.and(op2[i], op2ImplicitFlow)));
 			}
 		}
-		phiDeps.put(instruction.getDef(), deps);
-
-		Formula[] oldDeps = m.getDepsForValue(instruction.getDef());
-		Formula[] newDeps = new Formula[oldDeps.length];
-		IntStream.range(0, oldDeps.length).forEach(i -> newDeps[i] = ff.equivalence(oldDeps[i], deps[i]));
-		m.setDepsForvalue(instruction.getDef(), newDeps);
 	}
 
 	private boolean[] iFExculsive(Formula[] op1, Formula[] op2) {

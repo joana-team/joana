@@ -4,8 +4,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
-
-import java.util.Arrays;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 
 public class StaticAnalysis {
 
@@ -54,12 +53,8 @@ public class StaticAnalysis {
 
 		// handle Phi's
 		NoUnnecessaryIFPhiVisitor v = new NoUnnecessaryIFPhiVisitor(m);
-		v.computePhiDeps();
+		Substitution phiDeps = v.computePhiDeps();
 
-		for (Value val : m.getProgramValues().values()) {
-			System.out.println(String.format("Valnum %d -- Value: %d", val.getValNum(), val.getVal()));
-			Arrays.stream(val.getDeps()).forEach(ff -> System.out.println(ff.cnf()));
-		}
 	}
 
 	public void createConstant(int op1) {

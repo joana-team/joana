@@ -2,10 +2,12 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import org.logicng.datastructures.Tristate;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
 import org.logicng.io.writers.FormulaDimacsFileWriter;
+import org.logicng.solvers.MiniSat;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -226,6 +228,12 @@ public class LogicUtil {
 
 		int num = Integer.parseInt(String.valueOf(binRep), 2);
 		return (binRep[0] == '0') ? num : num - (1 << binRep.length);
+	}
+
+	public static Tristate isSat(Formula f) {
+		MiniSat sat = MiniSat.miniSat(ff);
+		sat.add(f);
+		return sat.sat();
 	}
 
 }

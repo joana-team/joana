@@ -53,8 +53,8 @@ public class StaticAnalysis {
 		}
 
 		// handle Phi's
-		SimplePhiVisitor spv = new SimplePhiVisitor(m);
-		spv.computePhiDeps();
+		NoUnnecessaryIFPhiVisitor v = new NoUnnecessaryIFPhiVisitor(m);
+		v.computePhiDeps();
 
 		for (Value val : m.getProgramValues().values()) {
 			System.out.println(String.format("Valnum %d -- Value: %d", val.getValNum(), val.getVal()));

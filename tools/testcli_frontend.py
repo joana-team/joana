@@ -99,6 +99,8 @@ def run_cpp(cpp_line: str, base: Path, pg_file: Path, ssv_file: Path, discard_re
         for line in ins.decode().splitlines():
             if not discard_regex or not re.match(discard_regex, line):
                 print(line, file=outs)
+                if "misaligned address" in line:
+                    raise BaseException("misaligned address foo")
     prints(out, sys.stdout)
     prints(err, sys.stderr)
     if proc.returncode > 0:
@@ -170,7 +172,7 @@ class Fuzzer:
     def __init__(self, files: List[Path], cpp: str, out: Path = None, joana_jar: Path = locate_joana_jar(),
                  options: str = "", timeout: Optional[float] = None, cpp_timeout: Optional[float] = None,
                  draw_graphs: bool = False, cpp_out_discard_regex: str = None, draw_successes: bool = True,
-                 draw_successes_max_nodes: int = 100):
+                 draw_successes_max_nodes: int = 100, expected_return_code: int = 1, expected_err_message: str = ".*"):
         self.files = files
         self.cpp = cpp
         self.out = out or Path(tempfile.mkdtemp())
@@ -185,6 +187,8 @@ class Fuzzer:
         self.cpp_out_discard_regex = cpp_out_discard_regex
         self.draw_successes_max_nodes = draw_successes_max_nodes
         self.draw_successes = draw_successes
+        self.expected_return_code = expected_return_code
+        self.expected_err_message = expected_err_message
 
     def setup(self):
         if self.out.exists():
@@ -359,7 +363,10 @@ class Fuzzer:
             run_cpp(self.cpp, current_state.pg_file.with_suffix(""), current_state.pg_file, current_state.ssv_file,
                     self.cpp_out_discard_regex, self.cpp_timeout)
         except subprocess.CalledProcessError as err:
-            return err.returncode == 1
+            pattern = re.compile(self.expected_err_message)
+            return ((self.expected_return_code == -1 and err.returncode != 0) or
+                    err.returncode == self.expected_return_code) and (
+                    pattern.match(err.output) or pattern.match(err.stderr))
         except subprocess.TimeoutExpired as err:
             return True
         return False
@@ -426,9 +433,14 @@ def base(files: List[Path], out: Path, joana_jar: Path, options: str, cpp: str, 
 @click.option("--set_entry_prob", type=float, default=0.2, help="Probability of using the set_entry action")
 @click.option("--graph/--no_graph", default=False)
 @click.option("--out_discard", default=None, type=str, help="Discard all cpp out and err lines that matches this regexp")
+@click.option("--expected_return_code", default=-1, type=int, help="Expected return code for an expected fail")
+@click.option("--expected_err_message", default=".*", help="Regular expression that has to match somewhere in the output")
 def fuzz(files: List[Path], out: Path, joana_jar: Path, options: str, cpp: str, timeout: float, cpp_timeout: float,
-         se_unchanged: int, exponent: float, set_entry_prob: float, graph: bool, out_discard: str):
-    Fuzzer(files, cpp, out, joana_jar, options, timeout, cpp_timeout, graph, out_discard).loop(se_unchanged, exponent, set_entry_prob)
+         se_unchanged: int, exponent: float, set_entry_prob: float, graph: bool, out_discard: str,
+         expected_return_code: int, expected_err_message: str):
+    Fuzzer(files, cpp, out, joana_jar, options, timeout, cpp_timeout, graph, out_discard,
+           expected_return_code=expected_return_code, expected_err_message=expected_err_message)\
+        .loop(se_unchanged, exponent, set_entry_prob)
 
 
 if __name__ == '__main__':

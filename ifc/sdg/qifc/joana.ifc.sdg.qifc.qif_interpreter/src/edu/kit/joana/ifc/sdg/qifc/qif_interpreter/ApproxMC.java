@@ -23,7 +23,8 @@ public class ApproxMC {
 	}
 
 	private void invokeApproxMC(File f) throws IOException, InterruptedException {
-		String cmd = "approxMC/approxmc/build/approxmc " + f.getPath();
+		// String cmd = "approxMC/approxmc/build/approxmc " + f.getPath();
+		String cmd = "../../../../contrib/lib/approxmc " + f.getPath();
 		Runtime run = Runtime.getRuntime();
 		Process pr = run.exec(cmd);
 		pr.waitFor();

@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.beust.jcommander.*;
+import com.beust.jcommander.ParameterException;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
@@ -9,10 +10,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.JavacException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -23,9 +21,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class App {
 
@@ -35,7 +33,8 @@ public class App {
 	private static final String DNNF_FILE_EXT = ".dnnf";
 
 	public static void main(String[] args) throws InvalidClassFileException, MissingValueException,
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException, OutOfScopeException {
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException, OutOfScopeException, IOException,
+			UnexpectedTypeException, InterruptedException {
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");
@@ -114,14 +113,11 @@ public class App {
 		i.execute(jArgs.args);
 
 		Method entry = p.getEntryMethod();
-		entry.getProgramValues().values().stream().filter(Value::isLeaked).forEach(v -> {
-			try {
-				LogicUtil
-						.exportAsCNF(v.getDepForBit(2), jArgs.outputDirectory + "/" + v.getValNum() + "-leaked.dimacs");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
+		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
+		int[] params = entry.getIr().getParameterValueNumbers();
+		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull).collect(Collectors.toList());
+		LeakageComputation lc = new LeakageComputation(hVals, leaked);
+		lc.compute();
 	}
 
 	private static void compile(String outputDirectory, String programPath, String jarPath)

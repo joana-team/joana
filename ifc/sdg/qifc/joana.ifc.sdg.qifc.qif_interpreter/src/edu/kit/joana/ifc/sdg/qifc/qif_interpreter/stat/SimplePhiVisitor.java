@@ -15,7 +15,6 @@ import java.util.stream.IntStream;
 
 /**
  * completes computation of program dependencies at phi instructions
- * TODO: make method return substitution object instead of map
  */
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
@@ -55,7 +54,7 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 		Formula[] oldDeps = m.getDepsForValue(instruction.getDef());
 		Formula[] newDeps = new Formula[oldDeps.length];
-		IntStream.range(0, oldDeps.length).forEach(i -> newDeps[i] = LogicUtil.ff.equivalence(oldDeps[i], deps[i]));
-		m.setDepsForvalue(instruction.getDef(), newDeps);
+		// IntStream.range(0, oldDeps.length).forEach(i -> newDeps[i] = LogicUtil.ff.equivalence(oldDeps[i], deps[i]));
+		// m.setDepsForvalue(instruction.getDef(), newDeps);
 	}
 }

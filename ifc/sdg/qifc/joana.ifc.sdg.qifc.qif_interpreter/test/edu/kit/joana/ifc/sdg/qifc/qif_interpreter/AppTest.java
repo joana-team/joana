@@ -2,12 +2,11 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.CFG;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +16,8 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,7 +59,24 @@ class AppTest {
 		i.execute(args);
 		sa.computeSATDeps();
 		assertEquals("4\n3\n1\n", baos.toString());
+	}
 
+	@Test void FullRun()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException, UnexpectedTypeException {
+		Program p = TestUtils.build("If");
+		// execute
+		Interpreter i = new Interpreter(p);
+		StaticAnalysis sa = new StaticAnalysis(p);
+
+		sa.computeSATDeps();
+		i.execute(Arrays.asList("1"));
+
+		Method entry = p.getEntryMethod();
+		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
+		int[] params = entry.getIr().getParameterValueNumbers();
+		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull).collect(Collectors.toList());
+		LeakageComputation lc = new LeakageComputation(hVals, leaked);
+		lc.compute();
 	}
 
 

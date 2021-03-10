@@ -32,7 +32,6 @@ public class Interpreter {
 			throw new ParameterException("Wrong input parameter for program.");
 		}
 
-		ExecutionVisitor ev = new ExecutionVisitor(program.getEntryMethod(), this.out);
 		executeMethod(program.getEntryMethod(), args);
 
 		return true;

@@ -16,10 +16,10 @@ public class LogicUtil {
 
 	public static final FormulaFactory ff = new FormulaFactory();
 
-	public static void exportAsCNF(Formula f, String dest) throws IOException {
+	public static void exportAsCNF(Formula f, String dest, List<Variable> samplingSet) throws IOException {
 
 		Formula cnf = f.cnf();
-		writeDimacsFile(dest, cnf, true);
+		writeDimacsFile(dest, cnf, samplingSet, true);
 
 	}
 
@@ -240,12 +240,13 @@ public class LogicUtil {
 	 *
 	 * @param fileName     the file name of the dimacs file to write
 	 * @param formula      the formula
+	 * @param samplingSet
 	 * @param writeMapping indicates whether an additional file for translating the ids to variable names shall be written
 	 * @throws IOException              if there was a problem writing the file
 	 * @throws IllegalArgumentException if the formula was not in CNF
 	 */
-	public static void writeDimacsFile(final String fileName, final Formula formula, final boolean writeMapping)
-			throws IOException {
+	public static void writeDimacsFile(final String fileName, final Formula formula, List<Variable> samplingSet,
+			final boolean writeMapping) throws IOException {
 		final File file = new File(fileName.endsWith(".cnf") ? fileName : fileName + ".cnf");
 		final SortedMap<Variable, Long> var2id = new TreeMap<>();
 		long i = 1;
@@ -266,6 +267,11 @@ public class LogicUtil {
 		final StringBuilder sb = new StringBuilder("p cnf ");
 		final int partsSize = formula.type().equals(FType.FALSE) ? 1 : parts.size();
 		sb.append(var2id.size()).append(" ").append(partsSize).append(System.lineSeparator());
+
+		// add sampling set
+		sb.append("c ind ");
+		samplingSet.forEach(v -> sb.append(var2id.get(v)).append(" "));
+		sb.append("0").append(System.lineSeparator());
 
 		for (final Formula part : parts) {
 			for (final Literal lit : part.literals()) {

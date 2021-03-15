@@ -121,7 +121,7 @@ public class App {
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
-		lc.compute();
+		lc.compute(jArgs.outputDirectory);
 	}
 
 	private static void compile(String outputDirectory, String programPath, String jarPath)

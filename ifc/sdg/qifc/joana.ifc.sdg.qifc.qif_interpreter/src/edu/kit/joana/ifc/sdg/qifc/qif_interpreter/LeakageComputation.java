@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LeakageComputation {
@@ -44,16 +43,24 @@ public class LeakageComputation {
 		Formula res = IntStream.range(0, leakedValue.getDeps().length).mapToObj(i -> (binaryVal[i] == '1') ?
 				leakedValue.getDepForBit(i) :
 				LogicUtil.ff.not(leakedValue.getDepForBit(i))).reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
-		List<Formula> reducedPhiDeps = m.getPhiDeps().values().stream()
-				.map(arr -> Arrays.stream(arr).reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and))
-				.collect(Collectors.toList());
+
+		// add equivalences describing the control flow at phi nodes
+		List<Formula> reducedPhiDeps = new ArrayList<>();
+		for (Integer i : m.getPhiDeps().keySet()) {
+			Formula[] vars = m.getDepsForValue(i);
+			Formula f = IntStream.range(0, vars.length)
+					.mapToObj(j -> LogicUtil.ff.equivalence(vars[j], m.getPhiDeps().get(i)[j]))
+					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
+			reducedPhiDeps.add(f);
+		}
+
 		res = reducedPhiDeps.stream().reduce(res, LogicUtil.ff::and);
 		System.out.println(res);
 		return res;
 	}
 
-	public void compute() throws UnexpectedTypeException, IOException, InterruptedException {
-		ApproxMC approxMC = new ApproxMC();
+	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException, InterruptedException {
+		ApproxMC approxMC = new ApproxMC(outputDirectory);
 		approxMC.estimateModelCount(createCountingFormula(), hVars);
 	}
 }

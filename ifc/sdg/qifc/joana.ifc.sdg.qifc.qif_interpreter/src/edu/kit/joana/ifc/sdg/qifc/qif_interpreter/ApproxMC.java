@@ -17,16 +17,30 @@ public class ApproxMC {
 
 	private static final Pattern resultLine = Pattern.compile("s mc ([0-9]*)");
 	private static final String approcMCPath = "../../../../contrib/lib/approxmc ";
+	private static int count = 0;
+	private final String dest;
 
-	public int estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException, InterruptedException {
-		Formula cnf = f.cnf();
-		System.out.println(cnf);
-		LogicUtil.writeDimacsFile("leaked.cnf", cnf, samplingSet, true);
-		return invokeApproxMC("leaked.cnf", null);
+	public ApproxMC(String outputDirectory) {
+		if (outputDirectory == null) {
+			dest = System.getProperty("user.dir");
+		} else {
+			this.dest = outputDirectory;
+		}
 	}
 
-	public int invokeApproxMC(String in, String out) throws IOException, InterruptedException {
+	public ApproxMC() {
+		this.dest = System.getProperty("user.dir");
+	}
 
+	public int estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException {
+		Formula cnf = f.cnf();
+		System.out.println(cnf);
+		String filename = dest + "/" + "leaked" + count + ".cnf";
+		LogicUtil.writeDimacsFile(filename, cnf, samplingSet, true);
+		return invokeApproxMC(filename, dest + "/" + "approxMC_out" + count++);
+	}
+
+	public int invokeApproxMC(String in, String out) throws IOException {
 		String cmd = approcMCPath + in;
 		Runtime run = Runtime.getRuntime();
 		Process pr = run.exec(cmd);

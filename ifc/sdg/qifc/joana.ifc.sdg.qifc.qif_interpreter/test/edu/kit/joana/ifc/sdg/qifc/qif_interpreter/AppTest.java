@@ -77,7 +77,7 @@ class AppTest {
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
-		lc.compute();
+		lc.compute(null);
 	}
 
 

@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Int;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -27,7 +28,7 @@ class LeakageComputationTest {
 		test.setVal(1);
 		test.setDeps(new Formula[] { x, x, LogicUtil.ff.not(y) });
 
-		LeakageComputation lc = new LeakageComputation(new ArrayList<>(), test);
+		LeakageComputation lc = new LeakageComputation(new ArrayList<>(), test, new Method());
 		Formula res = lc.createCountingFormula();
 		Assertions.assertEquals(LogicUtil.ff.and(LogicUtil.ff.not(x), LogicUtil.ff.not(y)), res);
 	}

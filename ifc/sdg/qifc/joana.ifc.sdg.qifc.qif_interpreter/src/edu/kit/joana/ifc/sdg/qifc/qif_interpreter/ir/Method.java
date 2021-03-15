@@ -6,7 +6,6 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
@@ -28,7 +27,7 @@ public class Method {
 	private CGNode cg;
 	private CFG cfg;
 	private final Map<Integer, Value> programValues;
-	private Substitution varSubstitutions;
+	private Map<Integer, Formula[]> phiDeps;
 	private int returnValue;
 
 	public static Method getEntryMethodFromProgram(Program p) {
@@ -47,6 +46,7 @@ public class Method {
 
 	public Method() {
 		this.programValues = new HashMap<>();
+		this.phiDeps = new HashMap<>();
 	}
 
 	private void createParamValues() {
@@ -194,15 +194,15 @@ public class Method {
 		return (returnValue == -1);
 	}
 
-	public Substitution getVarSubstitutions() {
-		return varSubstitutions;
+	public Map<Integer, Formula[]> getPhiDeps() {
+		return phiDeps;
 	}
 
-	public void addVarSubstitutions(Substitution newSub) {
-		if (this.varSubstitutions == null) {
-			this.varSubstitutions = newSub;
+	public void addVarSubstitutions(Map<Integer, Formula[]> newSub) {
+		if (this.phiDeps == null) {
+			this.phiDeps = newSub;
 		} else {
-			this.varSubstitutions.join(newSub);
+			this.phiDeps.putAll(newSub);
 		}
 	}
 

@@ -74,8 +74,9 @@ class AppTest {
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
 		int[] params = entry.getIr().getParameterValueNumbers();
-		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull).collect(Collectors.toList());
-		LeakageComputation lc = new LeakageComputation(hVals, leaked);
+		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
 		lc.compute();
 	}
 

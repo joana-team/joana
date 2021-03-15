@@ -4,13 +4,9 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
-import org.logicng.datastructures.Substitution;
 import org.logicng.formulas.Formula;
-import org.logicng.formulas.Variable;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.Map;
 
 public class StaticAnalysis {
 
@@ -68,22 +64,7 @@ public class StaticAnalysis {
 		// handle Phi's
 		SimplePhiVisitor v = new SimplePhiVisitor(m);
 		Map<Integer, Formula[]> subs = v.computePhiDeps();
-
-		Substitution substitution = new Substitution();
-		for(Integer valNum: subs.keySet()) {
-			Value value = m.getValue(valNum);
-			assert(Arrays.stream(value.getDeps()).allMatch(Formula::isAtomicFormula));
-			for (int i = 0; i < value.getWidth(); i++) {
-				substitution.addMapping((Variable) value.getDepForBit(i), subs.get(valNum)[i]);
-			}
-		}
-
-		// substitute phi variables in leaked value
-		for (Value val: m.getProgramValues().values().stream().filter(Value::isLeaked).collect(Collectors.toList())) {
-			for (int i = 0; i < val.getWidth(); i++) {
-				val.getDeps()[i] = val.getDepForBit(i).substitute(substitution);
-			}
-		}
+		m.addVarSubstitutions(subs);
 	}
 
 	public void createConstant(int op1) {

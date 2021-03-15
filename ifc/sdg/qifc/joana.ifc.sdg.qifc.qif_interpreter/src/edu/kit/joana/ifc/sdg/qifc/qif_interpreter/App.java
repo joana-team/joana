@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
-import com.beust.jcommander.*;
 import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.*;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
@@ -12,7 +12,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedReader;
@@ -21,7 +20,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,7 @@ public class App {
 	private static final String JAVA_FILE_EXT = ".java";
 	private static final String CLASS_FILE_EXT = ".class";
 	private static final String DNNF_FILE_EXT = ".dnnf";
+	private static final String JAVAC_INVOKE_CMD = "javac -target 1.8 -source 1.8 -d %s %s -classpath %s";
 
 	public static void main(String[] args) throws InvalidClassFileException, MissingValueException,
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException, OutOfScopeException, IOException,
@@ -115,21 +118,22 @@ public class App {
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
 		int[] params = entry.getIr().getParameterValueNumbers();
-		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull).collect(Collectors.toList());
-		LeakageComputation lc = new LeakageComputation(hVals, leaked);
+		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
 		lc.compute();
 	}
 
 	private static void compile(String outputDirectory, String programPath, String jarPath)
 			throws IOException, InterruptedException, JavacException {
-		String cmd = String.format("javac -target 1.8 -source 1.8 -d %s %s -classpath %s", outputDirectory, programPath, jarPath);
+		String cmd = String.format(JAVAC_INVOKE_CMD, outputDirectory, programPath, jarPath);
 		Process compilation = Runtime.getRuntime().exec(cmd);
 
 		InputStreamReader isr = new InputStreamReader(compilation.getErrorStream());
 		BufferedReader rdr = new BufferedReader(isr);
 		String line;
 		StringBuilder sb = new StringBuilder();
-		while((line = rdr.readLine()) != null) {
+		while ((line = rdr.readLine()) != null) {
 			sb.append(line);
 		}
 

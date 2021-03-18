@@ -4,10 +4,7 @@ import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.dominators.Dominators;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,8 +72,33 @@ public class CFG implements Graph<BBlock> {
 		}
 	}
 
+	public Set<BBlock> getBasicBlocksInLoop(BBlock header) {
+		assert (header.isLoopHeader());
+		Set<BBlock> inLoop = new HashSet<>();
+		inLoop.add(header);
+
+		// find predecessor w/ back-edge
+		Optional<BBlock> loopJmpBack = header.preds().stream().filter(pred -> isDominatedBy(pred, header)).findFirst();
+		assert (loopJmpBack.isPresent());
+
+		// add all predecessors until header is reached
+		inLoop.add(loopJmpBack.get());
+		addLoopNodeRec(inLoop, loopJmpBack.get());
+
+		return inLoop;
+	}
+
+	private void addLoopNodeRec(Set<BBlock> alreadyFound, BBlock current) {
+		for (BBlock b : current.preds()) {
+			if (!alreadyFound.contains(b)) {
+				alreadyFound.add(b);
+				addLoopNodeRec(alreadyFound, b);
+			}
+		}
+	}
+
 	public void print() {
-		for(BBlock b: blocks) {
+		for (BBlock b : blocks) {
 			b.print();
 			StringBuilder succs = new StringBuilder("Successors: ");
 			for (BBlock s : b.succs()) {

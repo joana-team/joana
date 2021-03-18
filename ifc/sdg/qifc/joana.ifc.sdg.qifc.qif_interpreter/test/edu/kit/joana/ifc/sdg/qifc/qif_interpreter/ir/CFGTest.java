@@ -6,8 +6,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -107,6 +106,53 @@ class CFGTest {
 		p.getEntryMethod().getCFG().print();
 
 		assertEquals(walaBBNum + 2, ownBBNum);
-		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isDummy).forEach(b -> assertEquals(1, b.preds().size()));
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isDummy)
+				.forEach(b -> assertEquals(1, b.preds().size()));
+	}
+
+	@Test public void loopBlocksTest1() throws IOException, InterruptedException {
+		Program p = TestUtils.build("Loop");
+		BBlock header = p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get();
+
+		Set<BBlock> inLoop = p.getEntryMethod().getCFG().getBasicBlocksInLoop(header);
+		Set<Integer> inLoopIdx = new HashSet<>();
+		inLoop.stream().forEach(b -> inLoopIdx.add(b.idx()));
+
+		assertEquals(3, inLoop.size());
+
+		Set<Integer> expected = new HashSet<>(Arrays.asList(2, 3, -3));
+		assertEquals(expected, inLoopIdx);
+	}
+
+	@Test public void loopBlocksTest2() throws IOException, InterruptedException {
+		Program p = TestUtils.build("Loop2");
+		BBlock header = p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get();
+
+		p.getEntryMethod().getCFG().print();
+
+		Set<BBlock> inLoop = p.getEntryMethod().getCFG().getBasicBlocksInLoop(header);
+		Set<Integer> inLoopIdx = new HashSet<>();
+		inLoop.stream().forEach(b -> inLoopIdx.add(b.idx()));
+
+		assertEquals(3, inLoop.size());
+
+		Set<Integer> expected = new HashSet<>(Arrays.asList(2, 3, -3));
+		assertEquals(expected, inLoopIdx);
+	}
+
+	@Test public void loopBlocksTest3() throws IOException, InterruptedException {
+		Program p = TestUtils.build("IfinLoop");
+		BBlock header = p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get();
+
+		p.getEntryMethod().getCFG().print();
+
+		Set<BBlock> inLoop = p.getEntryMethod().getCFG().getBasicBlocksInLoop(header);
+		Set<Integer> inLoopIdx = new HashSet<>();
+		inLoop.stream().forEach(b -> inLoopIdx.add(b.idx()));
+
+		assertEquals(8, inLoop.size());
+
+		Set<Integer> expected = new HashSet<>(Arrays.asList(2, -3, 3, -5, -4, 4, 5, 6));
+		assertEquals(expected, inLoopIdx);
 	}
 }

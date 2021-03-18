@@ -40,8 +40,8 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 	}
 
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
-		Formula[] op1 = m.getDepsForValue(instruction.getUse(0));
-		Formula[] op2 = m.getDepsForValue(instruction.getUse(1));
+		Formula[] op1 = m.getDepsForValnum(instruction.getUse(0));
+		Formula[] op2 = m.getDepsForValnum(instruction.getUse(1));
 
 		BBlock phiBlock = BBlock.getBBlockForInstruction(instruction, m.getCFG());
 		Formula op1ImplicitFlow = phiBlock.preds().get(0).generateImplicitFlowFormula();

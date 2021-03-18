@@ -125,12 +125,10 @@ public class LogicUtil {
 		return res;
 	}
 
-	public static Formula[] createVars(int valNum, Type type) {
-		// For now we dont allow user-defined types
-		assert (type != Type.CUSTOM);
+	public static Formula[] createVars(int valNum, int width) {
 
-		Formula[] vars = new Formula[type.bitwidth()];
-		for (int i = 0; i < type.bitwidth(); i++) {
+		Formula[] vars = new Formula[width];
+		for (int i = 0; i < width; i++) {
 			Variable var = ff.variable(generateVarName(valNum, i));
 			vars[i] = ff.literal(var.name(), true);
 		}

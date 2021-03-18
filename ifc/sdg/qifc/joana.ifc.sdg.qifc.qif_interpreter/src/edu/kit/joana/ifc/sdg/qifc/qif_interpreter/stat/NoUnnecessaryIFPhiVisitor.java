@@ -53,7 +53,7 @@ public class NoUnnecessaryIFPhiVisitor extends SSAInstruction.Visitor {
 		Formula op1ImplicitFlow = phiBlock.preds().get(0).generateImplicitFlowFormula();
 		Formula op2ImplicitFlow = phiBlock.preds().get(1).generateImplicitFlowFormula();
 
-		Formula[] oldDeps = m.getDepsForValue(instruction.getDef());
+		Formula[] oldDeps = m.getDepsForValnum(instruction.getDef());
 		assert (Arrays.stream(oldDeps).allMatch(Formula::isAtomicFormula));
 
 		for (int i = 0; i < oldDeps.length; i++) {

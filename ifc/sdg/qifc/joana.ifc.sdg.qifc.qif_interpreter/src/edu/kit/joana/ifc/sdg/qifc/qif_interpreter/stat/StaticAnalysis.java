@@ -26,7 +26,7 @@ public class StaticAnalysis {
 		// create literals for method parameters
 		int[] params = m.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
-			m.setDepsForvalue(params[i], LogicUtil.createVars(params[i], m.getParamType(i)));
+			m.setDepsForValnum(params[i], LogicUtil.createVars(params[i], m.getParamType(i).bitwidth()));
 		}
 	}
 
@@ -45,17 +45,16 @@ public class StaticAnalysis {
 		initParameterDeps(m);
 		initConstants(m);
 
-
 		// implicit IF
 		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
 		imIFVisitor.compute(m.getCFG());
 
 		// explicit IF
-		SATVisitor sv = new SATVisitor(this);
+		SATVisitor sv = new SATVisitor();
 
 		for (BBlock bBlock : m.getCFG().getBlocks()) {
 			try {
-				sv.visitBlock(m, bBlock, -1);
+				sv.visitBlock(m, bBlock);
 			} catch (OutOfScopeException e) {
 				e.printStackTrace();
 			}
@@ -67,8 +66,8 @@ public class StaticAnalysis {
 		m.addVarSubstitutions(subs);
 	}
 
-	public void createConstant(int op1) {
-		Int constant = (Int) entry.getValue(op1);
+	public static void createConstant(int op1, ISATAnalysisFragment m) {
+		Int constant = (Int) m.getOwner().getValue(op1);
 		assert constant != null;
 		constant.setDeps(
 				LogicUtil.asFormulaArray(LogicUtil.twosComplement((Integer) constant.getVal(), constant.getWidth())));

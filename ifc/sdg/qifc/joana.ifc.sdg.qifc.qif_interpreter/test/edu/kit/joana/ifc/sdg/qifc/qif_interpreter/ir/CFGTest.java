@@ -155,4 +155,31 @@ class CFGTest {
 		Set<Integer> expected = new HashSet<>(Arrays.asList(2, -3, 3, -5, -4, 4, 5, 6));
 		assertEquals(expected, inLoopIdx);
 	}
+
+	@Test public void loopBlocksTest4() throws IOException, InterruptedException {
+		Program p = TestUtils.build("LoopinLoop");
+		BBlock header1 = p.getEntryMethod().getCFG().getBlocks().stream().filter(b -> b.idx() == 2).findFirst().get();
+
+		p.getEntryMethod().getCFG().print();
+
+		Set<BBlock> inLoop = p.getEntryMethod().getCFG().getBasicBlocksInLoop(header1);
+		Set<Integer> inLoopIdx = new HashSet<>();
+		inLoop.stream().forEach(b -> inLoopIdx.add(b.idx()));
+
+		assertEquals(7, inLoop.size());
+
+		Set<Integer> expected = new HashSet<>(Arrays.asList(2, -3, 3, -5, -4, 4, 5));
+		assertEquals(expected, inLoopIdx);
+
+		BBlock header2 = p.getEntryMethod().getCFG().getBlocks().stream().filter(b -> b.idx() == 3).findFirst().get();
+
+		Set<BBlock> inLoop2 = p.getEntryMethod().getCFG().getBasicBlocksInLoop(header2);
+		Set<Integer> inLoopIdx2 = new HashSet<>();
+		inLoop2.stream().forEach(b -> inLoopIdx2.add(b.idx()));
+
+		assertEquals(3, inLoop2.size());
+
+		Set<Integer> expected2 = new HashSet<>(Arrays.asList(3, -5, 4));
+		assertEquals(expected2, inLoopIdx2);
+	}
 }

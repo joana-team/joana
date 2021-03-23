@@ -6,7 +6,10 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeExceptio
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 
+import java.util.ArrayDeque;
 import java.util.Map;
+import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class StaticAnalysis {
 
@@ -53,6 +56,27 @@ public class StaticAnalysis {
 		// explicit IF
 		SATVisitor sv = new SATVisitor(this);
 
+		Queue<BBlock> toVisit = new ArrayDeque<>();
+		toVisit.add(m.getCFG().getBlock(0));
+
+		while(!toVisit.isEmpty()) {
+			BBlock b = toVisit.poll();
+
+			if (b.isLoopHeader()) {
+				LoopBody l = SimpleLoopHandler.analyze(m, b, sv);
+				m.addLoop(l);
+				toVisit.addAll(b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
+			} else {
+				try {
+					sv.visitBlock(m, b, -1);
+					toVisit.addAll(b.succs());
+				} catch (OutOfScopeException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		/*
 		for (BBlock bBlock : m.getCFG().getBlocks()) {
 			try {
 				sv.visitBlock(m, bBlock, -1);
@@ -60,6 +84,7 @@ public class StaticAnalysis {
 				e.printStackTrace();
 			}
 		}
+		 */
 
 		// handle Phi's
 		SimplePhiVisitor v = new SimplePhiVisitor(m);

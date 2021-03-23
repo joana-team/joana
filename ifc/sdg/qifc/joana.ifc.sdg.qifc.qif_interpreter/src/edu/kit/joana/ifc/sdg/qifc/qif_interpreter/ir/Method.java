@@ -27,6 +27,7 @@ public class Method {
 	private CGNode cg;
 	private CFG cfg;
 	private final Map<Integer, Value> programValues;
+	private final List<LoopBody> loops;
 	private Map<Integer, Formula[]> phiDeps;
 	private int returnValue;
 
@@ -47,6 +48,7 @@ public class Method {
 	public Method() {
 		this.programValues = new HashMap<>();
 		this.phiDeps = new HashMap<>();
+		this.loops = new ArrayList<>();
 	}
 
 	private void createParamValues() {
@@ -206,6 +208,10 @@ public class Method {
 		}
 	}
 
+	public void addLoop(LoopBody loop) {
+		this.loops.add(loop);
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -235,5 +241,9 @@ public class Method {
 	public void setReturnValue(int valNum) {
 		assert(valNum == -1 || programValues.containsKey(valNum));
 		this.returnValue = valNum;
+	}
+
+	public List<LoopBody> getLoops() {
+		return this.loops;
 	}
 }

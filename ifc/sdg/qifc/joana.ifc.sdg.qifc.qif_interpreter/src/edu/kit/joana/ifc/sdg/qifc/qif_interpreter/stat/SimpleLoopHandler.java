@@ -14,10 +14,11 @@ import org.logicng.formulas.Formula;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class SimpleLoopHandler {
 
-	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) throws OutOfScopeException {
+	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) {
 
 		assert(head.isLoopHeader());
 		LoopBody loop = new LoopBody(m, head);
@@ -28,11 +29,22 @@ public class SimpleLoopHandler {
 		while (!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
 
-			sv.visitBlock(m, b, -1);
+			if (b.isLoopHeader() && !b.equals(head)) {
+				LoopBody l = SimpleLoopHandler.analyze(m, b, sv);
+				m.addLoop(l);
+				toVisit.addAll(b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
+			} else {
 
-			for (BBlock succ: b.succs()) {
-				if (loop.getBlocks().contains(succ)) {
-					toVisit.add(succ);
+				try {
+					sv.visitBlock(m, b, -1);
+				} catch (OutOfScopeException e) {
+					e.printStackTrace();
+				}
+
+				for (BBlock succ : b.succs()) {
+					if (loop.getBlocks().contains(succ) && !succ.equals(head)) {
+						toVisit.add(succ);
+					}
 				}
 			}
 		}
@@ -44,20 +56,20 @@ public class SimpleLoopHandler {
 		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG().getPredNodes(head.getWalaBasicBLock());
 
 		// find position i of the phi-use that we need
-		int loopOutValNum = 0;
+		int argNum = 0;
 		while (orderedPredsIter.hasNext()) {
 			int blockNum = orderedPredsIter.next().getNumber();
 			if (loop.getBlocks().stream().anyMatch(b -> b.idx() == blockNum)) {
 				break;
 			}
-			loopOutValNum++;
+			argNum++;
 		}
 
 		// copy deps to loop
 		for (SSAInstruction i: head.instructions()) {
 			if (i instanceof SSAPhiInstruction) {
 				loop.addInDeps(i.getDef(), m.getDepsForValue(i.getDef()));
-				loop.addOutDeps(i.getDef(), m.getDepsForValue(loopOutValNum));
+				loop.addOutDeps(i.getDef(), m.getDepsForValue(i.getUse(argNum)));
 
 				// create new vars to use for post-loop analysis
 				Formula[] newVars = LogicUtil.createVars(i.getDef(), m.getDepsForValue(i.getDef()).length, "x");

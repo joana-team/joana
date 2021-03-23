@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import org.logicng.formulas.Formula;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -36,5 +37,17 @@ public class LoopBody {
 
 	public void addOutDeps(int i, Formula[] deps) {
 		this.out.put(i, deps);
+	}
+
+	public void print() {
+		StringBuilder sb = new StringBuilder("in:").append(System.lineSeparator());
+		for (int i: in.keySet()) {
+			sb = sb.append(i).append(" ").append(Arrays.toString(in.get(i))).append(System.lineSeparator());
+		}
+		sb = sb.append("out:").append(System.lineSeparator());
+		for (int i: out.keySet()) {
+			sb = sb.append(i).append(" ").append(Arrays.toString(out.get(i))).append(System.lineSeparator());
+		}
+		System.out.println(sb.toString());
 	}
 }

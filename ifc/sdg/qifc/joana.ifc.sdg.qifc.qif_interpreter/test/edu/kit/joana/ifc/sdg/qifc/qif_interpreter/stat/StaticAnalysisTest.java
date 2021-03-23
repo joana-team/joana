@@ -39,7 +39,15 @@ class StaticAnalysisTest {
 		System.out.println("Loops:");
 		for (LoopBody l: p.getEntryMethod().getLoops()) {
 			l.print();
+			System.out.println("Adding Runs");
+			l.getRun(3);
+			l.printRun(0);
+			l.printRun(1);
+			l.printRun(2);
+			l.printRun(3);
 		}
+
+
 	}
 
 }

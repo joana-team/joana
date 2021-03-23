@@ -14,12 +14,8 @@ public class ConstantLoop {
 		int l2 = 0;
 		while(h > 0) {
 			l1 = ~l1;
-			while(h > 0) {
-				l2++;
-			}
 		}
 		l1 = l1++;
-		l2 = l1 + l2;
 		Out.print(l1);
 		return l2;
 	}

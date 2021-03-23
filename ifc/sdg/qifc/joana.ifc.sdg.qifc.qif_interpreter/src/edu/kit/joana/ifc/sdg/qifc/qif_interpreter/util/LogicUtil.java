@@ -135,6 +135,16 @@ public class LogicUtil {
 		return vars;
 	}
 
+	public static Formula[] createVars(int valNum, int width, String ident) {
+
+		Formula[] vars = new Formula[width];
+		for (int i = 0; i < width; i++) {
+			Variable var = ff.variable(ident + "_" + generateVarName(valNum, i));
+			vars[i] = ff.literal(var.name(), true);
+		}
+		return vars;
+	}
+
 	private static String generateVarName(int valNum, int bit) {
 		return valNum + "::" + bit;
 	}

@@ -14,9 +14,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * data class to cluster together some objects pertaining to a method
+ *  data class to cluster together some objects pertaining to a method
  */
-public class Method implements ISATAnalysisFragment {
+public class Method {
 
 	private static final String CONSTRUCTOR = "<init>";
 
@@ -29,7 +29,6 @@ public class Method implements ISATAnalysisFragment {
 	private final Map<Integer, Value> programValues;
 	private Map<Integer, Formula[]> phiDeps;
 	private int returnValue;
-	private final List<ISATAnalysisFragment> childFragments;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -48,7 +47,6 @@ public class Method implements ISATAnalysisFragment {
 	public Method() {
 		this.programValues = new HashMap<>();
 		this.phiDeps = new HashMap<>();
-		this.childFragments = new ArrayList<>();
 	}
 
 	private void createParamValues() {
@@ -164,47 +162,19 @@ public class Method implements ISATAnalysisFragment {
 		programValues.put(valNum, val);
 	}
 
-	@Override public boolean hasValnum(int valNum) {
+	public boolean hasValue(int valNum) {
 		return programValues.containsKey(valNum);
 	}
 
-	@Override public void createValnum(int valNum, SSAInstruction i) {
-		assert (i.getNumberOfUses() > 0);
-
-		// TODO: find type of result
-		// for now use integer for everything
-
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value
-				.createByType(valNum, programValues.get(i.getUse(0)).getType());
-	}
-
-	@Override public Method getOwner() {
-		return this;
-	}
-
-	@Override public List<ISATAnalysisFragment> getChildFragments() {
-		return this.childFragments;
-	}
-
-	@Override public FragmentType getFragmentType() {
-		return FragmentType.METHOD;
-	}
-
-	@Override public void setDepsForValnum(int valueNum, Formula[] deps) {
+	public void setDepsForvalue(int valueNum, Formula[] deps) {
 		if (!(deps.length == programValues.get(valueNum).getWidth())) {
 			throw new IllegalArgumentException("Different bitwidth: Cannot assign dependencies to value.");
 		}
 		this.programValues.get(valueNum).setDeps(deps);
 	}
 
-	@Override public Formula[] getDepsForValnum(int valNum) {
+	public Formula[] getDepsForValue(int valNum) {
 		return programValues.get(valNum).getDeps();
-	}
-
-	@Override public Map<Integer, Formula[]> getFragmentDeps() {
-		Map<Integer, Formula[]> fragmentDeps = new HashMap<>();
-		programValues.keySet().forEach(i -> fragmentDeps.put(i, programValues.get(i).getDeps()));
-		return fragmentDeps;
 	}
 
 	public Type type(int valNum) {
@@ -214,7 +184,7 @@ public class Method implements ISATAnalysisFragment {
 	// TODO: needs overhaul if we add different types
 	// add type as argument and create value objects accordingly
 	public void setValue(int valNum, Object value) throws MissingValueException {
-		if (!hasValnum(valNum)) {
+		if (!hasValue(valNum)) {
 			throw new MissingValueException(valNum);
 		}
 		programValues.get(valNum).setVal(value);

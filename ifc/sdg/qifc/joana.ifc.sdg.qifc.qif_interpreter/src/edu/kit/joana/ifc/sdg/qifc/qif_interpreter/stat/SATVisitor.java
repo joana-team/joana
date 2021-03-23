@@ -5,7 +5,9 @@ import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.ISATAnalysisFragment;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
@@ -13,12 +15,13 @@ import org.logicng.formulas.Formula;
 public class SATVisitor implements SSAInstruction.IVisitor {
 	private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
+	private final StaticAnalysis staticAnalysis;
 	private boolean containsOutOfScopeInstruction;
 	private SSAInstruction outOfScopeInstruction;
 	private BBlock block;
-	private ISATAnalysisFragment m;
+	private Method m;
 
-	public void visitBlock(ISATAnalysisFragment m, BBlock b) throws OutOfScopeException {
+	public void visitBlock(Method m, BBlock b, int prevBlock) throws OutOfScopeException {
 		this.block = b;
 		this.m = m;
 
@@ -31,7 +34,8 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		}
 	}
 
-	public SATVisitor() {
+	public SATVisitor(StaticAnalysis staticAnalysis) {
+		this.staticAnalysis = staticAnalysis;
 		this.containsOutOfScopeInstruction = false;
 	}
 
@@ -59,16 +63,16 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		int op1ValNum = instruction.getUse(0);
 		int op2ValNum = instruction.getUse(1);
 
-		if (m.getDepsForValnum(op1ValNum) == null) {
+		if (m.getValue(op1ValNum).getDeps() == null) {
 			// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
-			StaticAnalysis.createConstant(op1ValNum, m);
+			staticAnalysis.createConstant(op1ValNum);
 		}
-		Formula[] op1 = m.getDepsForValnum(op1ValNum);
+		Formula[] op1 = m.getDepsForValue(op1ValNum);
 
-		if (m.getDepsForValnum(op2ValNum) == null) {
-			StaticAnalysis.createConstant(op2ValNum, m);
+		if (m.getValue(op2ValNum).getDeps() == null) {
+			staticAnalysis.createConstant(op2ValNum);
 		}
-		Formula[] op2 = m.getDepsForValnum(op2ValNum);
+		Formula[] op2 = m.getDepsForValue(op2ValNum);
 
 		IConditionalBranchInstruction.Operator operator = (IConditionalBranchInstruction.Operator) instruction
 				.getOperator();
@@ -123,8 +127,9 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitInvoke(SSAInvokeInstruction instruction) {
-		// do nothing
-		// marking the value as leaked is happening during execution in the interpreter
+		if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
+			m.getValue(instruction.getUse(0)).leak();
+		}
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {
@@ -167,14 +172,17 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 
 		// find the operator for which there already exists as value object
-		int op = (m.hasValnum(instruction.getUse(0))) ? instruction.getUse(0) : instruction.getUse(1);
+		int op = (m.hasValue(instruction.getUse(0))) ? instruction.getUse(0) : instruction.getUse(1);
 
-		if (!m.hasValnum(instruction.getDef())) {
-			m.createValnum(instruction.getDef(), instruction);
+		if (!m.hasValue(instruction.getDef())) {
+			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+					.createByType(instruction.getDef(), m.getValue(op).getType());
+			m.addValue(instruction.getDef(), defVal);
+		} else {
+			defVal = m.getValue(instruction.getDef());
 		}
-		// TODO: create new vars as soon as a value is created anywhere to stop formula arrays from containing null --> then this line will become überflüssig
-		m.setDepsForValnum(instruction.getDef(),
-				LogicUtil.createVars(instruction.getDef(), m.getDepsForValnum(instruction.getDef()).length));
+		assert defVal != null;
+		m.setDepsForvalue(instruction.getDef(), LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth()));
 	}
 
 	@Override public void visitPi(SSAPiInstruction instruction) {
@@ -193,16 +201,19 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-		Formula[] op1 = m.getDepsForValnum(instruction.getUse(0));
-		Formula[] op2 = m.getDepsForValnum(instruction.getUse(1));
+		Formula[] op1 = m.getDepsForValue(instruction.getUse(0));
+		Formula[] op2 = m.getDepsForValue(instruction.getUse(1));
 
 		int def = instruction.getDef();
 
 		IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
 
 		// make sure Value object for def exists
-		if (!m.hasValnum(def)) {
-			m.createValnum(instruction.getDef(), instruction);
+		if (!m.hasValue(def)) {
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+					.createByType(def,
+							Type.getResultType(operator, m.type(instruction.getUse(0)), m.type(instruction.getUse(1))));
+			m.addValue(def, defVal);
 		}
 		Formula[] defForm = null;
 		switch (operator) {
@@ -245,27 +256,29 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			break;
 		}
 		assert defForm != null;
-		m.setDepsForValnum(def, defForm);
+		m.setDepsForvalue(def, defForm);
 	}
 
 	@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
 		int def = instruction.getDef();
 		int opValNum = instruction.getUse(0);
 
-		if (!m.hasValnum(opValNum)) {
-			StaticAnalysis.createConstant(opValNum, m);
+		if (!m.hasValue(opValNum)) {
+			staticAnalysis.createConstant(opValNum);
 		}
-		Formula[] op = m.getDepsForValnum(opValNum);
+		Formula[] op = m.getDepsForValue(opValNum);
 
 		IUnaryOpInstruction.Operator operator = (IUnaryOpInstruction.Operator) instruction.getOpcode();
 
 		// make sure Value object for def exists
-		if (!m.hasValnum(def)) {
-			m.createValnum(instruction.getDef(), instruction);
+		if (!m.hasValue(def)) {
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value
+					.createByType(def, Type.getResultType(operator, m.type(opValNum)));
+			m.addValue(def, defVal);
 		}
 
 		if (operator == IUnaryOpInstruction.Operator.NEG) {
-			m.setDepsForValnum(def, LogicUtil.neg(op));
+			m.setDepsForvalue(def, LogicUtil.neg(op));
 		}
 	}
 

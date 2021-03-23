@@ -29,6 +29,7 @@ public class Method implements ISATAnalysisFragment {
 	private final Map<Integer, Value> programValues;
 	private Map<Integer, Formula[]> phiDeps;
 	private int returnValue;
+	private final List<ISATAnalysisFragment> childFragments;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -47,6 +48,7 @@ public class Method implements ISATAnalysisFragment {
 	public Method() {
 		this.programValues = new HashMap<>();
 		this.phiDeps = new HashMap<>();
+		this.childFragments = new ArrayList<>();
 	}
 
 	private void createParamValues() {
@@ -178,6 +180,14 @@ public class Method implements ISATAnalysisFragment {
 
 	@Override public Method getOwner() {
 		return this;
+	}
+
+	@Override public List<ISATAnalysisFragment> getChildFragments() {
+		return this.childFragments;
+	}
+
+	@Override public FragmentType getFragmentType() {
+		return FragmentType.METHOD;
 	}
 
 	@Override public void setDepsForValnum(int valueNum, Formula[] deps) {

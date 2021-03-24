@@ -256,4 +256,8 @@ public class Method {
 	public List<LoopBody> getLoops() {
 		return this.loops;
 	}
+
+	public Map<Integer, List<Pair<Formula[], Formula>>> getPhiValPossibilities() {
+		return phiValPossibilities;
+	}
 }

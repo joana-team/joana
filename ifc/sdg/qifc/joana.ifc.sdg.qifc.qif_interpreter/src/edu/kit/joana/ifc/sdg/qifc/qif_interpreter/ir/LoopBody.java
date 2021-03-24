@@ -75,7 +75,7 @@ public class LoopBody {
 				Map<Integer, Formula[]> base = runs.get(currMax - 1);
 				Map<Integer,Formula[]> added = new HashMap<>();
 				for (int i: base.keySet()) {
-					// TODO: cope here if it doesnt work
+					// TODO: copy here if it doesnt work
 					Formula[] addedRun = new Formula[base.get(i).length];
 					IntStream.range(0, base.get(i).length).forEach(j -> addedRun[j] = base.get(i)[j].substitute(loopSub().toLogicNGSubstitution()));
 					added.put(i, addedRun);
@@ -143,6 +143,5 @@ public class LoopBody {
 					LogicUtil.ff.not(loopCond.substitute(sub.toLogicNGSubstitution()));
 			return LogicUtil.ff.and(beforeLoop, implicitFlow);
 		}
-
 	}
 }

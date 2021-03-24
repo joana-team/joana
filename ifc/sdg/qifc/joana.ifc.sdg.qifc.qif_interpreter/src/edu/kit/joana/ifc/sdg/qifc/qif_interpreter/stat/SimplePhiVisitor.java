@@ -4,6 +4,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 
@@ -13,6 +14,9 @@ import java.util.List;
  * completes computation of program dependencies at phi instructions
  */
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
+
+	// temporary
+	private static final int loopUnrollingMax = 8;
 
 	private Method m;
 
@@ -37,7 +41,6 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 	}
 
 	private void visitPhiFromConditional(SSAPhiInstruction instruction) {
-
 		BBlock phiBlock = BBlock.getBBlockForInstruction(instruction, m.getCFG());
 		for (int i = 0; i < 2; i++) {
 			m.addPhiValuePossibility(instruction.getDef(), Pair.make(m.getDepsForValue(instruction.getUse(i)),
@@ -47,6 +50,10 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 	}
 
 	private void visitPhiFromLoop(SSAPhiInstruction instruction) {
+		LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().instructions().contains(instruction)).findFirst().get();
 
+		for (int i = 0; i <= loopUnrollingMax; i++) {
+			m.addPhiValuePossibility(instruction.getDef(), Pair.make(l.getRun(i).get(instruction.getDef()), l.getImplicitFlowForIter(i)));
+		}
 	}
 }

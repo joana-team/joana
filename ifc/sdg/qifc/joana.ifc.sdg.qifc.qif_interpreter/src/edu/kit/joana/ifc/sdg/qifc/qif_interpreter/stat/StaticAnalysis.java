@@ -76,20 +76,14 @@ public class StaticAnalysis {
 			}
 		}
 
-		/*
-		for (BBlock bBlock : m.getCFG().getBlocks()) {
-			try {
-				sv.visitBlock(m, bBlock, -1);
-			} catch (OutOfScopeException e) {
-				e.printStackTrace();
-			}
+		// simulate loops up to 3 iterations
+		for (LoopBody l: m.getLoops()) {
+			l.getRun(3);
 		}
-		 */
 
 		// handle Phi's
 		SimplePhiVisitor v = new SimplePhiVisitor(m);
-		Map<Integer, Formula[]> subs = v.computePhiDeps();
-		m.addVarSubstitutions(subs);
+		v.computePhiDeps();
 	}
 
 	public void createConstant(int op1) {

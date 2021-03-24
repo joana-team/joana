@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -46,16 +47,18 @@ public class LeakageComputation {
 
 		// add equivalences describing the control flow at phi nodes
 		List<Formula> reducedPhiDeps = new ArrayList<>();
-		/*
-		for (Integer i : m.getPhiDeps().keySet()) {
-			Formula[] vars = m.getDepsForValue(i);
-			Formula f = IntStream.range(0, vars.length)
-					.mapToObj(j -> LogicUtil.ff.equivalence(vars[j], m.getPhiDeps().get(i)[j]))
-					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
-			reducedPhiDeps.add(f);
-		}
 
-		 */
+		for (Integer i : m.getPhiValPossibilities().keySet()) {
+			List<Pair<Formula[], Formula>> possibilities = m.getPossibleValues(i);
+			Formula[] vars = m.getDepsForValue(i);
+			Formula asSingleFormula = LogicUtil.ff.constant(false);
+			for(Pair<Formula[], Formula> p: possibilities) {
+				asSingleFormula = LogicUtil.ff.or(asSingleFormula,
+						IntStream.range(0, vars.length).mapToObj(j -> LogicUtil.ff.equivalence(vars[j], p.fst[j])).reduce(p.snd, LogicUtil.ff::and)
+						);
+			}
+			reducedPhiDeps.add(asSingleFormula);
+		}
 
 		res = reducedPhiDeps.stream().reduce(res, LogicUtil.ff::and);
 		System.out.println(res);

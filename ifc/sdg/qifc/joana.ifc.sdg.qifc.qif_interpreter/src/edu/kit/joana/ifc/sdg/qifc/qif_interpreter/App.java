@@ -110,8 +110,13 @@ public class App {
 
 		// execute
 		Interpreter i = new Interpreter(p);
-		StaticAnalysis sa = new StaticAnalysis(p);
 
+		if (jArgs.onlyRun) {
+			i.execute(jArgs.args);
+			System.exit(0);
+		}
+
+		StaticAnalysis sa = new StaticAnalysis(p);
 		sa.computeSATDeps();
 		i.execute(jArgs.args);
 
@@ -150,12 +155,14 @@ public class App {
 		@Parameter(names = "-o", description = "Specify a path where the output directory should be created (Default is the current working directory)") String outputDirectory = ".";
 		@Parameter(names = "--usage", description = "Print help") private boolean help = false;
 		@Parameter(names = "--static", description = "Perform only static analysis on the input program") private boolean onlyStatic = false;
+		@Parameter(names = "--run", description = "Run the program without performing any analysis") private boolean onlyRun = false;
 		@Parameter(names = "--dump-graphs", description = "Dump graphs created by JOANA") private boolean dumpGraphs = false;
 		@Parameter(description = "A program for the interpreter to execute, plus optionally the result of a previous static analysis", validateWith = Args.class, converter = Args.class) private List<String> inputFiles = new ArrayList<>();
 
 		@Parameter(names = "-args", description = "Arguments for running the input program", variableArity = true) private List<String> args = new ArrayList<>();
 
-		@Parameter(names = "-workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = System.getProperty("user.dir");
+		@Parameter(names = "-workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = System
+				.getProperty("user.dir");
 
 		/**
 		 * sometimes we don't need to do a static analysis, bc it is already provided via input

@@ -16,15 +16,12 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.SimpleLogger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class IRBuilder {
 
@@ -70,7 +67,14 @@ public class IRBuilder {
 
 	public void buildAndKeepBuilder()
 			throws IOException, CancelException, ClassHierarchyException, GraphIntegrity.UnsoundGraphException {
-		Pair<SDG, edu.kit.joana.wala.core.SDGBuilder> p = SDGBuildPreparation.computeAndKeepBuilder(System.out, SDGProgram.makeBuildPreparationConfig(config), new NullProgressMonitor());
+
+		// PrintStream for Joana output
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final String utf8 = StandardCharsets.UTF_8.name();
+		PrintStream ps = new PrintStream(baos, true, utf8);
+
+		Pair<SDG, edu.kit.joana.wala.core.SDGBuilder> p = SDGBuildPreparation
+				.computeAndKeepBuilder(ps, SDGProgram.makeBuildPreparationConfig(config), new NullProgressMonitor());
 		this.sdg = p.fst;
 		this.builder = p.snd;
 
@@ -82,6 +86,9 @@ public class IRBuilder {
 
 		this.ana = new IFCAnalysis(sdgProg);
 		this.ana.addAllJavaSourceAnnotations();
+
+		// write Joana output to logFIle
+		SimpleLogger.log("Joana output:\n" + baos.toString(utf8) + "\n");
 	}
 
 	public void dumpGraph(String path) {

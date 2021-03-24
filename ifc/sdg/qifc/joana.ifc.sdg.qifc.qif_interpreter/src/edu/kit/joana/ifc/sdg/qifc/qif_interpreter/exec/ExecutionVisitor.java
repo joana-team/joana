@@ -4,16 +4,15 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -255,7 +254,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value leakedVal = m.getValue(leaked);
 			leakedVal.leak();
 			out.println(getUses(instruction)[0].getVal());
-			out.println("Leaked info: " + Arrays.toString(getUses(instruction)[0].getDeps()));
+			// out.println("Leaked info: " + Arrays.toString(getUses(instruction)[0].getDeps()));
 		}
 	}
 

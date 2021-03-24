@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InterpreterTest {
 
@@ -189,6 +189,23 @@ class InterpreterTest {
 
 		i.execute(args);
 		assertEquals("1\n", baos.toString());
+
+	}
+
+	@Test public void constantLoopTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+
+		Program p = TestUtils.build("ConstantLoop");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("3");
+
+		// p.getEntryMethod().getCFG().print();
+
+		i.execute(args);
+		assertEquals("0\n", baos.toString());
 
 	}
 

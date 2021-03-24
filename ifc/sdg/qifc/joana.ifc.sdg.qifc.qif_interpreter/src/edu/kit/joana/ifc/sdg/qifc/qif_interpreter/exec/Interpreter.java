@@ -44,12 +44,12 @@ public class Interpreter {
 	 * @throws OutOfScopeException if the method contains an instruction that is not implemented for this interpreter
 	 */
 	public void executeMethod(Method m, List<String> args) throws OutOfScopeException {
-		ExecutionVisitor ev = new ExecutionVisitor(m);
+		ExecutionVisitor ev = new ExecutionVisitor(m, this.out);
 
 		int prevBlock = -1;
 		int currentBlock = program.getEntryMethod().getCFG().entry().idx();
 		int nextBlock = ev.executeBlock(program.getEntryMethod().getCFG().entry(), prevBlock);
-		assert(nextBlock >= 0);
+		assert (nextBlock >= 0);
 
 		while (nextBlock != -1) {
 			prevBlock = currentBlock;

@@ -11,13 +11,12 @@ public class ConstantLoop {
 
 	public int f(int h) {
 		int l1 = 0;
-		int l2 = 0;
 		while(l1 == 0) {
 			l1 = ~l1;
 		}
-		l1 = l1++;
+		l1 = ++l1;
 		Out.print(l1);
-		return l2;
+		return l1;
 	}
 
 }

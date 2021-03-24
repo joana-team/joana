@@ -16,7 +16,7 @@ import java.util.List;
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 	// temporary
-	private static final int loopUnrollingMax = 8;
+	private static final int loopUnrollingMax = 2;
 
 	private Method m;
 

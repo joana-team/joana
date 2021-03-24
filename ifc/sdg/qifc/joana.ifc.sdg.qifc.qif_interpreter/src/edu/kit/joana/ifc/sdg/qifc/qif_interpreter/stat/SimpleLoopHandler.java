@@ -69,13 +69,15 @@ public class SimpleLoopHandler {
 			if (i instanceof SSAPhiInstruction) {
 				loop.addInDeps(i.getDef(), m.getDepsForValue(i.getDef()));
 				loop.addOutDeps(i.getDef(), i.getUse(argNum));
+				// TODO assumes that phi function has exactly 2 arguments -- dangerous !!
+				loop.addBeforeLoopDeps(i.getDef(), m.getDepsForValue(i.getUse(1 - argNum)));
 
 				// create new vars to use for post-loop analysis
 				Formula[] newVars = LogicUtil.createVars(i.getDef(), m.getDepsForValue(i.getDef()).length, "x");
 				m.setDepsForvalue(i.getDef(), newVars);
 			}
 		}
-
+		loop.generateInitialValueSubstitution();
 
 	}
 }

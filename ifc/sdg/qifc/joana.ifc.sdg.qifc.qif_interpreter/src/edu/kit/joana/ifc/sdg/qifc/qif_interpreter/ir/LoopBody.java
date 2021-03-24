@@ -11,12 +11,14 @@ import java.util.stream.IntStream;
 public class LoopBody {
 
 	private final Map<Integer, Formula[]> in;
+	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
 	private final Map<Integer, Integer> mapping;
 	private final Map<Integer, Map<Integer, Formula[]>> runs;
 	private final Method owner;
 	private final BBlock head;
 	private final Set<BBlock> blocks;
+	private Substitution initialVals;
 
 	public LoopBody(Method owner, BBlock head) {
 		this.owner = owner;
@@ -24,6 +26,7 @@ public class LoopBody {
 		this.out = new HashMap<>();
 		this.runs = new HashMap<>();
 		this.mapping = new HashMap<>();
+		this.beforeLoop = new HashMap<>();
 		this.head = head;
 		this.blocks = this.owner.getCFG().getBasicBlocksInLoop(head);
 	}
@@ -43,6 +46,10 @@ public class LoopBody {
 	public void addOutDeps(int in, int out) {
 		this.mapping.put(in, out);
 		this.out.put(in, owner.getDepsForValue(out));
+	}
+
+	public void addBeforeLoopDeps(int in, Formula[] deps) {
+		this.beforeLoop.put(in, deps);
 	}
 
 	public void print() {
@@ -68,19 +75,24 @@ public class LoopBody {
 		int currMax = (runs.keySet().isEmpty()) ? 0 : Collections.max(runs.keySet());
 		while (currMax <= n) {
 			if (currMax == 0) {
-				this.runs.put(0, this.in);
-			} else if (currMax == 1) {
-				this.runs.put(1, this.out);
+				runs.put(0, this.beforeLoop);
 			} else {
-				Map<Integer, Formula[]> base = runs.get(currMax - 1);
-				Map<Integer,Formula[]> added = new HashMap<>();
-				for (int i: base.keySet()) {
-					// TODO: copy here if it doesnt work
-					Formula[] addedRun = new Formula[base.get(i).length];
-					IntStream.range(0, base.get(i).length).forEach(j -> addedRun[j] = base.get(i)[j].substitute(loopSub().toLogicNGSubstitution()));
-					added.put(i, addedRun);
+				Map<Integer, Formula[]> runBefore = this.runs.get(currMax - 1);
+				Substitution sub = new Substitution();
+				for (Integer i : this.in.keySet()) {
+					for (int j = 0; j < this.in.get(i).length; j++) {
+						sub.addMapping((Variable) this.in.get(i)[j], runBefore.get(i)[j]);
+					}
 				}
-				runs.put(currMax, added);
+				Map<Integer, Formula[]> run = new HashMap<>();
+				for (Integer i : this.in.keySet()) {
+					Formula[] res = new Formula[this.in.get(i).length];
+					for (int j = 0; j < this.in.get(i).length; j++) {
+						res[j] = this.out.get(i)[j].substitute(sub.toLogicNGSubstitution());
+					}
+					run.put(i, res);
+				}
+				runs.put(currMax, run);
 			}
 			currMax++;
 		}
@@ -142,6 +154,16 @@ public class LoopBody {
 					loopCond.substitute(sub.toLogicNGSubstitution()) :
 					LogicUtil.ff.not(loopCond.substitute(sub.toLogicNGSubstitution()));
 			return LogicUtil.ff.and(beforeLoop, implicitFlow);
+		}
+	}
+
+	public void generateInitialValueSubstitution() {
+		this.initialVals = new Substitution();
+
+		for (int i : this.in.keySet()) {
+			for (int j = 0; j < this.in.get(i).length; j++) {
+				initialVals.addMapping((Variable) this.in.get(i)[j], this.beforeLoop.get(i)[j]);
+			}
 		}
 	}
 }

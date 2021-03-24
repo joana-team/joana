@@ -28,7 +28,7 @@ public class Method {
 	private CFG cfg;
 	private final Map<Integer, Value> programValues;
 	private final List<LoopBody> loops;
-	private Map<Integer, Formula[]> phiDeps;
+	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
 
 	public static Method getEntryMethodFromProgram(Program p) {
@@ -47,7 +47,7 @@ public class Method {
 
 	public Method() {
 		this.programValues = new HashMap<>();
-		this.phiDeps = new HashMap<>();
+		this.phiValPossibilities = new HashMap<>();
 		this.loops = new ArrayList<>();
 	}
 
@@ -196,20 +196,30 @@ public class Method {
 		return (returnValue == -1);
 	}
 
-	public Map<Integer, Formula[]> getPhiDeps() {
-		return phiDeps;
-	}
-
-	public void addVarSubstitutions(Map<Integer, Formula[]> newSub) {
-		if (this.phiDeps == null) {
-			this.phiDeps = newSub;
-		} else {
-			this.phiDeps.putAll(newSub);
-		}
-	}
-
 	public void addLoop(LoopBody loop) {
 		this.loops.add(loop);
+	}
+
+	public boolean isComputedInLoop(int valNum) {
+		return this.loops.stream().anyMatch(l -> l.producesValNum(valNum));
+	}
+
+	public List<Pair<Formula[], Formula>> getPossibleValues(int valNum) {
+		return this.phiValPossibilities.get(valNum);
+	}
+
+	public void addPhiValuePossibility(int valNum, Pair<Formula[], Formula> poss) {
+		if (!this.phiValPossibilities.containsKey(valNum)) {
+			this.phiValPossibilities.put(valNum, new ArrayList<>());
+		}
+		this.phiValPossibilities.get((valNum)).add(poss);
+	}
+
+	public void addPhiValuePossibility(int valNum, List<Pair<Formula[], Formula>> poss) {
+		if (!this.phiValPossibilities.containsKey(valNum)) {
+			this.phiValPossibilities.put(valNum, new ArrayList<>());
+		}
+		this.phiValPossibilities.get((valNum)).addAll(poss);
 	}
 
 	// ----------------------- getters and setters ------------------------------------------

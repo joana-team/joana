@@ -46,6 +46,7 @@ public class LeakageComputation {
 
 		// add equivalences describing the control flow at phi nodes
 		List<Formula> reducedPhiDeps = new ArrayList<>();
+		/*
 		for (Integer i : m.getPhiDeps().keySet()) {
 			Formula[] vars = m.getDepsForValue(i);
 			Formula f = IntStream.range(0, vars.length)
@@ -53,6 +54,8 @@ public class LeakageComputation {
 					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
 			reducedPhiDeps.add(f);
 		}
+
+		 */
 
 		res = reducedPhiDeps.stream().reduce(res, LogicUtil.ff::and);
 		System.out.println(res);

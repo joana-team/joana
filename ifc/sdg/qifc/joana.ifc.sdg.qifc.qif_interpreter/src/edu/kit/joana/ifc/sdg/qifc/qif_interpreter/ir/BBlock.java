@@ -21,18 +21,25 @@ public class BBlock {
 
 	private final SSACFG.BasicBlock walaBBlock;
 	private final CFG g;
+	private final List<SSAInstruction> instructions;
+	/**
+	 * describes which blocks' conditional jumps influence if this block will be executed or not.
+	 * The first element of the pair refers to the block indices, the second element states whether
+	 * the conditional jump condition needs to be true or false for this block to be executed
+	 */
+	private final List<Pair<Integer, Boolean>> implicitFlows;
+	private final int idx;
+	private final boolean isDummy;
 	private List<BBlock> succs;
 	private List<BBlock> preds;
-	private final List<SSAInstruction> instructions;
 	private boolean isLoopHeader = false;
 	private boolean isPartOfLoop = false;
 	private boolean isCondHeader = false;
 	private boolean inScope = true;
-	private final List<Pair<Integer, Boolean>> implicitFlows;
+	/**
+	 * expression used for conditional jump to successor expressed as SAT formula.
+	 */
 	private Formula condExpr;
-	private final int idx;
-
-	private final boolean isDummy;
 	private int replacedPredIdx;
 
 	public BBlock(SSACFG.BasicBlock walaBBlock, CFG g) {
@@ -59,6 +66,30 @@ public class BBlock {
 		this.idx = idx;
 		this.g = g;
 		dummies.put(this.idx, this);
+	}
+
+	public static BBlock createDummy(CFG g, int replacedPredIdx) {
+		return new BBlock(g, dummyCtr--, replacedPredIdx);
+	}
+
+	private static void addEdge(BBlock from, BBlock to) {
+		from.succs.add(to);
+		to.preds.add(from);
+	}
+
+	public static BBlock bBlock(SSACFG.BasicBlock walaBBlock) {
+		return repMap.get(walaBBlock);
+	}
+
+	public static BBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
+		return repMap.values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
+	}
+
+	public static BBlock getBlockForIdx(int idx) {
+		if (idx < -1) {
+			return dummies.get(idx);
+		}
+		return repMap.get(repMap.keySet().stream().filter(b -> b.getNumber() == idx).findFirst().get());
 	}
 
 	/**
@@ -107,15 +138,6 @@ public class BBlock {
 		return iff;
 	}
 
-	public static BBlock createDummy(CFG g, int replacedPredIdx) {
-		return new BBlock(g, dummyCtr--, replacedPredIdx);
-	}
-
-	private static void addEdge(BBlock from, BBlock to) {
-		from.succs.add(to);
-		to.preds.add(from);
-	}
-
 	public List<SSAInstruction> instructions() {
 		return instructions;
 	}
@@ -134,28 +156,24 @@ public class BBlock {
 		return preds;
 	}
 
-	public void setLoopHeader(boolean loopHeader) {
-		isLoopHeader = loopHeader;
-	}
-
 	public boolean isLoopHeader() {
 		return isLoopHeader;
 	}
 
-	public void setPartOfLoop(boolean partOfLoop) {
-		isPartOfLoop = partOfLoop;
+	public void setLoopHeader(boolean loopHeader) {
+		isLoopHeader = loopHeader;
 	}
 
 	public boolean isCondHeader() {
 		return isCondHeader;
 	}
 
-	public boolean splitsControlFlow() {
-		return isCondHeader || isLoopHeader;
-	}
-
 	public void setCondHeader(boolean condHeader) {
 		isCondHeader = condHeader;
+	}
+
+	public boolean splitsControlFlow() {
+		return isCondHeader || isLoopHeader;
 	}
 
 	public boolean isExitBlock() {
@@ -164,14 +182,6 @@ public class BBlock {
 
 	public SSACFG.BasicBlock getWalaBasicBLock() {
 		return repMap.inverse().get(this);
-	}
-
-	public static BBlock bBlock(SSACFG.BasicBlock walaBBlock) {
-		return repMap.get(walaBBlock);
-	}
-
-	public static BBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
-		return repMap.values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
 	}
 
 	private boolean hasInstruction(SSAInstruction i) {
@@ -220,13 +230,6 @@ public class BBlock {
 		return this.idx;
 	}
 
-	public static BBlock getBlockForIdx(int idx) {
-		if (idx < -1) {
-			return dummies.get(idx);
-		}
-		return repMap.get(repMap.keySet().stream().filter(b -> b.getNumber() == idx).findFirst().get());
-	}
-
 	public void emptyPreds() {
 		this.preds = new ArrayList<>();
 	}
@@ -272,6 +275,10 @@ public class BBlock {
 
 	public boolean isPartOfLoop() {
 		return isPartOfLoop;
+	}
+
+	public void setPartOfLoop(boolean partOfLoop) {
+		isPartOfLoop = partOfLoop;
 	}
 
 	public boolean isDummy() {

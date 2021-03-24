@@ -1,8 +1,9 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 
@@ -26,7 +27,7 @@ public class Interpreter {
 
 	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException {
 
-		System.out.println("----------- Starting program execution -----------");
+		// System.out.println("----------- Starting program execution -----------");
 
 		if (!applyArgs(args, program, program.getEntryMethod())) {
 			throw new ParameterException("Wrong input parameter for program.");

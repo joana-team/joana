@@ -4,7 +4,6 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.ISATAnalysisFragment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
@@ -69,7 +68,7 @@ public class SimpleLoopHandler {
 		for (SSAInstruction i: head.instructions()) {
 			if (i instanceof SSAPhiInstruction) {
 				loop.addInDeps(i.getDef(), m.getDepsForValue(i.getDef()));
-				loop.addOutDeps(i.getDef(), m.getDepsForValue(i.getUse(argNum)));
+				loop.addOutDeps(i.getDef(), i.getUse(argNum));
 
 				// create new vars to use for post-loop analysis
 				Formula[] newVars = LogicUtil.createVars(i.getDef(), m.getDepsForValue(i.getDef()).length, "x");

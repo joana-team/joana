@@ -100,4 +100,20 @@ class ImplicitIFVisitorTest {
 
 	}
 
+	@Test void implicitFlowTestWhileAfterIf() throws IOException, InterruptedException {
+
+		Program p = TestUtils.build("WhileAfterIf");
+
+		ImplicitIFVisitor iifv = new ImplicitIFVisitor();
+		p.getEntryMethod().getCFG().print();
+		iifv.compute(p.getEntryMethod().getCFG());
+
+		System.out.println("Values");
+		p.getEntryMethod().getProgramValues().keySet()
+				.forEach(i -> System.out.println(i + " " + p.getEntryMethod().getDepsForValue(i)));
+
+		p.getEntryMethod().getCFG().getBlocks().forEach(b -> System.out.println(b.idx() + " " + b.getImplicitFlows()));
+
+	}
+
 }

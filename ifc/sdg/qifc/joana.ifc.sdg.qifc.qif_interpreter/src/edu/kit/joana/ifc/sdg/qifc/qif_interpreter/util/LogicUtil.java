@@ -248,7 +248,7 @@ public class LogicUtil {
 	 *
 	 * @param fileName     the file name of the dimacs file to write
 	 * @param formula      the formula
-	 * @param samplingSet
+	 * @param samplingSet  set of h varaibles for which we want to estimate the # models
 	 * @param writeMapping indicates whether an additional file for translating the ids to variable names shall be written
 	 * @throws IOException              if there was a problem writing the file
 	 * @throws IllegalArgumentException if the formula was not in CNF
@@ -278,7 +278,7 @@ public class LogicUtil {
 
 		// add sampling set
 		sb.append("c ind ");
-		samplingSet.forEach(v -> sb.append(var2id.get(v)).append(" "));
+		samplingSet.stream().filter(var2id::containsKey).forEach(v -> sb.append(var2id.get(v)).append(" "));
 		sb.append("0").append(System.lineSeparator());
 
 		for (final Formula part : parts) {

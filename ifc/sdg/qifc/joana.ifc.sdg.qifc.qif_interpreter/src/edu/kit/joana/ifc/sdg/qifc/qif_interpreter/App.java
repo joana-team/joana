@@ -125,6 +125,7 @@ public class App {
 		int[] params = entry.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
+		System.out.println(" Parameters: ");
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
 		lc.compute(jArgs.outputDirectory);
 	}

@@ -52,21 +52,30 @@ public class LeakageComputation {
 			List<Pair<Formula[], Formula>> possibilities = m.getPossibleValues(i);
 			Formula[] vars = m.getDepsForValue(i);
 			Formula asSingleFormula = LogicUtil.ff.constant(false);
-			for(Pair<Formula[], Formula> p: possibilities) {
+			for (Pair<Formula[], Formula> p : possibilities) {
 				asSingleFormula = LogicUtil.ff.or(asSingleFormula,
-						IntStream.range(0, vars.length).mapToObj(j -> LogicUtil.ff.equivalence(vars[j], p.fst[j])).reduce(p.snd, LogicUtil.ff::and)
-						);
+						IntStream.range(0, vars.length).mapToObj(j -> LogicUtil.ff.equivalence(vars[j], p.fst[j]))
+								.reduce(p.snd, LogicUtil.ff::and));
 			}
 			reducedPhiDeps.add(asSingleFormula);
 		}
 
 		res = reducedPhiDeps.stream().reduce(res, LogicUtil.ff::and);
-		System.out.println(res);
+		// System.out.println(res);
 		return res;
 	}
 
-	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException, InterruptedException {
-		ApproxMC approxMC = new ApproxMC(outputDirectory);
-		approxMC.estimateModelCount(createCountingFormula(), hVars);
+	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException {
+
+		Formula count = createCountingFormula();
+		int modelCount;
+
+		if (hVars.stream().noneMatch(count::containsVariable)) {
+			modelCount = (int) Math.pow(2, hVars.size());
+		} else {
+			ApproxMC approxMC = new ApproxMC(outputDirectory);
+			modelCount = approxMC.estimateModelCount(count, hVars);
+		}
+		System.out.println("# of inputs w/ the same output: " + modelCount);
 	}
 }

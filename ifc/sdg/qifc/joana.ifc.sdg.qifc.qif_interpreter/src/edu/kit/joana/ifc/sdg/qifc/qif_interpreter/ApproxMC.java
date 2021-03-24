@@ -34,7 +34,7 @@ public class ApproxMC {
 
 	public int estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException {
 		Formula cnf = f.cnf();
-		System.out.println(cnf);
+		// System.out.println(cnf);
 		String filename = dest + "/" + "leaked" + count + ".cnf";
 		LogicUtil.writeDimacsFile(filename, cnf, samplingSet, true);
 		return invokeApproxMC(filename, dest + "/" + "approxMC_out" + count++);

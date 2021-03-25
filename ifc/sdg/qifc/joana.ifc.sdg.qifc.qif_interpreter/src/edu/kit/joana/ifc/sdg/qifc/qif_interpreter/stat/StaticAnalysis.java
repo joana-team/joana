@@ -1,13 +1,12 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
-import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
-import org.logicng.formulas.Formula;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class StaticAnalysis {
@@ -84,7 +83,7 @@ public class StaticAnalysis {
 		SimplePhiVisitor v = new SimplePhiVisitor(m);
 		v.computePhiDeps();
 
-		// -------------- print Phi results -------------
+		/* -------------- print Phi results -------------
 		System.out.println("Phi results: ");
 		Map<Integer, List<Pair<Formula[], Formula>>> phiRes = m.getPhiValPossibilities();
 
@@ -92,7 +91,7 @@ public class StaticAnalysis {
 			System.out.println(i);
 			phiRes.get(i).forEach(p -> System.out.println("Val: " + Arrays.toString(p.fst) + "\nImplicit: " + p.snd));
 		}
-		// -----------------------------------------------
+		// ----------------------------------------------- */
 	}
 
 	public void createConstant(int op1) {

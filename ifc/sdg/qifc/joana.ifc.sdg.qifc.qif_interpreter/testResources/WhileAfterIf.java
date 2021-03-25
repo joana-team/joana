@@ -15,7 +15,8 @@ public class WhileAfterIf {
 			l = 1;
 		}
 		while (h > 0) {
-			l = 1 + l;
+			l++;
+			h--;
 		}
 		Out.print(l);
 		return l;

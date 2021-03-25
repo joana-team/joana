@@ -4,9 +4,11 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import org.junit.jupiter.api.Test;
 import org.logicng.datastructures.Assignment;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
+import org.logicng.io.parsers.ParserException;
 import org.logicng.solvers.MiniSat;
 
 import java.io.IOException;
@@ -46,5 +48,12 @@ public class TestUtils {
 		ms.add(in);
 		List<Assignment> models = ms.enumerateAllModels();
 		models.forEach(System.out::println);
+	}
+
+	@Test void debug() throws ParserException {
+		String formula = "z & ~((y | ~z) & (~y | z)) & ~((x | ~y & ~z) & (~x | ~(~y & ~z))) | (x | ~y & ~z) & (~x | ~(~y & ~z))";
+		FormulaFactory ff = new FormulaFactory();
+		Formula f = ff.parse(formula);
+		printModels(f, ff);
 	}
 }

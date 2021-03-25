@@ -109,19 +109,19 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		Object def;
 		switch (operator) {
 		case ADD:
-			def = op1 + op2;
+			def = IntegerArithmetic.add(op1, op2);
 			break;
 		case SUB:
-			def = op1 - op2;
+			def = IntegerArithmetic.sub(op1, op2);
 			break;
 		case MUL:
-			def = op1 * op2;
+			def = IntegerArithmetic.mult(op1, op2);
 			break;
 		case DIV:
-			def = op1 / op2;
+			def = IntegerArithmetic.div(op1, op2);
 			break;
 		case REM:
-			def = op1 % op2;
+			def = IntegerArithmetic.mod(op1, op2);
 			break;
 		case AND:
 			def = op1 & op2;
@@ -172,16 +172,16 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			result = !op1.equals(op2);
 			break;
 		case LT:
-			result = op1 < op2;
+			result = IntegerArithmetic.sub(op1, op2) < 0;
 			break;
 		case GE:
-			result = op1 >= op2;
+			result = IntegerArithmetic.sub(op1, op2) >= 0;
 			break;
 		case GT:
-			result = op1 > op2;
+			result = IntegerArithmetic.sub(op1, op2) > 0;
 			break;
 		case LE:
-			result = op1 <= op2;
+			result = IntegerArithmetic.sub(op1, op2) <= 0;
 			break;
 		default:
 			throw new IllegalStateException("Unexpected value: " + operator);

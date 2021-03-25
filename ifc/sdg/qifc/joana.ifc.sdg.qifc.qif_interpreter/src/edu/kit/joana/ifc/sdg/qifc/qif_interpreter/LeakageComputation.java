@@ -50,24 +50,24 @@ public class LeakageComputation {
 
 		for (Integer i : m.getPhiValPossibilities().keySet()) {
 			List<Pair<Formula[], Formula>> possibilities = m.getPossibleValues(i);
-			Formula[] vars = m.getDepsForValue(i);
-			Formula asSingleFormula = LogicUtil.ff.constant(false);
-			for (Pair<Formula[], Formula> p : possibilities) {
-				asSingleFormula = LogicUtil.ff.or(asSingleFormula,
-						IntStream.range(0, vars.length).mapToObj(j -> LogicUtil.ff.equivalence(vars[j], p.fst[j]))
-								.reduce(p.snd, LogicUtil.ff::and));
-			}
-			reducedPhiDeps.add(asSingleFormula);
-		}
+			Formula resultPossibility = LogicUtil.ff.constant(false);
+			Formula[] equivVars = m.getDepsForValue(i);
 
+			for (Pair<Formula[], Formula> p : possibilities) {
+				IntStream.range(0, p.fst.length)
+						.forEach(j -> p.fst[j] = LogicUtil.ff.equivalence(equivVars[j], p.fst[j]));
+				Formula onePossibility = Arrays.stream(p.fst).reduce(p.snd, LogicUtil.ff::and);
+				resultPossibility = LogicUtil.ff.or(resultPossibility, onePossibility);
+			}
+			reducedPhiDeps.add(resultPossibility);
+		}
 		res = reducedPhiDeps.stream().reduce(res, LogicUtil.ff::and);
-		// System.out.println(res);
 		return res;
 	}
 
 	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException {
-
 		Formula count = createCountingFormula();
+		System.out.println("formula: " + count);
 		int modelCount;
 
 		if (hVars.stream().noneMatch(count::containsVariable)) {

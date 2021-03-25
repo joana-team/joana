@@ -3,7 +3,6 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -46,7 +45,7 @@ class AppTest {
 	}
 
 	@Test public void simpleArithmeticTest()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException,
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException,
 			InvalidClassFileException {
 
 		Program p = TestUtils.build("SimpleArithmetic");
@@ -80,5 +79,29 @@ class AppTest {
 		lc.compute(null);
 	}
 
+	@Test void fullRunLoop()
+			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
+		Program p = TestUtils.build("Loop");
+		// execute
+		Interpreter i = new Interpreter(p);
+		StaticAnalysis sa = new StaticAnalysis(p);
+
+		sa.computeSATDeps();
+
+		p.getEntryMethod().getCFG().print();
+		p.getEntryMethod().getProgramValues().keySet()
+				.forEach(j -> System.out.println(j + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(j))));
+
+		i.execute(Arrays.asList("-1"));
+
+		Method entry = p.getEntryMethod();
+		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
+		int[] params = entry.getIr().getParameterValueNumbers();
+		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
+		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
+		lc.compute(null);
+	}
 
 }

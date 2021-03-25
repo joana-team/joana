@@ -11,12 +11,10 @@ public class Loop {
 
 	public int f(int h) {
 		int l = 0;
-		while(h > 0) {
+		while(h > l) {
 			l++;
-			h--;
 		}
 		Out.print(l);
 		return l;
 	}
-
 }

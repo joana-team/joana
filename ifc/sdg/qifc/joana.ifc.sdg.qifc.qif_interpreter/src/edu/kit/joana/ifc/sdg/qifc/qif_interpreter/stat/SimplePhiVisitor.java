@@ -6,7 +6,9 @@ import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
+import org.logicng.formulas.Formula;
 
 import java.util.List;
 
@@ -16,7 +18,7 @@ import java.util.List;
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 	// temporary
-	private static final int loopUnrollingMax = 2;
+	private static final int loopUnrollingMax = 4;
 
 	private Method m;
 
@@ -46,14 +48,27 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 			m.addPhiValuePossibility(instruction.getDef(), Pair.make(m.getDepsForValue(instruction.getUse(i)),
 					phiBlock.preds().get(i).generateImplicitFlowFormula()));
 		}
-
 	}
 
 	private void visitPhiFromLoop(SSAPhiInstruction instruction) {
 		LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().instructions().contains(instruction)).findFirst().get();
 
 		for (int i = 0; i <= loopUnrollingMax; i++) {
-			m.addPhiValuePossibility(instruction.getDef(), Pair.make(l.getRun(i).get(instruction.getDef()), l.getImplicitFlowForIter(i)));
+			Formula[] val = l.getRun(i).get(instruction.getDef());
+			BBlock outsideLoopSuccessor = l.getHead().succs().stream().filter(b -> !l.getBlocks().contains(b))
+					.findFirst().get();
+			BBlock insideLoopSuccessor = l.getHead().succs().stream().filter(b -> l.getBlocks().contains(b)).findFirst()
+					.get();
+			Formula implicitFlowAfter = outsideLoopSuccessor.generateImplicitFlowFormula();
+			Formula implicitFlowIn = insideLoopSuccessor.generateImplicitFlowFormula();
+
+			Formula iFlow = LogicUtil.ff.constant(true);
+
+			for (int j = 0; j < i; j++) {
+				iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(j, implicitFlowIn));
+			}
+			iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(i, implicitFlowAfter));
+			m.addPhiValuePossibility(instruction.getDef(), Pair.make(val, iFlow));
 		}
 	}
 }

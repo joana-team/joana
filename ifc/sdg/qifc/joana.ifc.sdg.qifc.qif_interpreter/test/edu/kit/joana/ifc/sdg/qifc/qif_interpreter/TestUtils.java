@@ -4,8 +4,13 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import org.logicng.datastructures.Assignment;
+import org.logicng.formulas.Formula;
+import org.logicng.formulas.FormulaFactory;
+import org.logicng.solvers.MiniSat;
 
 import java.io.IOException;
+import java.util.List;
 
 public class TestUtils {
 
@@ -36,4 +41,10 @@ public class TestUtils {
 		return builder.getProgram();
 	}
 
+	public static void printModels(Formula in, FormulaFactory f) {
+		MiniSat ms = MiniSat.miniSat(f);
+		ms.add(in);
+		List<Assignment> models = ms.enumerateAllModels();
+		models.forEach(System.out::println);
+	}
 }

@@ -15,9 +15,8 @@ def generate_possible_inputs(param_num, param_width):
                 copy = l.copy()
                 copy.append(j)
                 next_.append(copy)
-        base = next
+        base = next_
         next_ = []
-
     return base
 
 

@@ -1,6 +1,5 @@
 import os
 import subprocess
-import json
 import util
 import sys
 
@@ -41,13 +40,34 @@ def check_testcase(test_case, args):
     return check_result(output, model_count, name)
 
 
+def test(path):
+    num_param = util.load_results(util.get_name_from_testcase_path(test_case))["args"]
+    all_inputs = util.generate_possible_inputs(num_param, 3)
+
+    fail = 0
+    success = 0
+
+    for args in all_inputs:
+        check = check_testcase(path, args)
+
+        if not check:
+            print("Test failed for input: " + args)
+            fail += 1
+        else:
+            success += 1
+
+    print("Testcase " + path + ": " + str(success) + " successful, " + str(fail) + " failed")
+
+
 if __name__ == "__main__":
     print("Make sure all debug prints are turned off !!!")
     test_case = sys.argv[1]
-    required_args_num = int(util.load_results(util.get_name_from_testcase_path(test_case))["args"])
 
-    all_inputs = util.generate_possible_inputs(required_args_num, 3)
-    for args in all_inputs:
-        check = check_testcase(test_case, args)
-        print(str(args) + " " + str(check))
+    if test_case == "all":
+        for filename in os.listdir("testResources/"):
+            test_case = "testResources/" + filename
+            test(test_case)
+    else:
+        test(test_case)
+
 

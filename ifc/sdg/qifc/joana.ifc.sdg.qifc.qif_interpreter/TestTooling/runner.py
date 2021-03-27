@@ -44,6 +44,8 @@ def test(path):
     num_param = util.load_results(util.get_name_from_testcase_path(test_case))["args"]
     all_inputs = util.generate_possible_inputs(num_param, 3)
 
+    print("Starting " + path)
+
     fail = 0
     success = 0
 
@@ -51,23 +53,65 @@ def test(path):
         check = check_testcase(path, args)
 
         if not check:
-            print("Test failed for input: " + args)
+            args = [str(i) for i in args]
+            print("Test failed for input: " + " ".join(args))
             fail += 1
         else:
             success += 1
 
     print("Testcase " + path + ": " + str(success) + " successful, " + str(fail) + " failed")
+    return fail > 0
 
 
 if __name__ == "__main__":
     print("Make sure all debug prints are turned off !!!")
     test_case = sys.argv[1]
 
+    successful = []
+
     if test_case == "all":
         for filename in os.listdir("testResources/"):
             test_case = "testResources/" + filename
-            test(test_case)
+            if os.path.isdir(test_case):
+                continue
+
+            res = test(test_case)
+
+            if res:
+                successful.append(filename)
+            os.system("rm -r out_*")
+
+        with open("testResources/results/successful.txt", 'w') as f:
+            for case in successful:
+                f.write(case)
+                f.write("\n")
+
+    if test_case == "failed":
+        unnecessary = []
+
+        with open("testResources/results/successful.txt", 'r') as f:
+            content = f.readlines()
+            unnecessary = [x.strip() for x in content]
+
+        for filename in os.listdir("testResources/"):
+            test_case = "testResources/" + filename
+
+            if os.path.isdir(test_case):
+                continue
+
+            if test_case in unnecessary:
+                continue
+
+            res = test(test_case)
+
+            if res:
+                successful.append(filename)
+            os.system("rm -r out_*")
+
+        with open("testResources/results/successful.txt", 'a') as f:
+            for case in successful:
+                f.write(case)
+                f.write("\n")
+
     else:
         test(test_case)
-
-

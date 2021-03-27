@@ -7,3 +7,4 @@ testResources/Or.java
 testResources/If3.java
 testResources/If2.java
 testResources/NotQuiteIdenticalBranches.java
+testResources/MultipleIn.java

@@ -258,7 +258,9 @@ public class LogicUtil {
 		final File file = new File(fileName.endsWith(".cnf") ? fileName : fileName + ".cnf");
 		final SortedMap<Variable, Long> var2id = new TreeMap<>();
 		long i = 1;
-		for (final Variable var : new TreeSet<>(formula.variables())) {
+		Set<Variable> varsToMap = new TreeSet<>(formula.variables());
+		varsToMap.addAll(samplingSet);
+		for (final Variable var : varsToMap) {
 			var2id.put(var, i++);
 		}
 		if (!formula.holds(CNFPredicate.get())) {
@@ -278,7 +280,7 @@ public class LogicUtil {
 
 		// add sampling set
 		sb.append("c ind ");
-		samplingSet.stream().filter(var2id::containsKey).forEach(v -> sb.append(var2id.get(v)).append(" "));
+		samplingSet.stream().forEach(v -> sb.append(var2id.get(v)).append(" "));
 		sb.append("0").append(System.lineSeparator());
 
 		for (final Formula part : parts) {

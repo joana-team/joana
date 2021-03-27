@@ -18,6 +18,8 @@ def collect_results(path, possible_args):
     results = {}
     for args in possible_args:
         res = execute(args, path)
+        if res == "2\n1\n1":
+            print(args)
         if res not in results.keys():
             results[res] = 0
         results[res] += 1

@@ -114,4 +114,7 @@ if __name__ == "__main__":
                 f.write("\n")
 
     else:
-        test(test_case)
+        res = test(test_case)
+        if res:
+            with open("testResources/results/successful.txt", 'a') as f:
+                f.write(test_case + "\n")

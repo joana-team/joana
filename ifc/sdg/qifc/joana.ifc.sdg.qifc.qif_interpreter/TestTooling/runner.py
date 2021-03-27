@@ -1,7 +1,8 @@
 import os
 import subprocess
-import util
 import sys
+
+import util
 
 
 def run_test(args, path):
@@ -60,7 +61,7 @@ def test(path):
             success += 1
 
     print("Testcase " + path + ": " + str(success) + " successful, " + str(fail) + " failed")
-    return fail > 0
+    return fail == 0
 
 
 if __name__ == "__main__":
@@ -110,6 +111,7 @@ if __name__ == "__main__":
 
         with open("testResources/results/successful.txt", 'a') as f:
             for case in successful:
+                f.write("\n")
                 f.write(case)
                 f.write("\n")
 
@@ -117,4 +119,4 @@ if __name__ == "__main__":
         res = test(test_case)
         if res:
             with open("testResources/results/successful.txt", 'a') as f:
-                f.write(test_case + "\n")
+                f.write("\n" + test_case + "\n")

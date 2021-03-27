@@ -54,8 +54,9 @@ public class LeakageComputation {
 			Formula[] equivVars = m.getDepsForValue(i);
 
 			for (Pair<Formula[], Formula> p : possibilities) {
+				Formula[] phiResult = new Formula[p.fst.length];
 				IntStream.range(0, p.fst.length)
-						.forEach(j -> p.fst[j] = LogicUtil.ff.equivalence(equivVars[j], p.fst[j]));
+						.forEach(j -> phiResult[j] = LogicUtil.ff.equivalence(equivVars[j], p.fst[j]));
 				Formula onePossibility = Arrays.stream(p.fst).reduce(p.snd, LogicUtil.ff::and);
 				resultPossibility = LogicUtil.ff.or(resultPossibility, onePossibility);
 			}

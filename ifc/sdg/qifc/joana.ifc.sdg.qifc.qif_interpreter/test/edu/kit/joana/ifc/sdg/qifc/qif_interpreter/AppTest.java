@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
 import org.logicng.formulas.Variable;
+import org.logicng.io.parsers.ParserException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -84,7 +85,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("IdenticalBranches");
+		Program p = TestUtils.build("IfinIf");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
@@ -107,13 +108,16 @@ class AppTest {
 		lc.compute(null);
 	}
 
-	@Test void debug() {
+	@Test void debug() throws ParserException {
 		FormulaFactory ff = new FormulaFactory();
 		Variable x = ff.variable("x");
 		Formula a = ff.equivalence(x, ff.constant(true));
 		Formula b = ff.equivalence(x, ff.constant(false));
 		System.out.println(a);
 		System.out.println(b);
+
+		String f = "~(~(y & ~((x | ~y) & (~x | y)) & ~((z | ~x & ~y) & (~z | ~(~x & ~y)))) & ~((z | ~x & ~y) & (~z | ~(~x & ~y)))) & ~(~y & ~x & ~z | z)";
+		TestUtils.printModels(ff.parse(f), ff);
 	}
 
 }

@@ -10,3 +10,4 @@ testResources/NotQuiteIdenticalBranches.java
 testResources/MultipleIn.java
 testResources/SimpleArithmetic.java
 testResources/IdenticalBranches.java
+testResources/IfinIf.java

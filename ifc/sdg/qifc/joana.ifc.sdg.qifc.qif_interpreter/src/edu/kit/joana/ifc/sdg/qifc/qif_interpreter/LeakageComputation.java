@@ -44,26 +44,26 @@ public class LeakageComputation {
 		Formula res = IntStream.range(0, leakedValue.getDeps().length).mapToObj(i -> (binaryVal[i] == '1') ?
 				leakedValue.getDepForBit(i) :
 				LogicUtil.ff.not(leakedValue.getDepForBit(i))).reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
-
-		// add equivalences describing the control flow at phi nodes
-		List<Formula> reducedPhiDeps = new ArrayList<>();
-
-		for (Integer i : m.getPhiValPossibilities().keySet()) {
-			List<Pair<Formula[], Formula>> possibilities = m.getPossibleValues(i);
-			Formula resultPossibility = LogicUtil.ff.constant(false);
-			Formula[] equivVars = m.getDepsForValue(i);
-
-			for (Pair<Formula[], Formula> p : possibilities) {
-				Formula[] phiResult = new Formula[p.fst.length];
-				IntStream.range(0, p.fst.length)
-						.forEach(j -> phiResult[j] = LogicUtil.ff.equivalence(equivVars[j], p.fst[j]));
-				Formula onePossibility = Arrays.stream(p.fst).reduce(p.snd, LogicUtil.ff::and);
-				resultPossibility = LogicUtil.ff.or(resultPossibility, onePossibility);
-			}
-			reducedPhiDeps.add(resultPossibility);
-		}
-		res = reducedPhiDeps.stream().reduce(res, LogicUtil.ff::and);
+		res = addPhiDepsRec(res, -1);
 		return res;
+	}
+
+	private Formula addPhiDepsRec(Formula lastAdded, int lastSub) {
+		List<Formula> toAdd = new ArrayList<>();
+		for (int i : m.getPhiValPossibilities().keySet()) {
+			Formula[] vars = m.getDepsForValue(i);
+			if (i != lastSub && Arrays.stream(vars).anyMatch(var -> lastAdded.containsVariable((Variable) var))) {
+				List<Formula> possibilities = new ArrayList<>();
+				for (Pair<Formula[], Formula> p : m.getPhiValPossibilities().get(i)) {
+					Formula reduced = IntStream.range(0, vars.length)
+							.mapToObj(k -> LogicUtil.ff.equivalence(vars[k], p.fst[k]))
+							.reduce(p.snd, LogicUtil.ff::and);
+					possibilities.add(addPhiDepsRec(reduced, i));
+				}
+				toAdd.add(possibilities.stream().reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or));
+			}
+		}
+		return toAdd.stream().reduce(lastAdded, LogicUtil.ff::and);
 	}
 
 	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException {

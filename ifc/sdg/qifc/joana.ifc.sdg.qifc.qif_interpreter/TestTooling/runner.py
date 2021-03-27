@@ -113,10 +113,9 @@ if __name__ == "__main__":
             for case in successful:
                 f.write("\n")
                 f.write(case)
-                f.write("\n")
 
     else:
         res = test(test_case)
         if res:
             with open("testResources/results/successful.txt", 'a') as f:
-                f.write("\n" + test_case + "\n")
+                f.write("\n" + test_case)

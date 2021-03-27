@@ -21,5 +21,4 @@ public class IfinIf {
 		Out.print(l);
 		return l;
 	}
-
 }

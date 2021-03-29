@@ -11,3 +11,9 @@ testResources/MultipleIn.java
 testResources/SimpleArithmetic.java
 testResources/IdenticalBranches.java
 testResources/IfinIf.java
+testResources/DoesntCompile.java
+testResources/And.java
+testResources/Implicit.java
+testResources/WhileAfterIf.java
+testResources/Loop.java
+testResources/Loop2.java

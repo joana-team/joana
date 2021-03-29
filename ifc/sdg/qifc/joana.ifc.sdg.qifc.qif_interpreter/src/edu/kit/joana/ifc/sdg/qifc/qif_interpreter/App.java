@@ -20,10 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -121,12 +118,18 @@ public class App {
 		i.execute(jArgs.args);
 
 		Method entry = p.getEntryMethod();
-		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
+		Optional<Value> leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst();
+
+		if (!leaked.isPresent()) {
+			System.out.println("No information leakage");
+			System.exit(0);
+		}
+
 		int[] params = entry.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
 		// System.out.println(" Parameters: ");
-		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
+		LeakageComputation lc = new LeakageComputation(hVals, leaked.get(), entry);
 		lc.compute(jArgs.outputDirectory);
 	}
 

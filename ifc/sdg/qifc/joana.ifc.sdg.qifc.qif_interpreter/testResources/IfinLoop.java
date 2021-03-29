@@ -15,9 +15,9 @@ public class IfinLoop {
 			if (l > 0) {
 				l = l - 1;
 			} else {
-				l = 3;
+				l = 1;
 			}
-			h--;
+			h = h - 1;
 		}
 		Out.print(l);
 		return l;

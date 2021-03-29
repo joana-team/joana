@@ -1,3 +1,4 @@
+import math
 import os
 import subprocess
 import sys
@@ -26,7 +27,10 @@ def check_result(output, model_count, testcase_name):
     return int(model_count) == expected
 
 
-def parse_result(result_string):
+def parse_result(result_string, num_args):
+    if result_string.strip() == "No information leakage":
+        return "", math.pow(2, num_args * 3)
+
     (output, model_count) = result_string.split("# of inputs w/ the same output:")
     output = output.strip()
     model_count = model_count.strip()
@@ -36,7 +40,7 @@ def parse_result(result_string):
 def check_testcase(test_case, args):
     name = util.get_name_from_testcase_path(test_case)
     result_string = run_test(args, test_case)
-    output, model_count = parse_result(result_string)
+    output, model_count = parse_result(result_string, len(args))
 
     return check_result(output, model_count, name)
 

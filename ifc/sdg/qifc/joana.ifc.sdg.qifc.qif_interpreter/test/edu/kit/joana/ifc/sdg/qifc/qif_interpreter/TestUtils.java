@@ -47,6 +47,11 @@ public class TestUtils {
 		MiniSat ms = MiniSat.miniSat(f);
 		ms.add(in);
 		List<Assignment> models = ms.enumerateAllModels();
+
+		if (models.isEmpty()) {
+			System.out.println("UNSAT");
+		}
+
 		models.forEach(System.out::println);
 	}
 

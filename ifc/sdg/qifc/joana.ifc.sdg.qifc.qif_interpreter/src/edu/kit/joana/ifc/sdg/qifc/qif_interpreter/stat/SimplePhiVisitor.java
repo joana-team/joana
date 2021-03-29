@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
 
@@ -18,7 +19,7 @@ import java.util.List;
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 	// temporary
-	private static final int loopUnrollingMax = 4;
+	private static final int loopUnrollingMax = 6;
 
 	private Method m;
 
@@ -54,7 +55,8 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 		LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().instructions().contains(instruction)).findFirst().get();
 
 		for (int i = 0; i <= loopUnrollingMax; i++) {
-			Formula[] val = l.getRun(i).get(instruction.getDef());
+			LoopBody.Run r = l.getRun(i);
+			Formula[] val = r.getAfter().get(instruction.getDef());
 			BBlock outsideLoopSuccessor = l.getHead().succs().stream().filter(b -> !l.getBlocks().contains(b))
 					.findFirst().get();
 			BBlock insideLoopSuccessor = l.getHead().succs().stream().filter(b -> l.getBlocks().contains(b)).findFirst()
@@ -65,9 +67,20 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 			Formula iFlow = LogicUtil.ff.constant(true);
 
 			for (int j = 0; j < i; j++) {
-				iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(j, implicitFlowIn));
+				Substitution s = new Substitution();
+				for (int k : l.getIn().keySet()) {
+					s.addMapping(l.getIn().get(k), l.getRun(j).getAfter().get(k));
+				}
+				iFlow = LogicUtil.ff.and(iFlow, implicitFlowIn.substitute(s.toLogicNGSubstitution()));
 			}
-			iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(i, implicitFlowAfter));
+			Substitution s = new Substitution();
+			for (int k : l.getIn().keySet()) {
+				s.addMapping(l.getIn().get(k), r.getAfter().get(k));
+			}
+			iFlow = LogicUtil.ff.and(iFlow, implicitFlowAfter.substitute(s.toLogicNGSubstitution()));
+
+			// add iteration deps
+			iFlow = l.getIn().keySet().stream().map(k -> r.getRunDeps().get(k)).reduce(iFlow, LogicUtil.ff::and);
 			m.addPhiValuePossibility(instruction.getDef(), Pair.make(val, iFlow));
 		}
 	}

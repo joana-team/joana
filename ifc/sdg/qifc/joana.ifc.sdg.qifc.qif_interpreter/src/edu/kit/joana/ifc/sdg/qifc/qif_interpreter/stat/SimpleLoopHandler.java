@@ -19,7 +19,12 @@ public class SimpleLoopHandler {
 
 	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) {
 
-		assert(head.isLoopHeader());
+		assert (head.isLoopHeader());
+		try {
+			sv.visitBlock(m, head, -1);
+		} catch (OutOfScopeException e) {
+			e.printStackTrace();
+		}
 		LoopBody loop = new LoopBody(m, head);
 
 		Queue<BBlock> toVisit = new ArrayDeque<>();
@@ -28,22 +33,26 @@ public class SimpleLoopHandler {
 		while (!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
 
+			for (BBlock succ : b.succs()) {
+				if (loop.getBlocks().contains(succ) && !succ.equals(head)) {
+					toVisit.add(succ);
+				}
+			}
+
+			if (b.equals(head))
+				continue;
+
 			if (b.isLoopHeader() && !b.equals(head)) {
 				LoopBody l = SimpleLoopHandler.analyze(m, b, sv);
 				m.addLoop(l);
-				toVisit.addAll(b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
+				toVisit.addAll(
+						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
 
 				try {
 					sv.visitBlock(m, b, -1);
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
-				}
-
-				for (BBlock succ : b.succs()) {
-					if (loop.getBlocks().contains(succ) && !succ.equals(head)) {
-						toVisit.add(succ);
-					}
 				}
 			}
 		}

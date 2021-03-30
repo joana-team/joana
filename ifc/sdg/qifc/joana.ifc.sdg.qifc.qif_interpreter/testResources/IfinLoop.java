@@ -13,7 +13,7 @@ public class IfinLoop {
 		int l = 0;
 		while (h > 0) {
 			if (l > 0) {
-				l = l - 1;
+				l = l & 0;
 			} else {
 				l = 1;
 			}
@@ -22,5 +22,4 @@ public class IfinLoop {
 		Out.print(l);
 		return l;
 	}
-
 }

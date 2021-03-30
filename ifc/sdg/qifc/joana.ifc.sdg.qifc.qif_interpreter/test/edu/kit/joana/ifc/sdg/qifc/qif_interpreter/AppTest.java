@@ -85,7 +85,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Loop");
+		Program p = TestUtils.build("Loop3");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
@@ -116,7 +116,7 @@ class AppTest {
 		System.out.println(a);
 		System.out.println(b);
 
-		String f = "Z & ~((Y | ~Z) & (~Y | Z)) & ~((X | ~Y & ~Z) & (~X | ~(~Y & ~Z))) | (X | ~Y & ~Z) & (~X | ~(~Y & ~Z))";
+		String f = "(z & ~((y | ~z) & (~y | z)) & ~((x | ~y & ~z) & (~x | ~(~y & ~z))) | (x | ~y & ~z) & (~x | ~(~y & ~z)))";
 		TestUtils.printModels(ff.parse(f), ff);
 	}
 }

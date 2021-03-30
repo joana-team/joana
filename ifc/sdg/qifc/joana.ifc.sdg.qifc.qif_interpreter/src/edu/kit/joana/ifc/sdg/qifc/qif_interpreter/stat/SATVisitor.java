@@ -169,6 +169,14 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	 * @param instruction a phi instruction
 	 */
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
+		if (block.isCondHeader()) {
+			handleCondPhi(instruction);
+		} else {
+			handleLoopPhi(instruction);
+		}
+	}
+
+	private void handleLoopPhi(SSAPhiInstruction instruction) {
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 
 		// find the operator for which there already exists as value object
@@ -183,6 +191,35 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		}
 		assert defVal != null;
 		m.setDepsForvalue(instruction.getDef(), LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth()));
+	}
+
+	private void handleCondPhi(SSAPhiInstruction instruction) {
+		Formula[] op1 = m.getDepsForValue(instruction.getUse(0));
+		Formula[] op2 = m.getDepsForValue(instruction.getUse(1));
+
+		BBlock predZero = block.preds().get(0);
+
+		BBlock condBlock = m.getCFG().getImmDom(block);
+		assert(condBlock.isCondHeader());
+		// trueTarget will be a "proper" basic block, however we have inserted dummy blocks between the conditional head and the target block.
+		// So instead of the target block we access its only pred --> the dummy block
+		BBlock trueTarget = m.getBlockStartingAt(((SSAConditionalBranchInstruction) condBlock.getWalaBasicBLock().getLastInstruction()).getTarget()).preds()
+				.get(0);
+
+		assert(trueTarget.isDummy());
+
+		Formula pathZero = (m.getCFG().isDominatedBy(predZero, trueTarget)) ? condBlock.getCondExpr() : LogicUtil.ff.not(condBlock.getCondExpr());
+
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
+		if (!m.hasValue(instruction.getDef())) {
+			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+					.createByType(instruction.getDef(), m.getValue(instruction.getUse(0)).getType());
+			m.addValue(instruction.getDef(), defVal);
+		} else {
+			defVal = m.getValue(instruction.getDef());
+		}
+		assert defVal != null;
+		m.setDepsForvalue(instruction.getDef(), LogicUtil.ternaryOp(pathZero, op1, op2));
 	}
 
 	@Override public void visitPi(SSAPiInstruction instruction) {

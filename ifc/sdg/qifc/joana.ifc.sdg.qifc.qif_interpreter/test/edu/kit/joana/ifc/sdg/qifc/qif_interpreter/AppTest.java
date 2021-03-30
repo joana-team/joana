@@ -85,7 +85,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Loop3");
+		Program p = TestUtils.build("Loop2");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
@@ -96,7 +96,7 @@ class AppTest {
 		p.getEntryMethod().getProgramValues().keySet()
 				.forEach(j -> System.out.println(j + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(j))));
 
-		i.execute(Arrays.asList("-1"));
+		i.execute(Arrays.asList("1"));
 
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();

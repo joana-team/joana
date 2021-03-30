@@ -18,7 +18,7 @@ import java.util.List;
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 	// temporary
-	private static final int loopUnrollingMax = 3;
+	private static final int loopUnrollingMax = 1;
 
 	private Method m;
 
@@ -38,7 +38,8 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 		if (m.isComputedInLoop(instruction.getDef())) {
 			visitPhiFromLoop(instruction);
 		} else {
-			visitPhiFromConditional(instruction);
+			// do nothing
+			// visitPhiFromConditional(instruction);
 		}
 	}
 

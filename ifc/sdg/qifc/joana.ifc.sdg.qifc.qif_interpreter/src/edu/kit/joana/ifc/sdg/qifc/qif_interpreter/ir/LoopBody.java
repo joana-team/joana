@@ -25,7 +25,6 @@ public class LoopBody {
 		this.owner = owner;
 		this.in = new HashMap<>();
 		this.out = new HashMap<>();
-		// this.runs = new HashMap<>();
 		this.mapping = new HashMap<>();
 		this.beforeLoop = new HashMap<>();
 		this.head = head;

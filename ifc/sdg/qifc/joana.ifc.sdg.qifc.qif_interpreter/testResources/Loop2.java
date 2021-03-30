@@ -14,6 +14,7 @@ public class Loop2 {
 		while(3 > l) {
 			l++;
 		}
+		Out.print(l);
 		return l;
 	}
 

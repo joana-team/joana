@@ -18,3 +18,4 @@ testResources/WhileAfterIf.java
 testResources/Loop.java
 testResources/Loop2.java
 testResources/Loop3.java
+testResources/If.java

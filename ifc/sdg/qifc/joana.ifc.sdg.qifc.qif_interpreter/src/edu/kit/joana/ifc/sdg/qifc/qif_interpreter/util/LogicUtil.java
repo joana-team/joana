@@ -317,8 +317,14 @@ public class LogicUtil {
 		}
 	}
 
-	public Formula ternaryOp(Formula if_, Formula then_, Formula else_) {
+	public static Formula ternaryOp(Formula if_, Formula then_, Formula else_) {
 		return ff.and(ff.implication(if_, then_), ff.implication(ff.not(if_), else_));
+	}
+
+	public static Formula[] ternaryOp(Formula if_, Formula[] then_, Formula[] else_) {
+		Formula[] ret = new Formula[then_.length];
+		IntStream.range(0, ret.length).forEach(i -> ret[i] = ternaryOp(if_, then_[i], else_[i]));
+		return ret;
 	}
 
 }

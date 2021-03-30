@@ -1,12 +1,13 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import org.logicng.formulas.Formula;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StaticAnalysis {
@@ -54,11 +55,13 @@ public class StaticAnalysis {
 		// explicit IF
 		SATVisitor sv = new SATVisitor(this);
 
+		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
 		toVisit.add(m.getCFG().getBlock(0));
 
 		while(!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
+			visited.add(b.idx());
 
 			if (b.isLoopHeader()) {
 				LoopBody l = SimpleLoopHandler.analyze(m, b, sv);
@@ -67,7 +70,13 @@ public class StaticAnalysis {
 			} else {
 				try {
 					sv.visitBlock(m, b, -1);
-					toVisit.addAll(b.succs());
+
+					for (BBlock succ: b.succs()) {
+						if (succ.isLoopHeader() || succ.preds().stream().allMatch(pred -> visited.contains(pred.idx()))) {
+							toVisit.add(succ);
+						}
+					}
+
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
 				}
@@ -83,7 +92,7 @@ public class StaticAnalysis {
 		SimplePhiVisitor v = new SimplePhiVisitor(m);
 		v.computePhiDeps();
 
-		/* -------------- print Phi results -------------
+		// -------------- print Phi results -------------
 		System.out.println("Phi results: ");
 		Map<Integer, List<Pair<Formula[], Formula>>> phiRes = m.getPhiValPossibilities();
 

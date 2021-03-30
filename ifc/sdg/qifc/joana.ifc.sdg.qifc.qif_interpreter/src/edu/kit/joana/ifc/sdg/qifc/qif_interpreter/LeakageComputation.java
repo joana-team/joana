@@ -69,7 +69,7 @@ public class LeakageComputation {
 
 	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException {
 		Formula count = createCountingFormula();
-		// System.out.println("formula: " + count);
+		System.out.println("formula: " + count);
 		FormulaDotFileWriter.write("dot.dot", count, true);
 		int modelCount;
 

@@ -10,9 +10,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 
-import java.util.ArrayDeque;
-import java.util.Iterator;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SimpleLoopHandler {
@@ -27,14 +25,16 @@ public class SimpleLoopHandler {
 		}
 		LoopBody loop = new LoopBody(m, head);
 
+		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
 		toVisit.add(head);
 
 		while (!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
+			visited.add(b.idx());
 
 			for (BBlock succ : b.succs()) {
-				if (loop.getBlocks().contains(succ) && !succ.equals(head)) {
+				if (loop.getBlocks().contains(succ) && !succ.equals(head) && (succ.preds().stream().mapToInt(BBlock::idx).allMatch(visited::contains) || succ.isLoopHeader())) {
 					toVisit.add(succ);
 				}
 			}
@@ -48,7 +48,6 @@ public class SimpleLoopHandler {
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
-
 				try {
 					sv.visitBlock(m, b, -1);
 				} catch (OutOfScopeException e) {

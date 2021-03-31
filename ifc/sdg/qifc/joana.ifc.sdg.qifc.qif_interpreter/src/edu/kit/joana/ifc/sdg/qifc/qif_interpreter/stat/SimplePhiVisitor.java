@@ -18,7 +18,7 @@ import java.util.List;
 public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 	// temporary
-	private static final int loopUnrollingMax = 1;
+	private static final int loopUnrollingMax = 5;
 
 	private Method m;
 
@@ -56,14 +56,13 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 		LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().instructions().contains(instruction)).findFirst().get();
 
 		for (int i = 0; i <= loopUnrollingMax; i++) {
-			LoopBody.Run r = l.getRun(i);
-			Formula[] val = r.getAfter().get(instruction.getDef());
+			Formula[] val = l.getRun(i).get(instruction.getDef());
 
-			Formula exitLoop = l.substituteWithIterationOutputs(i, LogicUtil.ff.not(l.getStayInLoop()));
-			Formula iFlow = (i == 0) ? exitLoop : LogicUtil.ff.and(l.getRun(i - 1).getPreviousRunsCond(), exitLoop);
-
-			// add iteration deps
-			iFlow = l.getIn().keySet().stream().map(k -> r.getRunDeps().get(k)).reduce(iFlow, LogicUtil.ff::and);
+			Formula iFlow = LogicUtil.ff.constant(true);
+			for (int j = 0; j < i; j++) {
+				iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(j, l.getStayInLoop()));
+			}
+			iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(i, LogicUtil.ff.not(l.getStayInLoop())));
 			m.addPhiValuePossibility(instruction.getDef(), Pair.make(val, iFlow));
 		}
 	}

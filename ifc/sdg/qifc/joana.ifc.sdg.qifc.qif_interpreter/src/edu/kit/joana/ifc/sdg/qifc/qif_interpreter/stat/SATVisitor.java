@@ -169,7 +169,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	 * @param instruction a phi instruction
 	 */
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
-		if (block.isCondHeader()) {
+		if (!block.isLoopHeader()) {
 			handleCondPhi(instruction);
 		} else {
 			handleLoopPhi(instruction);

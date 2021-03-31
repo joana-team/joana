@@ -33,12 +33,6 @@ public class SimpleLoopHandler {
 			BBlock b = toVisit.poll();
 			visited.add(b.idx());
 
-			for (BBlock succ : b.succs()) {
-				if (loop.getBlocks().contains(succ) && !succ.equals(head) && (succ.preds().stream().mapToInt(BBlock::idx).allMatch(visited::contains) || succ.isLoopHeader())) {
-					toVisit.add(succ);
-				}
-			}
-
 			if (b.equals(head))
 				continue;
 
@@ -49,6 +43,12 @@ public class SimpleLoopHandler {
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
 				try {
+					for (BBlock succ : b.succs()) {
+						if (loop.getBlocks().contains(succ) && !succ.equals(head) && succ.preds().stream()
+								.mapToInt(BBlock::idx).allMatch(visited::contains)) {
+							toVisit.add(succ);
+						}
+					}
 					sv.visitBlock(m, b, -1);
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
@@ -86,6 +86,5 @@ public class SimpleLoopHandler {
 			}
 		}
 		loop.generateInitialValueSubstitution();
-
 	}
 }

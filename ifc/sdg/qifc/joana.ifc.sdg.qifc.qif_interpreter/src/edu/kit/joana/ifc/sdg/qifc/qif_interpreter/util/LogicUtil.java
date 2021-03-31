@@ -125,12 +125,12 @@ public class LogicUtil {
 		return res;
 	}
 
-	public static Formula[] createVars(int valNum, int width) {
+	public static Variable[] createVars(int valNum, int width) {
 
-		Formula[] vars = new Formula[width];
+		Variable[] vars = new Variable[width];
 		for (int i = 0; i < width; i++) {
 			Variable var = ff.variable(generateVarName(valNum, i));
-			vars[i] = ff.literal(var.name(), true);
+			vars[i] = var;
 		}
 		return vars;
 	}

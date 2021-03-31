@@ -13,11 +13,12 @@ import org.logicng.formulas.Formula;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class SimpleLoopHandler {
 
 	// temporary
-	private static final int loopUnrollingMax = 5;
+	private static final int loopUnrollingMax = 4;
 
 	public static LoopBody analyze(LoopBody loop, SATVisitor sv) {
 		BBlock head = loop.getHead();
@@ -58,11 +59,18 @@ public class SimpleLoopHandler {
 
 		extractDeps(m, head, loop);
 
-		Map<Integer, Formula[]> finalPreviousRun = new HashMap<>();
-		m.getProgramValues().keySet().forEach(i -> finalPreviousRun
-				.put(i, (loop.getIn().containsKey(i)) ? loop.getBeforeLoop(i) : m.getDepsForValue(i)));
+		Map<Integer, Formula[]> previousRun = new HashMap<>();
+
+		for (int i : m.getProgramValues().keySet()) {
+			Formula[] before = new Formula[m.getDepsForValue(i).length];
+			IntStream.range(0, before.length).forEach(k -> before[k] = (loop.getIn().containsKey(i)) ?
+					loop.getBeforeLoop(i)[k] :
+					m.getDepsForValue(i)[k]);
+			previousRun.put(i, before);
+		}
+
 		List<Pair<Map<Integer, Formula[]>, Formula>> runs = new ArrayList<>();
-		runs.add(Pair.make(finalPreviousRun,
+		runs.add(Pair.make(previousRun,
 				loop.getStayInLoop().substitute(loop.generateInitialValueSubstitution().toLogicNGSubstitution())));
 
 		for (int i = 1; i < loopUnrollingMax; i++) {
@@ -74,10 +82,10 @@ public class SimpleLoopHandler {
 
 		for (int i = loopUnrollingMax - 2; i >= 0; i--) {
 			Pair<Map<Integer, Formula[]>, Formula> run = runs.get(i);
-			run.fst.keySet().forEach(
+			// TODO this is where my initial values get replaced
+			loop.getIn().keySet().forEach(
 					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.snd, run.fst.get(j), m.getDepsForValue(j))));
 		}
-
 		return loop;
 	}
 
@@ -97,7 +105,7 @@ public class SimpleLoopHandler {
 		// copy deps to loop
 		for (SSAInstruction i: head.instructions()) {
 			if (i instanceof SSAPhiInstruction) {
-				loop.addInDeps(i.getDef(), m.getDepsForValue(i.getDef()));
+				loop.addInDeps(i.getDef(), m.getVarsForValue(i.getDef()));
 				loop.addOutDeps(i.getDef(), i.getUse(argNum));
 				loop.addBeforeLoopDeps(i.getDef(), m.getDepsForValue(i.getUse(1 - argNum)));
 			}

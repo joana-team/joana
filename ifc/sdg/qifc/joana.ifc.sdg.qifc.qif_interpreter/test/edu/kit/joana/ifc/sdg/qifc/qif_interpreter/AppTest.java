@@ -85,24 +85,22 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Loop");
+		Program p = TestUtils.build("LoopinLoop");
+		p.getEntryMethod().getCFG().print();
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
 		sa.computeSATDeps();
-		p.getEntryMethod().getCFG().print();
-		p.getEntryMethod().getProgramValues().keySet()
-				.forEach(j -> System.out.println(j + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(j))));
 
-		i.execute(Arrays.asList("0"));
+		i.execute(Arrays.asList("0", "0"));
 
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
 		int[] params = entry.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
+		// System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
 		lc.compute(null);
 	}

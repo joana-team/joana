@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
 
@@ -15,6 +16,7 @@ public abstract class Value {
 	private Type type;
 	private Object val;
 	private Formula[] deps;
+	private Variable[] vars;
 	private boolean leaked;
 	private boolean isConstant;
 
@@ -22,6 +24,11 @@ public abstract class Value {
 		this.valNum = valNum;
 		this.leaked = false;
 		this.isConstant = false;
+	}
+
+	public void addVars(Variable[] vars) {
+		assert (vars.length == width);
+		this.vars = vars;
 	}
 
 	public static Value createByType(int valNum, Type type) {
@@ -128,5 +135,9 @@ public abstract class Value {
 
 	public boolean isLeaked() {
 		return leaked;
+	}
+
+	public Variable[] getVars() {
+		return this.vars;
 	}
 }

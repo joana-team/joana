@@ -9,6 +9,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -220,6 +221,14 @@ public class Method {
 			this.phiValPossibilities.put(valNum, new ArrayList<>());
 		}
 		this.phiValPossibilities.get((valNum)).addAll(poss);
+	}
+
+	public void addVarsToValue(int valNum, Variable[] vars) {
+		this.programValues.get(valNum).addVars(vars);
+	}
+
+	public Variable[] getVarsForValue(int valNum) {
+		return this.programValues.get(valNum).getVars();
 	}
 
 	// ----------------------- getters and setters ------------------------------------------

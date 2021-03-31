@@ -11,6 +11,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
 public class SATVisitor implements SSAInstruction.IVisitor {
 	private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
@@ -190,7 +191,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			defVal = m.getValue(instruction.getDef());
 		}
 		assert defVal != null;
-		m.setDepsForvalue(instruction.getDef(), LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth()));
+		Variable[] vars = LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth());
+		m.setDepsForvalue(instruction.getDef(), vars);
+		m.addVarsToValue(instruction.getDef(), vars);
+
 	}
 
 	private void handleCondPhi(SSAPhiInstruction instruction) {

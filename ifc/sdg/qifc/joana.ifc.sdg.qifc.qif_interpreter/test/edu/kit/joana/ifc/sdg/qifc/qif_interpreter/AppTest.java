@@ -72,7 +72,7 @@ class AppTest {
 		StaticAnalysis sa = new StaticAnalysis(p);
 
 		sa.computeSATDeps();
-		i.execute(Arrays.asList("1"));
+		i.execute(Arrays.asList("0"));
 
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
@@ -85,18 +85,17 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Loop2");
+		Program p = TestUtils.build("Loop");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
 		sa.computeSATDeps();
-
 		p.getEntryMethod().getCFG().print();
 		p.getEntryMethod().getProgramValues().keySet()
 				.forEach(j -> System.out.println(j + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(j))));
 
-		i.execute(Arrays.asList("1"));
+		i.execute(Arrays.asList("0"));
 
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
@@ -116,7 +115,7 @@ class AppTest {
 		System.out.println(a);
 		System.out.println(b);
 
-		String f = "(z & ~((y | ~z) & (~y | z)) & ~((x | ~y & ~z) & (~x | ~(~y & ~z))) | (x | ~y & ~z) & (~x | ~(~y & ~z)))";
+		String f = "~z & y & ~((x | ~y) & (~x | y)) | (x | ~y) & (~x | y)";
 		TestUtils.printModels(ff.parse(f), ff);
 	}
 }

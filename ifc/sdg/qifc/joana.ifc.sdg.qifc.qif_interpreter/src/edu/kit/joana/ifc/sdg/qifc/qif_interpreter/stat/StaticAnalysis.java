@@ -57,7 +57,6 @@ public class StaticAnalysis {
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
-		List<LoopBody> loops = new ArrayList<>();
 		toVisit.add(m.getCFG().getBlock(0));
 
 		while (!toVisit.isEmpty()) {
@@ -71,7 +70,8 @@ public class StaticAnalysis {
 					e.printStackTrace();
 				}
 				LoopBody l = new LoopBody(m, b);
-				loops.add(l);
+				SimpleLoopHandler.analyze(l, sv);
+				m.addLoop(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
@@ -91,19 +91,14 @@ public class StaticAnalysis {
 			}
 		}
 
-		for (LoopBody l : loops) {
-			m.addLoop(l);
-			SimpleLoopHandler.analyze(l, sv);
-		}
-
 		// simulate loops up to 3 iterations
-		for (LoopBody l : m.getLoops()) {
-			l.getRun(3);
-		}
+		// for (LoopBody l : m.getLoops()) {
+		// 	l.getRun(3);
+		// }
 
 		// handle Phi's
-		SimplePhiVisitor v = new SimplePhiVisitor(m);
-		v.computePhiDeps();
+		// SimplePhiVisitor v = new SimplePhiVisitor(m);
+		// v.computePhiDeps();
 
 		/* -------------- print Phi results -------------
 		System.out.println("Phi results: ");

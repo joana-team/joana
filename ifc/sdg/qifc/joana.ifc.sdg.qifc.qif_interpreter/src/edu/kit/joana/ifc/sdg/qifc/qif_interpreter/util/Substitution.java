@@ -26,6 +26,11 @@ public class Substitution {
 		IntStream.range(0, var.length).forEach(i -> this.addMapping(((Variable) var[i]), f[i]));
 	}
 
+	public void addMapping(Map<Integer, Formula[]> vars, Map<Integer, Formula[]> f) {
+		assert (vars.keySet().equals(f.keySet()));
+		vars.keySet().forEach(i -> this.addMapping(vars.get(i), f.get(i)));
+	}
+
 	public Formula getMapping(Variable var) {
 		return subst.get(var);
 	}

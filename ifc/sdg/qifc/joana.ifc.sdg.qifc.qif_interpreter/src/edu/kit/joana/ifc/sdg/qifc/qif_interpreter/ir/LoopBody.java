@@ -1,14 +1,18 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class LoopBody {
 
+	private final int level;
 	private final Map<Integer, Formula[]> in;
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
@@ -17,10 +21,10 @@ public class LoopBody {
 	private final Method owner;
 	private final BBlock head;
 	private final Set<BBlock> blocks;
-	private final Formula stayInLoop;
-	private Substitution initialVals;
+	private final Formula jumpOut;
 
 	public LoopBody(Method owner, BBlock head) {
+		this.level = owner.getCFG().getLevel(head);
 		this.owner = owner;
 		this.in = new HashMap<>();
 		this.out = new HashMap<>();
@@ -34,7 +38,7 @@ public class LoopBody {
 		Boolean evalTo = insideLoopSuccessor.getImplicitFlows().stream().filter(p -> p.fst == head.idx()).findFirst()
 				.get().snd;
 		assert (evalTo != null);
-		this.stayInLoop = (evalTo) ? head.getCondExpr() : LogicUtil.ff.not(head.getCondExpr());
+		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
 
 	}
 
@@ -119,14 +123,16 @@ public class LoopBody {
 		return this.in.containsKey(valNum);
 	}
 
-	public void generateInitialValueSubstitution() {
-		this.initialVals = new Substitution();
+	public Substitution generateInitialValueSubstitution() {
+		Substitution s = new Substitution();
 
 		for (int i : this.in.keySet()) {
 			for (int j = 0; j < this.in.get(i).length; j++) {
-				initialVals.addMapping((Variable) this.in.get(i)[j], this.beforeLoop.get(i)[j]);
+				System.out.println("Mapping " + this.in.get(i)[j] + " to " + this.beforeLoop.get(i)[j]);
+				s.addMapping((Variable) this.in.get(i)[j], this.beforeLoop.get(i)[j]);
 			}
 		}
+		return s;
 	}
 
 	public Map<Integer, Formula[]> getIn() {
@@ -144,10 +150,46 @@ public class LoopBody {
 	}
 
 	public Formula getStayInLoop() {
-		return this.stayInLoop;
+		return this.jumpOut;
 	}
 
 	public Method getOwner() {
 		return this.owner;
+	}
+
+	public Set<LoopBody> containedLoops() {
+		Set<BBlock> headers = this.blocks.stream()
+				.filter(b -> b.isLoopHeader() && owner.getCFG().getLevel(b) == this.level + 1)
+				.collect(Collectors.toSet());
+		return owner.getLoops().stream().filter(l -> headers.contains(l.head)).collect(Collectors.toSet());
+	}
+
+	public Pair<Map<Integer, Formula[]>, Formula> simulateRun(Map<Integer, Formula[]> inputs) {
+		assert (inputs.keySet().containsAll(this.in.keySet()));
+		Map<Integer, Formula[]> result = new HashMap<>();
+
+		Substitution s = new Substitution();
+		out.keySet().forEach(i -> s.addMapping(this.in.get(i), inputs.get(i)));
+
+		// TODO handle nested Loop
+
+		for (int i : inputs.keySet()) {
+			if (out.containsKey(i)) {
+				Formula[] res = new Formula[inputs.get(i).length];
+				IntStream.range(0, out.get(i).length)
+						.forEach(k -> res[k] = out.get(i)[k].substitute(s.toLogicNGSubstitution()));
+				result.put(i, res);
+			} else {
+				result.put(i, inputs.get(i));
+			}
+		}
+		Substitution afterSub = new Substitution();
+		this.in.keySet().forEach(i -> afterSub.addMapping(this.in.get(i), result.get(i)));
+		Formula exitLoop = this.jumpOut.substitute(afterSub.toLogicNGSubstitution());
+		return Pair.make(result, exitLoop);
+	}
+
+	public Formula[] getBeforeLoop(int i) {
+		return this.beforeLoop.get(i);
 	}
 }

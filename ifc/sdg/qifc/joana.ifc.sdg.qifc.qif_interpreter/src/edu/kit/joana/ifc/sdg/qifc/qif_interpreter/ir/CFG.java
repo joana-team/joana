@@ -44,8 +44,9 @@ public class CFG implements Graph<BBlock> {
 					bb.setLoopHeader(true);
 				}
 			}
-				if (!bb.isLoopHeader() && bb.succs().stream().filter(s -> !s.getWalaBasicBLock().isExitBlock()).count() > 1) {
-					bb.setCondHeader(true);
+			if (!bb.isLoopHeader()
+					&& bb.succs().stream().filter(s -> !s.getWalaBasicBLock().isExitBlock()).count() > 1) {
+				bb.setCondHeader(true);
 			}
 		}
 
@@ -54,11 +55,16 @@ public class CFG implements Graph<BBlock> {
 		return cfg;
 	}
 
+	public int getLevel(BBlock b) {
+		return nildumuDoms.loopDepth(b);
+	}
+
 	private void addDummyBlocks() {
-		List<BBlock> decisionNodes = this.blocks.stream().filter(BBlock::splitsControlFlow).collect(Collectors.toList());
-		for (BBlock b: decisionNodes) {
+		List<BBlock> decisionNodes = this.blocks.stream().filter(BBlock::splitsControlFlow)
+				.collect(Collectors.toList());
+		for (BBlock b : decisionNodes) {
 			List<BBlock> newSuccs = new ArrayList<>();
-			for (BBlock succ: b.succs()) {
+			for (BBlock succ : b.succs()) {
 				BBlock newDummy = BBlock.createDummy(this, b.idx());
 				if (succ.isPartOfLoop()) {
 					newDummy.setPartOfLoop(true);

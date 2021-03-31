@@ -7,7 +7,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeExceptio
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
-import org.logicng.io.writers.FormulaDotFileWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,8 +68,8 @@ public class LeakageComputation {
 
 	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException {
 		Formula count = createCountingFormula();
-		System.out.println("formula: " + count);
-		FormulaDotFileWriter.write("dot.dot", count, true);
+		// System.out.println("formula: " + count);
+		// FormulaDotFileWriter.write("dot.dot", count, true);
 		int modelCount;
 
 		if (hVars.stream().noneMatch(count::containsVariable)) {

@@ -109,16 +109,6 @@ public class LoopBody {
 		}
 	}
 
-	public void printRun(int n) {
-		System.out.println(n);
-		Map<Integer, Formula[]> run = runs.get(n);
-		if (run != null) {
-			for (int i : in.keySet()) {
-				System.out.println(i + " " + Arrays.toString(run.get(i)));
-			}
-		}
-	}
-
 	public boolean producesValNum(int valNum) {
 		return this.in.containsKey(valNum);
 	}
@@ -128,7 +118,6 @@ public class LoopBody {
 
 		for (int i : this.in.keySet()) {
 			for (int j = 0; j < this.in.get(i).length; j++) {
-				System.out.println("Mapping " + this.in.get(i)[j] + " to " + this.beforeLoop.get(i)[j]);
 				s.addMapping((Variable) this.in.get(i)[j], this.beforeLoop.get(i)[j]);
 			}
 		}
@@ -170,8 +159,6 @@ public class LoopBody {
 
 		Substitution s = new Substitution();
 		out.keySet().forEach(i -> s.addMapping(this.in.get(i), inputs.get(i)));
-
-		// TODO handle nested Loop
 
 		for (int i : inputs.keySet()) {
 			if (out.containsKey(i)) {

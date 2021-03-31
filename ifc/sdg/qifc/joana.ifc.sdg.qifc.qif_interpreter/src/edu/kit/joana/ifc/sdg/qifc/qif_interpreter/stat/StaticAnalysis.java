@@ -90,25 +90,6 @@ public class StaticAnalysis {
 				}
 			}
 		}
-
-		// simulate loops up to 3 iterations
-		// for (LoopBody l : m.getLoops()) {
-		// 	l.getRun(3);
-		// }
-
-		// handle Phi's
-		// SimplePhiVisitor v = new SimplePhiVisitor(m);
-		// v.computePhiDeps();
-
-		/* -------------- print Phi results -------------
-		System.out.println("Phi results: ");
-		Map<Integer, List<Pair<Formula[], Formula>>> phiRes = m.getPhiValPossibilities();
-
-		for (int i : phiRes.keySet()) {
-			System.out.println(i);
-			phiRes.get(i).forEach(p -> System.out.println("Val: " + Arrays.toString(p.fst) + "\nImplicit: " + p.snd));
-		}
-		// ----------------------------------------------- */
 	}
 
 	public void createConstant(int op1) {

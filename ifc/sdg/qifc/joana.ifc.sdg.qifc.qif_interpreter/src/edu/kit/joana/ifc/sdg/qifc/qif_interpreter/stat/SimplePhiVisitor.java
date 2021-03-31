@@ -3,7 +3,6 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -37,18 +36,6 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
 		if (m.isComputedInLoop(instruction.getDef())) {
 			visitPhiFromLoop(instruction);
-		} else {
-			// do nothing
-			// visitPhiFromConditional(instruction);
-		}
-	}
-
-	private void visitPhiFromConditional(SSAPhiInstruction instruction) {
-		BBlock phiBlock = BBlock.getBBlockForInstruction(instruction, m.getCFG());
-
-		for (int i = 0; i < 2; i++) {
-			m.addPhiValuePossibility(instruction.getDef(), Pair.make(m.getDepsForValue(instruction.getUse(i)),
-					phiBlock.preds().get(i).generateImplicitFlowFormula()));
 		}
 	}
 

@@ -15,45 +15,46 @@ import java.util.stream.Collectors;
 
 public class SimpleLoopHandler {
 
-	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) {
+	public static LoopBody analyze(LoopBody loop, SATVisitor sv) {
+		BBlock head = loop.getHead();
+		Method m = loop.getOwner();
 
 		assert (head.isLoopHeader());
-		try {
-			sv.visitBlock(m, head, -1);
-		} catch (OutOfScopeException e) {
-			e.printStackTrace();
-		}
-		LoopBody loop = new LoopBody(m, head);
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
-		toVisit.add(head);
+		List<LoopBody> loops = new ArrayList<>();
+		toVisit.add(head.succs().stream().filter(loop.getBlocks()::contains).findFirst().get());
+		visited.add(head.idx());
 
 		while (!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
 			visited.add(b.idx());
 
-			if (b.equals(head))
-				continue;
+			try {
+				sv.visitBlock(m, b, -1);
+			} catch (OutOfScopeException e) {
+				e.printStackTrace();
+			}
 
 			if (b.isLoopHeader() && !b.equals(head)) {
-				LoopBody l = SimpleLoopHandler.analyze(m, b, sv);
-				m.addLoop(l);
+				LoopBody l = new LoopBody(m, b);
+				loops.add(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
-				try {
-					for (BBlock succ : b.succs()) {
-						if (loop.getBlocks().contains(succ) && !succ.equals(head) && succ.preds().stream()
-								.mapToInt(BBlock::idx).allMatch(visited::contains)) {
-							toVisit.add(succ);
-						}
+				for (BBlock succ : b.succs()) {
+					if (loop.getBlocks().contains(succ) && !succ.equals(head) && (succ.isLoopHeader() || succ.preds()
+							.stream().mapToInt(BBlock::idx).allMatch(visited::contains))) {
+						toVisit.add(succ);
 					}
-					sv.visitBlock(m, b, -1);
-				} catch (OutOfScopeException e) {
-					e.printStackTrace();
 				}
 			}
+		}
+
+		for (LoopBody l : loops) {
+			m.addLoop(l);
+			SimpleLoopHandler.analyze(l, sv);
 		}
 		extractDeps(m, head, loop);
 		return loop;

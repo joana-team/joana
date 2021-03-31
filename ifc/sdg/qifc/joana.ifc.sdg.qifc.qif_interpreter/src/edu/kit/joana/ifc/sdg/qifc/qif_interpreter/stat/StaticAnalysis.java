@@ -1,13 +1,14 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
-import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
-import org.logicng.formulas.Formula;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class StaticAnalysis {
@@ -47,7 +48,6 @@ public class StaticAnalysis {
 		initParameterDeps(m);
 		initConstants(m);
 
-
 		// implicit IF
 		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
 		imIFVisitor.compute(m.getCFG());
@@ -57,22 +57,30 @@ public class StaticAnalysis {
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
+		List<LoopBody> loops = new ArrayList<>();
 		toVisit.add(m.getCFG().getBlock(0));
 
-		while(!toVisit.isEmpty()) {
+		while (!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
 			visited.add(b.idx());
 
 			if (b.isLoopHeader()) {
-				LoopBody l = SimpleLoopHandler.analyze(m, b, sv);
-				m.addLoop(l);
-				toVisit.addAll(b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
+				try {
+					sv.visitBlock(m, b, -1);
+				} catch (OutOfScopeException e) {
+					e.printStackTrace();
+				}
+				LoopBody l = new LoopBody(m, b);
+				loops.add(l);
+				toVisit.addAll(
+						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
 				try {
 					sv.visitBlock(m, b, -1);
 
 					for (BBlock succ: b.succs()) {
-						if (succ.isLoopHeader() || succ.preds().stream().allMatch(pred -> visited.contains(pred.idx()))) {
+						if (succ.isLoopHeader() || succ.preds().stream()
+								.allMatch(pred -> visited.contains(pred.idx()))) {
 							toVisit.add(succ);
 						}
 					}
@@ -81,6 +89,11 @@ public class StaticAnalysis {
 					e.printStackTrace();
 				}
 			}
+		}
+
+		for (LoopBody l : loops) {
+			m.addLoop(l);
+			SimpleLoopHandler.analyze(l, sv);
 		}
 
 		// simulate loops up to 3 iterations
@@ -92,7 +105,7 @@ public class StaticAnalysis {
 		SimplePhiVisitor v = new SimplePhiVisitor(m);
 		v.computePhiDeps();
 
-		// -------------- print Phi results -------------
+		/* -------------- print Phi results -------------
 		System.out.println("Phi results: ");
 		Map<Integer, List<Pair<Formula[], Formula>>> phiRes = m.getPhiValPossibilities();
 

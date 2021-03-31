@@ -146,4 +146,8 @@ public class LoopBody {
 	public Formula getStayInLoop() {
 		return this.stayInLoop;
 	}
+
+	public Method getOwner() {
+		return this.owner;
+	}
 }

@@ -231,6 +231,10 @@ public class Method {
 		return this.programValues.get(valNum).getVars();
 	}
 
+	public void resetValues() {
+		this.programValues.values().forEach(Value::resetValue);
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {

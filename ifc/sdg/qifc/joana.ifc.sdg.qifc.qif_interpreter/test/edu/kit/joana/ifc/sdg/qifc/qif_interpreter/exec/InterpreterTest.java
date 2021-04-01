@@ -3,7 +3,6 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class InterpreterTest {
 
 	@Test public void arithmeticTest()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("SimpleArithmetic");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -37,7 +36,7 @@ class InterpreterTest {
 	}
 
 	@Test public void andTest()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("And");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -52,7 +51,7 @@ class InterpreterTest {
 	}
 
 	@Test public void orTest()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("Or");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -67,7 +66,7 @@ class InterpreterTest {
 	}
 
 	@Test public void applyArgsTest()
-			throws IOException, InterruptedException, ParameterException, MissingValueException {
+			throws IOException, InterruptedException {
 
 		Program p = TestUtils.build("OnlyArgs");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -85,7 +84,7 @@ class InterpreterTest {
 	}
 
 	@Test public void simplePhiTestFalse()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("If2");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -102,7 +101,7 @@ class InterpreterTest {
 	}
 
 	@Test public void simplePhiTestTrue()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("If2");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -117,7 +116,7 @@ class InterpreterTest {
 	}
 
 	@Test public void loopTest()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("Loop");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -133,7 +132,7 @@ class InterpreterTest {
 	}
 
 	@Test public void ifInifTest1()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("IfinIf");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -148,7 +147,7 @@ class InterpreterTest {
 	}
 
 	@Test public void ifInifTest2()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("IfinIf");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -163,14 +162,14 @@ class InterpreterTest {
 	}
 
 	@Test public void ifInifTest3()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("IfinIf");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
 		Interpreter i = new Interpreter(p, ps);
 
-		List<String> args = Collections.singletonList("5");
+		List<String> args = Collections.singletonList("3");
 
 		i.execute(args);
 		assertEquals("2\n", baos.toString());
@@ -178,7 +177,7 @@ class InterpreterTest {
 	}
 
 	@Test public void ifInLoop()
-			throws IOException, InterruptedException, ParameterException, OutOfScopeException, MissingValueException {
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
 
 		Program p = TestUtils.build("IfinLoop");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

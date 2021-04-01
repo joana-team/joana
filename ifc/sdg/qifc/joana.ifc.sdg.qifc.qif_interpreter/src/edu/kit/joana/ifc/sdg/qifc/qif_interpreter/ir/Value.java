@@ -4,6 +4,7 @@ import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
+import java.util.Stack;
 
 /**
  * Subclasses represent values of a specific type.
@@ -14,7 +15,8 @@ public abstract class Value {
 	private int valNum;
 	private int width;
 	private Type type;
-	private Object val;
+	private final Stack<Object> val;
+	private boolean modified;
 	private Formula[] deps;
 	private Variable[] vars;
 	private boolean leaked;
@@ -24,6 +26,8 @@ public abstract class Value {
 		this.valNum = valNum;
 		this.leaked = false;
 		this.isConstant = false;
+		this.val = new Stack<>();
+		this.modified = false;
 	}
 
 	public void addVars(Variable[] vars) {
@@ -95,18 +99,44 @@ public abstract class Value {
 	}
 
 	public Object getVal() {
-		return val;
+		return val.peek();
 	}
 
 	public boolean assigned() {
 		return !(val == null);
 	}
 
+	/**
+	 * contract: in each function call, at most 1 element can be added to an object's value stack
+	 * if the value is already marked as modified, we need to pop a value, before we can add the new one
+	 * @param val
+	 */
 	public void setVal(Object val) {
 		if (!verifyType(val)) {
 			throw new IllegalArgumentException("Error: Wrong input parameter. Expected type " + this.type);
 		}
-		this.val = val;
+
+		if (modified) {
+			this.val.pop();
+		}
+
+		this.val.push(val);
+
+		// if the value is a constant, we dont mark it as modified
+		// as this value doesnt change, we also dont need to reset it after a function call is finished
+		if(!isConstant) {
+			this.modified = true;
+		}
+	}
+
+	/**
+	 * clean up after function call is finished
+	 */
+	public void resetValue() {
+		if (modified) {
+			this.val.pop();
+			modified = false;
+		}
 	}
 
 	public Formula[] getDeps() {

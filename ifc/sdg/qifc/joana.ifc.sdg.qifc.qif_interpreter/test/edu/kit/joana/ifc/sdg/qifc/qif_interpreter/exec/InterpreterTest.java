@@ -222,4 +222,32 @@ class InterpreterTest {
 		assertEquals("0\n", baos.toString());
 	}
 
+	@Test public void callTwiceTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+		Program p = TestUtils.build("CallTwice");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("0");
+
+		// p.getEntryMethod().getCFG().print();
+
+		i.execute(args);
+		assertEquals("2\n", baos.toString());
+	}
+
+	@Test public void recursionTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+		Program p = TestUtils.build("Fib");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("2");
+
+		i.execute(args);
+
+		assertEquals("3\n", baos.toString());
+	}
 }

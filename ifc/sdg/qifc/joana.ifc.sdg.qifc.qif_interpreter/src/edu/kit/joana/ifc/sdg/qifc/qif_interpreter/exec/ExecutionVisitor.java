@@ -271,13 +271,21 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			// first arg is this-reference -> skip
 			IntStream.range(1, instruction.getNumberOfUses())
 					.forEach(use -> args.add(String.valueOf(m.getValue(instruction.getUse(use)).getVal())));
+
+			Object returnVal = null;
+			Type returnType = null;
 			try {
-				this.interpreter.executeMethod(target, args);
+				Interpreter i = new Interpreter(m.getProg());
+				i.executeMethod(target, args);
 				if (!target.isVoid()) {
-					Value returnVal = target.getValue(target.getReturnValue());
-					setDefValue(instruction, returnVal.getType(), returnVal.getVal());
+					returnVal = target.getValue(target.getReturnValue()).getVal();
+					returnType = target.getValue(target.getReturnValue()).getType();
+
 				}
 				target.resetValues();
+				if (returnVal != null) {
+					setDefValue(instruction, returnType, returnVal);
+				}
 			} catch (OutOfScopeException | ParameterException e) {
 				e.printStackTrace();
 			}

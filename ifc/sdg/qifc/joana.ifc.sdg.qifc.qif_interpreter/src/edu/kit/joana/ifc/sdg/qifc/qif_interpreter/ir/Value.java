@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.util.collections.Pair;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
@@ -15,8 +16,7 @@ public abstract class Value {
 	private int valNum;
 	private int width;
 	private Type type;
-	private final Stack<Object> val;
-	private boolean modified;
+	private final Stack<Pair<Integer, Object>> val;
 	private Formula[] deps;
 	private Variable[] vars;
 	private boolean leaked;
@@ -27,7 +27,6 @@ public abstract class Value {
 		this.leaked = false;
 		this.isConstant = false;
 		this.val = new Stack<>();
-		this.modified = false;
 	}
 
 	public void addVars(Variable[] vars) {
@@ -48,7 +47,7 @@ public abstract class Value {
 		if (type == Type.INTEGER) {
 			Int i = new Int(valNum);
 			i.setConstant(true);
-			i.setVal(value);
+			i.setVal(value, -1);
 			return i;
 		}
 		throw new IllegalStateException("Unexpected value: " + type);
@@ -99,7 +98,7 @@ public abstract class Value {
 	}
 
 	public Object getVal() {
-		return val.peek();
+		return val.peek().snd;
 	}
 
 	public boolean assigned() {
@@ -109,33 +108,30 @@ public abstract class Value {
 	/**
 	 * contract: in each function call, at most 1 element can be added to an object's value stack
 	 * if the value is already marked as modified, we need to pop a value, before we can add the new one
+	 *
 	 * @param val
 	 */
-	public void setVal(Object val) {
+	public void setVal(Object val, int recursionDepth) {
 		if (!verifyType(val)) {
 			throw new IllegalArgumentException("Error: Wrong input parameter. Expected type " + this.type);
 		}
-
-		if (modified) {
-			this.val.pop();
-		}
-
-		this.val.push(val);
-
-		// if the value is a constant, we dont mark it as modified
-		// as this value doesnt change, we also dont need to reset it after a function call is finished
-		if(!isConstant) {
-			this.modified = true;
+		if (isConstant) {
+			this.val.push(Pair.make(-1, val));
+		} else {
+			this.val.push(Pair.make(recursionDepth, val));
 		}
 	}
 
 	/**
 	 * clean up after function call is finished
 	 */
-	public void resetValue() {
-		if (modified) {
+	public void resetValueToDepth(int recursionDepth) {
+		if (this.val.isEmpty()) {
+			return;
+		}
+		Pair<Integer, Object> top = this.val.peek();
+		if (top.fst > recursionDepth) {
 			this.val.pop();
-			modified = false;
 		}
 	}
 

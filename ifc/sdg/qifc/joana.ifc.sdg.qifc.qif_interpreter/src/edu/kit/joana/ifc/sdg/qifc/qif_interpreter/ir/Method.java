@@ -32,6 +32,7 @@ public class Method {
 	private final List<LoopBody> loops;
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
+	private int recursionDepth;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -51,6 +52,7 @@ public class Method {
 		this.programValues = new HashMap<>();
 		this.phiValPossibilities = new HashMap<>();
 		this.loops = new ArrayList<>();
+		this.recursionDepth = -1;
 	}
 
 	public Method(MethodReference ref, Program p) {
@@ -206,11 +208,11 @@ public class Method {
 		if (!hasValue(valNum)) {
 			throw new MissingValueException(valNum);
 		}
-		programValues.get(valNum).setVal(value);
+		programValues.get(valNum).setVal(value, this.recursionDepth);
 	}
 
 	public boolean isVoid() {
-		return (returnValue == -1);
+		return pdg.isVoid();
 	}
 
 	public void addLoop(LoopBody loop) {
@@ -248,7 +250,7 @@ public class Method {
 	}
 
 	public void resetValues() {
-		this.programValues.values().forEach(Value::resetValue);
+		this.programValues.values().forEach(v -> v.resetValueToDepth(this.recursionDepth));
 	}
 
 	public String identifier() {
@@ -304,5 +306,17 @@ public class Method {
 
 	public int getReturnValue() {
 		return this.returnValue;
+	}
+
+	public void increaseRecursionDepth() {
+		this.recursionDepth++;
+	}
+
+	public int getRecursionDepth() {
+		return recursionDepth;
+	}
+
+	public void decreaseRecursionDepth() {
+		this.recursionDepth--;
 	}
 }

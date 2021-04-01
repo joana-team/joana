@@ -25,7 +25,7 @@ class LeakageComputationTest {
 		Variable y = LogicUtil.ff.variable("y");
 
 		Value test = new Int(0);
-		test.setVal(1);
+		test.setVal(1, 0);
 		test.setDeps(new Formula[] { x, x, LogicUtil.ff.not(y) });
 
 		LeakageComputation lc = new LeakageComputation(new ArrayList<>(), test, new Method());

@@ -3,7 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 
@@ -40,6 +40,7 @@ public class Interpreter {
 	 * @throws OutOfScopeException if the method contains an instruction that is not implemented for this interpreter
 	 */
 	public void executeMethod(Method m, List<String> args) throws OutOfScopeException, ParameterException {
+		m.increaseRecursionDepth();
 		ExecutionVisitor ev = new ExecutionVisitor(m, this.out, this);
 
 		if (!applyArgs(args, program, m)) {
@@ -64,6 +65,7 @@ public class Interpreter {
 			}
 		}
 		m.setReturnValue(ev.getReturnValue());
+		m.decreaseRecursionDepth();
 	}
 
 	public boolean applyArgs(List<String> args, Program p, Method m) {
@@ -91,8 +93,11 @@ public class Interpreter {
 			}
 
 			int valNum = m.getIr().getParameter(paramNum);
-			Value param = m.getValue(valNum);
-			param.setVal(paramVal);
+			try {
+				m.setValue(valNum, paramVal);
+			} catch (MissingValueException e) {
+				e.printStackTrace();
+			}
 		}
 		return true;
 	}

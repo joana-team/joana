@@ -1,7 +1,5 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -15,7 +13,6 @@ import java.util.stream.Collectors;
 
 public class BBlock {
 
-	private static final BiMap<SSACFG.BasicBlock, BBlock> repMap = HashBiMap.create();
 	private static final Map<Integer, BBlock> dummies = new HashMap<>();
 	private static int dummyCtr = -2;
 
@@ -52,7 +49,7 @@ public class BBlock {
 		this.implicitFlows = new ArrayList<>();
 		this.isDummy = false;
 		this.idx = walaBBlock.getNumber();
-		repMap.put(walaBBlock, this);
+		g.addRep(walaBBlock, this);
 	}
 
 	private BBlock(CFG g, int idx, int replacedPredIdx) {
@@ -77,19 +74,20 @@ public class BBlock {
 		to.preds.add(from);
 	}
 
-	public static BBlock bBlock(SSACFG.BasicBlock walaBBlock) {
-		return repMap.get(walaBBlock);
+	public static BBlock bBlock(Method m, SSACFG.BasicBlock walaBBlock) {
+		return m.getCFG().repMap().get(walaBBlock);
 	}
 
 	public static BBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
-		return repMap.values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
+		return g.repMap().values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
 	}
 
-	public static BBlock getBlockForIdx(int idx) {
+	public static BBlock getBlockForIdx(Method m, int idx) {
 		if (idx < -1) {
 			return dummies.get(idx);
 		}
-		return repMap.get(repMap.keySet().stream().filter(b -> b.getNumber() == idx).findFirst().get());
+		return m.getCFG().repMap()
+				.get(m.getCFG().repMap().keySet().stream().filter(b -> b.getNumber() == idx).findFirst().get());
 	}
 
 	/**
@@ -105,8 +103,8 @@ public class BBlock {
 		for (ISSABasicBlock ibb : succs) {
 			SSACFG.BasicBlock bb = (SSACFG.BasicBlock) ibb;
 
-			if (repMap.containsKey(bb)) {
-				addEdge(this, repMap.get(bb));
+			if (g.repMap().containsKey(bb)) {
+				addEdge(this, g.repMap().get(bb));
 			} else {
 				BBlock newSucc = new BBlock(bb, this.g);
 				g.addNode(newSucc);
@@ -123,9 +121,9 @@ public class BBlock {
 	 */
 	public void findPredecessors(CFG g) {
 		this.preds = new ArrayList<>();
-		for (Iterator<ISSABasicBlock> it = g.getWalaCFG().getPredNodes(this.getWalaBasicBLock()); it.hasNext(); ) {
+		for (Iterator<ISSABasicBlock> it = g.getWalaCFG().getPredNodes(this.getWalaBasicBLock(g)); it.hasNext(); ) {
 			ISSABasicBlock b = it.next();
-			this.preds.add(repMap.get(b));
+			this.preds.add(g.repMap().get(b));
 		}
 	}
 
@@ -180,8 +178,8 @@ public class BBlock {
 		return !isDummy && walaBBlock.isExitBlock();
 	}
 
-	public SSACFG.BasicBlock getWalaBasicBLock() {
-		return repMap.inverse().get(this);
+	public SSACFG.BasicBlock getWalaBasicBLock(CFG g) {
+		return g.repMap().inverse().get(this);
 	}
 
 	private boolean hasInstruction(SSAInstruction i) {
@@ -256,8 +254,8 @@ public class BBlock {
 		this.implicitFlows.add(Pair.make(blockIdx, condition));
 	}
 
-	public void copyImplicitFlowsFrom(int blockIdx) {
-		this.implicitFlows.addAll(BBlock.getBlockForIdx(blockIdx).getImplicitFlows());
+	public void copyImplicitFlowsFrom(Method m, int blockIdx) {
+		this.implicitFlows.addAll(BBlock.getBlockForIdx(m, blockIdx).getImplicitFlows());
 	}
 
 	public List<Pair<Integer, Boolean>> getImplicitFlows() {

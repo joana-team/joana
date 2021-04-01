@@ -13,6 +13,8 @@ import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.wala.core.SDGBuilder;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class Program {
@@ -24,7 +26,7 @@ public class Program {
 	private final CallGraph cg;
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
-
+	private final Map<String, Method> methods;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana) {
 		this.sdgProg = sdgProg;
@@ -34,6 +36,8 @@ public class Program {
 		this.cg = cg;
 		this.ana = ana;
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
+		this.methods = new HashMap<>();
+		this.methods.put(entryMethod.identifier(), entryMethod);
 	}
 
 	/**
@@ -49,7 +53,8 @@ public class Program {
 
 	public String getLevelForParam(SDGMethod method, int param) {
 		SDGFormalParameter paramNode = method.getParameters().stream().filter(p -> p.getIndex() == param).findAny().get();
-		Optional<IFCAnnotation> annotation = this.ana.getSources().stream().filter(a -> a.getProgramPart().equals(paramNode)).findAny();
+		Optional<IFCAnnotation> annotation = this.ana.getSources().stream()
+				.filter(a -> a.getProgramPart().equals(paramNode)).findAny();
 
 		if (annotation.isPresent()) {
 			return annotation.get().getLevel1();
@@ -57,6 +62,14 @@ public class Program {
 
 		// default for un-annotated parameters
 		return Level.HIGH;
+	}
+
+	public boolean hasMethod(String bcString) {
+		return this.methods.containsKey(bcString);
+	}
+
+	public Method getMethod(String bcString) {
+		return methods.get(bcString);
 	}
 
 	// ----------------------------- getters + setters ----------------------------------------------
@@ -83,5 +96,9 @@ public class Program {
 
 	public String getClassName() {
 		return className;
+	}
+
+	public void addMethod(Method method) {
+		this.methods.put(method.identifier(), method);
 	}
 }

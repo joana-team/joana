@@ -14,16 +14,17 @@ class CFGTest {
 
 	@Test public void predOrderTest() throws IOException, InterruptedException {
 		Program p = TestUtils.build("IfinIf");
+		CFG g = p.getEntryMethod().getCFG();
 		List<BBlock> blocks = p.getEntryMethod().getCFG().getBlocks();
 
 		for (BBlock b : blocks) {
 			if (b.isDummy())
 				continue;
 			assertEquals(b.preds().size(),
-					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBLock()));
+					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBLock(g)));
 			b.succs().forEach(succ -> assertTrue(succ.preds().contains(b)));
 			List<ISSABasicBlock> correctOrder = Util
-					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBLock()));
+					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBLock(g)));
 
 			for (int i = 0; i < b.preds().size(); i++) {
 				int correctIdx = correctOrder.get(i).getNumber();
@@ -36,16 +37,17 @@ class CFGTest {
 
 	@Test public void predOrderTest2() throws IOException, InterruptedException {
 		Program p = TestUtils.build("IfinLoop");
+		CFG g = p.getEntryMethod().getCFG();
 		List<BBlock> blocks = p.getEntryMethod().getCFG().getBlocks();
 
 		for (BBlock b : blocks) {
 			if (b.isDummy())
 				continue;
 			assertEquals(b.preds().size(),
-					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBLock()));
+					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBLock(g)));
 			b.succs().forEach(succ -> assertTrue(succ.preds().contains(b)));
 			List<ISSABasicBlock> correctOrder = Util
-					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBLock()));
+					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBLock(g)));
 
 			for (int i = 0; i < b.preds().size(); i++) {
 				int correctIdx = correctOrder.get(i).getNumber();
@@ -58,8 +60,9 @@ class CFGTest {
 
 	@Test public void domTestSimpleIf() throws IOException, InterruptedException {
 		Program p = TestUtils.build("If");
+		CFG g = p.getEntryMethod().getCFG();
 		Optional<BBlock> phiBlock = p.getEntryMethod().getCFG().getBlocks().stream()
-				.filter(bb -> bb.getWalaBasicBLock().hasPhi()).findFirst();
+				.filter(bb -> bb.getWalaBasicBLock(g).hasPhi()).findFirst();
 		Optional<BBlock> condBlock = p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isCondHeader)
 				.findFirst();
 		assert (phiBlock.isPresent());

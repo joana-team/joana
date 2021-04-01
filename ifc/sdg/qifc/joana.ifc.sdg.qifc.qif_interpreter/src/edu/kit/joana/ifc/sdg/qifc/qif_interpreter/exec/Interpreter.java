@@ -29,37 +29,37 @@ public class Interpreter {
 
 		// System.out.println("----------- Starting program execution -----------");
 
-		if (!applyArgs(args, program, program.getEntryMethod())) {
-			throw new ParameterException("Wrong input parameter for program.");
-		}
-
 		executeMethod(program.getEntryMethod(), args);
 
 		return true;
 	}
 
 	/**
-	 * @param m the method to execute
+	 * @param m    the method to execute
 	 * @param args input parameters for the method
 	 * @throws OutOfScopeException if the method contains an instruction that is not implemented for this interpreter
 	 */
-	public void executeMethod(Method m, List<String> args) throws OutOfScopeException {
-		ExecutionVisitor ev = new ExecutionVisitor(m, this.out);
+	public void executeMethod(Method m, List<String> args) throws OutOfScopeException, ParameterException {
+		ExecutionVisitor ev = new ExecutionVisitor(m, this.out, this);
+
+		if (!applyArgs(args, program, m)) {
+			throw new ParameterException("Wrong input parameter for program.");
+		}
 
 		int prevBlock = -1;
-		int currentBlock = program.getEntryMethod().getCFG().entry().idx();
-		int nextBlock = ev.executeBlock(program.getEntryMethod().getCFG().entry(), prevBlock);
+		int currentBlock = m.getCFG().entry().idx();
+		int nextBlock = ev.executeBlock(m.getCFG().entry(), prevBlock);
 		assert (nextBlock >= 0);
 
 		while (nextBlock != -1) {
 			prevBlock = currentBlock;
 			currentBlock = nextBlock;
-			BBlock next = BBlock.getBlockForIdx(currentBlock);
+			BBlock next = BBlock.getBlockForIdx(m, currentBlock);
 			nextBlock = ev.executeBlock(next, prevBlock);
 
 			// skip dummy Blocks
 			if (nextBlock < -1) {
-				BBlock dummy = BBlock.getBlockForIdx(nextBlock);
+				BBlock dummy = BBlock.getBlockForIdx(m, nextBlock);
 				nextBlock = dummy.succs().get(0).idx();
 			}
 		}

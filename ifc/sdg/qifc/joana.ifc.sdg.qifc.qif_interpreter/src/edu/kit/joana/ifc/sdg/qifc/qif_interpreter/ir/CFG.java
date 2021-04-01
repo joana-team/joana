@@ -1,5 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.dominators.Dominators;
@@ -14,6 +16,7 @@ public class CFG implements Graph<BBlock> {
 
 	private final Method m;
 	private final SSACFG walaCFG;
+	private final BiMap<SSACFG.BasicBlock, BBlock> repMap = HashBiMap.create();
 	private final List<BBlock> blocks;
 	private final BBlock entry;
 	private Dominators<BBlock> walaDoms;
@@ -45,7 +48,7 @@ public class CFG implements Graph<BBlock> {
 				}
 			}
 			if (!bb.isLoopHeader()
-					&& bb.succs().stream().filter(s -> !s.getWalaBasicBLock().isExitBlock()).count() > 1) {
+					&& bb.succs().stream().filter(s -> !s.getWalaBasicBLock(cfg).isExitBlock()).count() > 1) {
 				bb.setCondHeader(true);
 			}
 		}
@@ -127,7 +130,7 @@ public class CFG implements Graph<BBlock> {
 	}
 
 	public BBlock entry() {
-		return BBlock.bBlock(m.getCFG().walaCFG.entry());
+		return BBlock.bBlock(m, m.getCFG().walaCFG.entry());
 	}
 
 	public SSACFG getWalaCFG() {
@@ -230,5 +233,13 @@ public class CFG implements Graph<BBlock> {
 
 	public BBlock getBlock(int i) {
 		return blocks.stream().filter(b -> b.idx() == i).findFirst().get();
+	}
+
+	public void addRep(SSACFG.BasicBlock a, BBlock b) {
+		this.repMap.put(a, b);
+	}
+
+	public BiMap<SSACFG.BasicBlock, BBlock> repMap() {
+		return this.repMap;
 	}
 }

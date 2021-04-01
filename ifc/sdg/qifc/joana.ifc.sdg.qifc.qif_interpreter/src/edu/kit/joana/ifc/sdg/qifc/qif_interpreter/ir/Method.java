@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
@@ -50,6 +51,20 @@ public class Method {
 		this.programValues = new HashMap<>();
 		this.phiValPossibilities = new HashMap<>();
 		this.loops = new ArrayList<>();
+	}
+
+	public Method(MethodReference ref, Program p) {
+		this();
+		this.prog = p;
+		this.cg = p.getCg().getNodes(ref).iterator().next();
+		this.ir = this.cg.getIR();
+		this.pdg = p.getBuilder().getPDGforMethod(cg);
+		this.sdgMethod = p.getSdgProg().getAllMethods().stream()
+				.filter(m -> m.getSignature().toBCString().equals(ref.getSignature())).findFirst().get();
+		this.cfg = CFG.buildCFG(this);
+		this.createParamValues();
+		this.initConstants();
+		p.addMethod(this);
 	}
 
 	private void createParamValues() {
@@ -152,7 +167,8 @@ public class Method {
 	}
 
 	public BBlock getBlockStartingAt(int idx) {
-		Optional<BBlock> block = this.getCFG().getBlocks().stream().filter(b -> b.getWalaBasicBLock().getFirstInstructionIndex() == idx).findAny();
+		Optional<BBlock> block = this.getCFG().getBlocks().stream()
+				.filter(b -> b.getWalaBasicBLock(this.getCFG()).getFirstInstructionIndex() == idx).findAny();
 
 		if (!block.isPresent()) {
 			throw new IllegalStateException("Couldn't find block starting at index " + idx);
@@ -235,6 +251,10 @@ public class Method {
 		this.programValues.values().forEach(Value::resetValue);
 	}
 
+	public String identifier() {
+		return this.sdgMethod.getSignature().toBCString();
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -272,5 +292,17 @@ public class Method {
 
 	public Map<Integer, List<Pair<Formula[], Formula>>> getPhiValPossibilities() {
 		return phiValPossibilities;
+	}
+
+	public Program getProg() {
+		return prog;
+	}
+
+	public SDGMethod getSdgMethod() {
+		return sdgMethod;
+	}
+
+	public int getReturnValue() {
+		return this.returnValue;
 	}
 }

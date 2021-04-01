@@ -90,7 +90,8 @@ public class SimpleLoopHandler {
 	}
 
 	private static void extractDeps(Method m, BBlock head, LoopBody loop) {
-		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG().getPredNodes(head.getWalaBasicBLock());
+		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG()
+				.getPredNodes(head.getWalaBasicBLock(m.getCFG()));
 
 		// find position i of the phi-use that we need
 		int argNum = 0;

@@ -10,11 +10,14 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
@@ -22,6 +25,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 	private PrintStream out;
 
 	private final Method m;
+	private final Interpreter interpreter;
 	private BBlock block;
 	private int prevBlockIdx;
 	private int nextBlockIdx;
@@ -35,14 +39,16 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
 	private int returnValue = -1;
 
-	public ExecutionVisitor(Method m) {
+	public ExecutionVisitor(Method m, Interpreter i) {
 		this.m = m;
 		this.out = System.out; // default
+		this.interpreter = i;
 	}
 
-	public ExecutionVisitor(Method m, PrintStream out) {
+	public ExecutionVisitor(Method m, PrintStream out, Interpreter i) {
 		this.m = m;
 		this.out = out;
+		this.interpreter = i;
 	}
 
 	/**
@@ -61,7 +67,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		this.prevBlockIdx = prevBlockIdx;
 		this.nextBlockIdx = -1;
 
-		start.getWalaBasicBLock().iteratePhis().forEachRemaining(this::visitPhi);
+		start.getWalaBasicBLock(m.getCFG()).iteratePhis().forEachRemaining(this::visitPhi);
 
 		for (SSAInstruction i : start.instructions()) {
 			i.visit(this);
@@ -78,7 +84,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			// no control flow relevant instruction has been executed, so we simply continue w/ the next basic block.
 			// we can be sure it exists because {@code} start is not the exit block
 			List<ISSABasicBlock> normalSuccs = Util
-					.asList(start.getCFG().getWalaCFG().getNormalSuccessors(start.getWalaBasicBLock()));
+					.asList(start.getCFG().getWalaCFG().getNormalSuccessors(start.getWalaBasicBLock(m.getCFG())));
 			assert (normalSuccs.size() == 1);
 			return normalSuccs.get(0).getNumber();
 		}
@@ -188,7 +194,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		}
 
 		List<ISSABasicBlock> succs = Util
-				.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBLock()));
+				.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBLock(m.getCFG())));
 		assert (succs.size() == 2);
 
 		BBlock trueTargetBlock = block.getCFG().getMethod().getBlockStartingAt(instruction.getTarget());
@@ -218,7 +224,8 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
-		Iterator<ISSABasicBlock> orderedPredsIter = block.getCFG().getWalaCFG().getPredNodes(block.getWalaBasicBLock());
+		Iterator<ISSABasicBlock> orderedPredsIter = block.getCFG().getWalaCFG()
+				.getPredNodes(block.getWalaBasicBLock(m.getCFG()));
 
 		int i = 0;
 		while (orderedPredsIter.hasNext()) {
@@ -254,7 +261,26 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value leakedVal = m.getValue(leaked);
 			leakedVal.leak();
 			out.println(getUses(instruction)[0].getVal());
-			// out.println("Leaked info: " + Arrays.toString(getUses(instruction)[0].getDeps()));
+		} else {
+			String bcString = instruction.getDeclaredTarget().getSignature();
+			Method target = (m.getProg().hasMethod(bcString)) ?
+					m.getProg().getMethod(bcString) :
+					new Method(instruction.getDeclaredTarget(), m.getProg());
+
+			List<String> args = new ArrayList<>();
+			// first arg is this-reference -> skip
+			IntStream.range(1, instruction.getNumberOfUses())
+					.forEach(use -> args.add(String.valueOf(m.getValue(instruction.getUse(use)).getVal())));
+			try {
+				this.interpreter.executeMethod(target, args);
+				if (!target.isVoid()) {
+					Value returnVal = target.getValue(target.getReturnValue());
+					setDefValue(instruction, returnVal.getType(), returnVal.getVal());
+				}
+				target.resetValues();
+			} catch (OutOfScopeException | ParameterException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

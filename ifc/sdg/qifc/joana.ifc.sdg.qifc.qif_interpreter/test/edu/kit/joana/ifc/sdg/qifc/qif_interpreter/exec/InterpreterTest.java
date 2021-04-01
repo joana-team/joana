@@ -208,4 +208,18 @@ class InterpreterTest {
 
 	}
 
+	@Test public void callTest() throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+		Program p = TestUtils.build("Call");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("1");
+
+		// p.getEntryMethod().getCFG().print();
+
+		i.execute(args);
+		assertEquals("0\n", baos.toString());
+	}
+
 }

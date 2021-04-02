@@ -4,6 +4,7 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
@@ -11,7 +12,7 @@ import org.logicng.formulas.Formula;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class BBlock {
+public class BBlock implements DotNode {
 
 	private static final Map<Integer, BBlock> dummies = new HashMap<>();
 	private static int dummyCtr = -2;
@@ -297,5 +298,28 @@ public class BBlock {
 
 	public void setInScope(boolean inScope) {
 		this.inScope = inScope;
+	}
+
+	@Override public String getLabel() {
+		if (isDummy) {
+			return "Dummy";
+		}
+		StringBuilder sb = new StringBuilder(String.valueOf(this.idx()));
+		for (SSAInstruction i: this.instructions) {
+			sb.append("\n").append(i.toString());
+		}
+		return sb.toString();
+	}
+
+	@Override public List<DotNode> getSuccs() {
+		return this.succs.stream().map(b -> (DotNode)b).collect(Collectors.toList());
+	}
+
+	@Override public List<DotNode> getPreds() {
+		return this.preds.stream().map(b -> (DotNode)b).collect(Collectors.toList());
+	}
+
+	@Override public int getId() {
+		return idx;
 	}
 }

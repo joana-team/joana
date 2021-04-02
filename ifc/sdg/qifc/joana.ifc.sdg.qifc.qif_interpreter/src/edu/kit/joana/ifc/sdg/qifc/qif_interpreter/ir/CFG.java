@@ -5,6 +5,8 @@ import com.google.common.collect.HashBiMap;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.dominators.Dominators;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGraph;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * wrapper class for Wala CFG w/ some utility functions
  */
-public class CFG implements Graph<BBlock> {
+public class CFG implements Graph<BBlock>, DotGraph {
 
 	private final Method m;
 	private final SSACFG walaCFG;
@@ -241,5 +243,20 @@ public class CFG implements Graph<BBlock> {
 
 	public BiMap<SSACFG.BasicBlock, BBlock> repMap() {
 		return this.repMap;
+	}
+
+	@Override public BBlock getRoot() {
+		return this.entry;
+	}
+
+	@Override public List<DotNode> getNodes() {
+		return this.blocks.stream().map(b -> (DotNode)b).collect(Collectors.toList());
+	}
+
+	@Override public String getName() {
+		return m.identifier()
+				.replace('.', '_')
+				.replace('(', '_')
+				.replace(')', '_');
 	}
 }

@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import org.junit.jupiter.api.Test;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.FormulaFactory;
@@ -87,13 +88,17 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Call");
-		p.getEntryMethod().getCFG().print();
+		Program p = TestUtils.build("MultipleReturns");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
 		sa.computeSATDeps();
+
+		for(Method m: p.getMethods()) {
+			System.out.println(m.identifier());
+			DotGrapher.exportDotGraph(m.getCFG());
+		}
 
 		i.execute(Arrays.asList("0"));
 

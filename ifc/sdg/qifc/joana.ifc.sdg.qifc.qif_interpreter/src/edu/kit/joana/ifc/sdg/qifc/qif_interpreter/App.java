@@ -12,6 +12,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedReader;
@@ -85,6 +86,7 @@ public class App {
 			classFilePath = programPath;
 		}
 		SimpleLogger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
+		DotGrapher.configureDest(jArgs.outputDirectory);
 
 		// get classname via filename
 		String className = FilenameUtils.getBaseName(programPath);

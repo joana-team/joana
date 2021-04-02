@@ -87,7 +87,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("LoopinLoop");
+		Program p = TestUtils.build("Call");
 		p.getEntryMethod().getCFG().print();
 		// execute
 		Interpreter i = new Interpreter(p);
@@ -95,7 +95,7 @@ class AppTest {
 
 		sa.computeSATDeps();
 
-		i.execute(Arrays.asList("0", "0"));
+		i.execute(Arrays.asList("0"));
 
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();

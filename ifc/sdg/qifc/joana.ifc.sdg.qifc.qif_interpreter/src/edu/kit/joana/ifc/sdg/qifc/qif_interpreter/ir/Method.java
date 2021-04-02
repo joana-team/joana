@@ -32,6 +32,7 @@ public class Method {
 	private final List<LoopBody> loops;
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
+	private final List<Integer> possibleReturns;
 	private int recursionDepth;
 
 	public static Method getEntryMethodFromProgram(Program p) {
@@ -53,6 +54,7 @@ public class Method {
 		this.phiValPossibilities = new HashMap<>();
 		this.loops = new ArrayList<>();
 		this.recursionDepth = -1;
+		this.possibleReturns = new ArrayList<>();
 	}
 
 	public Method(MethodReference ref, Program p) {
@@ -257,6 +259,10 @@ public class Method {
 		return this.sdgMethod.getSignature().toBCString();
 	}
 
+	public int getParamNum() {
+		return this.ir.getNumberOfParameters();
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -318,5 +324,13 @@ public class Method {
 
 	public void decreaseRecursionDepth() {
 		this.recursionDepth--;
+	}
+
+	public void addPossibleReturn(int def) {
+		this.possibleReturns.add(def);
+	}
+
+	public List<Integer> getPossibleReturns() {
+		return this.possibleReturns;
 	}
 }

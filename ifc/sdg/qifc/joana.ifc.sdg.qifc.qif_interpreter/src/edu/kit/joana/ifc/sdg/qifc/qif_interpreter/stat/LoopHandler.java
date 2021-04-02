@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class SimpleLoopHandler {
+public class LoopHandler {
 
 	// temporary
 	private static final int loopUnrollingMax = 4;
@@ -44,7 +44,7 @@ public class SimpleLoopHandler {
 			if (b.isLoopHeader() && !b.equals(head)) {
 				LoopBody l = new LoopBody(m, b);
 				m.addLoop(l);
-				SimpleLoopHandler.analyze(l, sv);
+				LoopHandler.analyze(l, sv);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {

@@ -327,4 +327,10 @@ public class LogicUtil {
 		return ret;
 	}
 
+	public static Formula[] applySubstitution(Formula[] f, Substitution s) {
+		Formula[] res = new Formula[f.length];
+		IntStream.range(0, res.length).forEach(i -> res[i] = f[i].substitute(s.toLogicNGSubstitution()));
+		return res;
+	}
+
 }

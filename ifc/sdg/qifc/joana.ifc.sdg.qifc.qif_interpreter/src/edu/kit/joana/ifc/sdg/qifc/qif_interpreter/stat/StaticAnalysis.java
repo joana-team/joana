@@ -70,7 +70,7 @@ public class StaticAnalysis {
 					e.printStackTrace();
 				}
 				LoopBody l = new LoopBody(m, b);
-				SimpleLoopHandler.analyze(l, sv);
+				LoopHandler.analyze(l, sv);
 				m.addLoop(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));

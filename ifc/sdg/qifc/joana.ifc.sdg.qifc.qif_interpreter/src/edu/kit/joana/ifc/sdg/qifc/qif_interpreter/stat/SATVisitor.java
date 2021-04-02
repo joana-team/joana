@@ -114,7 +114,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitReturn(SSAReturnInstruction instruction) {
-		// do nothing
+		if (!instruction.returnsVoid()) {
+			m.addPossibleReturn(instruction.getUse(0));
+			m.setReturnValue(instruction.getUse(0));
+		}
 	}
 
 	@Override public void visitGet(SSAGetInstruction instruction) {
@@ -130,7 +133,14 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	@Override public void visitInvoke(SSAInvokeInstruction instruction) {
 		if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
 			m.getValue(instruction.getUse(0)).leak();
+		} else if (instruction.getNumberOfDefs() > 0) {
+			SimpleInvocationHandler handler = new SimpleInvocationHandler(m, instruction);
+			handler.analyze();
 		}
+	}
+
+	private boolean isRecursiveCall(SSAInvokeInstruction instruction) {
+		return m.identifier().equals(instruction.getDeclaredTarget().getSignature());
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {

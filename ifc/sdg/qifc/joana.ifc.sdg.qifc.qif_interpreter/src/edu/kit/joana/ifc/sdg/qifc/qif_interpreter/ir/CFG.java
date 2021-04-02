@@ -50,7 +50,7 @@ public class CFG implements Graph<BBlock>, DotGraph {
 				}
 			}
 			if (!bb.isLoopHeader()
-					&& bb.succs().stream().filter(s -> !s.getWalaBasicBLock(cfg).isExitBlock()).count() > 1) {
+					&& bb.succs().stream().filter(s -> !s.getWalaBasicBlock().isExitBlock()).count() > 1) {
 				bb.setCondHeader(true);
 			}
 		}

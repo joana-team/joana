@@ -218,7 +218,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		// trueTarget will be a "proper" basic block, however we have inserted dummy blocks between the conditional head and the target block.
 		// So instead of the target block we access its only pred --> the dummy block
 		BBlock trueTarget = m.getBlockStartingAt(
-				((SSAConditionalBranchInstruction) condBlock.getWalaBasicBLock(m.getCFG()).getLastInstruction())
+				((SSAConditionalBranchInstruction) condBlock.getWalaBasicBlock().getLastInstruction())
 						.getTarget()).preds().get(0);
 
 		assert (trueTarget.isDummy());

@@ -20,3 +20,4 @@ testResources/IfinLoop.java
 testResources/WhileAfterIf.java
 testResources/And.java
 testResources/Call.java
+testResources/MultipleReturns.java

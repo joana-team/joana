@@ -7,3 +7,4 @@ out_*
 *.map
 *.pyc
 *.dot
+approxMC_*

@@ -91,7 +91,7 @@ public class LoopHandler {
 
 	private static void extractDeps(Method m, BBlock head, LoopBody loop) {
 		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG()
-				.getPredNodes(head.getWalaBasicBLock(m.getCFG()));
+				.getPredNodes(head.getWalaBasicBlock());
 
 		// find position i of the phi-use that we need
 		int argNum = 0;

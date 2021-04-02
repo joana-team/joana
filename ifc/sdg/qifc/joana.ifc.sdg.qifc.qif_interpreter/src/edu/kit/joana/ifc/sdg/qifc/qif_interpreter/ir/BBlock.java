@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -122,7 +123,7 @@ public class BBlock implements DotNode {
 	 */
 	public void findPredecessors(CFG g) {
 		this.preds = new ArrayList<>();
-		for (Iterator<ISSABasicBlock> it = g.getWalaCFG().getPredNodes(this.getWalaBasicBLock(g)); it.hasNext(); ) {
+		for (Iterator<ISSABasicBlock> it = g.getWalaCFG().getPredNodes(this.getWalaBasicBlock()); it.hasNext(); ) {
 			ISSABasicBlock b = it.next();
 			this.preds.add(g.repMap().get(b));
 		}
@@ -179,8 +180,8 @@ public class BBlock implements DotNode {
 		return !isDummy && walaBBlock.isExitBlock();
 	}
 
-	public SSACFG.BasicBlock getWalaBasicBLock(CFG g) {
-		return g.repMap().inverse().get(this);
+	public SSACFG.BasicBlock getWalaBasicBlock() {
+		return this.walaBBlock;
 	}
 
 	private boolean hasInstruction(SSAInstruction i) {
@@ -298,6 +299,12 @@ public class BBlock implements DotNode {
 
 	public void setInScope(boolean inScope) {
 		this.inScope = inScope;
+	}
+
+	public SSAReturnInstruction getReturn() {
+		assert(this.isReturnBlock());
+		// return is last instruction in block
+		return (SSAReturnInstruction) this.walaBBlock.getLastInstruction();
 	}
 
 	@Override public String getLabel() {

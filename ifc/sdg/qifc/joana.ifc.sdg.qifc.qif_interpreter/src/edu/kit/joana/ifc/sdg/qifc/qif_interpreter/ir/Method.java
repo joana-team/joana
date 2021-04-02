@@ -172,7 +172,7 @@ public class Method {
 
 	public BBlock getBlockStartingAt(int idx) {
 		Optional<BBlock> block = this.getCFG().getBlocks().stream()
-				.filter(b -> b.getWalaBasicBLock(this.getCFG()).getFirstInstructionIndex() == idx).findAny();
+				.filter(b -> b.getWalaBasicBlock().getFirstInstructionIndex() == idx).findAny();
 
 		if (!block.isPresent()) {
 			throw new IllegalStateException("Couldn't find block starting at index " + idx);

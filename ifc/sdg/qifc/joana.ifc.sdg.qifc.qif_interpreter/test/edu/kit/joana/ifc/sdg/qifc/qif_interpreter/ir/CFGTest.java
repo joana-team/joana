@@ -21,10 +21,10 @@ class CFGTest {
 			if (b.isDummy())
 				continue;
 			assertEquals(b.preds().size(),
-					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBLock(g)));
+					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBlock()));
 			b.succs().forEach(succ -> assertTrue(succ.preds().contains(b)));
 			List<ISSABasicBlock> correctOrder = Util
-					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBLock(g)));
+					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBlock()));
 
 			for (int i = 0; i < b.preds().size(); i++) {
 				int correctIdx = correctOrder.get(i).getNumber();
@@ -44,10 +44,10 @@ class CFGTest {
 			if (b.isDummy())
 				continue;
 			assertEquals(b.preds().size(),
-					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBLock(g)));
+					p.getEntryMethod().getCFG().getWalaCFG().getPredNodeCount(b.getWalaBasicBlock()));
 			b.succs().forEach(succ -> assertTrue(succ.preds().contains(b)));
 			List<ISSABasicBlock> correctOrder = Util
-					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBLock(g)));
+					.asList(p.getEntryMethod().getCFG().getWalaCFG().getPredNodes(b.getWalaBasicBlock()));
 
 			for (int i = 0; i < b.preds().size(); i++) {
 				int correctIdx = correctOrder.get(i).getNumber();
@@ -62,7 +62,7 @@ class CFGTest {
 		Program p = TestUtils.build("If");
 		CFG g = p.getEntryMethod().getCFG();
 		Optional<BBlock> phiBlock = p.getEntryMethod().getCFG().getBlocks().stream()
-				.filter(bb -> bb.getWalaBasicBLock(g).hasPhi()).findFirst();
+				.filter(bb -> bb.getWalaBasicBlock().hasPhi()).findFirst();
 		Optional<BBlock> condBlock = p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::isCondHeader)
 				.findFirst();
 		assert (phiBlock.isPresent());

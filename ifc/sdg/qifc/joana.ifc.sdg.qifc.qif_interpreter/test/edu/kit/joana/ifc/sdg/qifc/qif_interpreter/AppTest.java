@@ -35,7 +35,7 @@ class AppTest {
 
 		CFG g = p.getEntryMethod().getCFG();
 		assertEquals(1, g.getBlocks().stream().filter(BBlock::isCondHeader).count());
-		assertTrue(g.getBlocks().stream().filter(BBlock::isCondHeader).findFirst().get().getWalaBasicBLock(g)
+		assertTrue(g.getBlocks().stream().filter(BBlock::isCondHeader).findFirst().get().getWalaBasicBlock()
 				.getLastInstruction().toString().contains("conditional branch"));
 	}
 
@@ -47,7 +47,7 @@ class AppTest {
 		CFG g = p.getEntryMethod().getCFG();
 
 		assertEquals(1, g.getBlocks().stream().filter(BBlock::isLoopHeader).count());
-		assertTrue(g.getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get().getWalaBasicBLock(g)
+		assertTrue(g.getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get().getWalaBasicBlock()
 				.getLastInstruction().toString().contains("conditional branch"));
 	}
 

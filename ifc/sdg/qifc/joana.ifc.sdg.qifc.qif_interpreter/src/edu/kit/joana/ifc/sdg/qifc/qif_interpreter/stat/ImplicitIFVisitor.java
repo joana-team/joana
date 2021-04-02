@@ -57,7 +57,7 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 		visitStandardNode(node);
 
 		// add the new implicit information that we gain by splitting the CF to our successors
-		SSAInstruction condInstr = node.getWalaBasicBLock(g).getLastInstruction();
+		SSAInstruction condInstr = node.getWalaBasicBlock().getLastInstruction();
 		assert (condInstr instanceof SSAConditionalBranchInstruction);
 
 		int trueTarget = g.getMethod().getBlockStartingAt(((SSAConditionalBranchInstruction) condInstr).getTarget())

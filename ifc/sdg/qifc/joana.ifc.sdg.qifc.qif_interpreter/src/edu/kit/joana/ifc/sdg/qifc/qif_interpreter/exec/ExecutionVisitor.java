@@ -67,7 +67,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		this.prevBlockIdx = prevBlockIdx;
 		this.nextBlockIdx = -1;
 
-		start.getWalaBasicBLock(m.getCFG()).iteratePhis().forEachRemaining(this::visitPhi);
+		start.getWalaBasicBlock().iteratePhis().forEachRemaining(this::visitPhi);
 
 		for (SSAInstruction i : start.instructions()) {
 			i.visit(this);
@@ -84,7 +84,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			// no control flow relevant instruction has been executed, so we simply continue w/ the next basic block.
 			// we can be sure it exists because {@code} start is not the exit block
 			List<ISSABasicBlock> normalSuccs = Util
-					.asList(start.getCFG().getWalaCFG().getNormalSuccessors(start.getWalaBasicBLock(m.getCFG())));
+					.asList(start.getCFG().getWalaCFG().getNormalSuccessors(start.getWalaBasicBlock()));
 			assert (normalSuccs.size() == 1);
 			return normalSuccs.get(0).getNumber();
 		}
@@ -194,7 +194,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		}
 
 		List<ISSABasicBlock> succs = Util
-				.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBLock(m.getCFG())));
+				.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBlock()));
 		assert (succs.size() == 2);
 
 		BBlock trueTargetBlock = block.getCFG().getMethod().getBlockStartingAt(instruction.getTarget());
@@ -225,7 +225,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
 		Iterator<ISSABasicBlock> orderedPredsIter = block.getCFG().getWalaCFG()
-				.getPredNodes(block.getWalaBasicBLock(m.getCFG()));
+				.getPredNodes(block.getWalaBasicBlock());
 
 		int i = 0;
 		while (orderedPredsIter.hasNext()) {

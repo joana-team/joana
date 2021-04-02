@@ -1,11 +1,14 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
+import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -50,10 +53,21 @@ public class SimpleInvocationHandler {
 
 	// TODO: for now assume that each function only has a single return statement
 	private Formula[] computeReturnDeps() {
-		List<Formula[]> returnSites = callee.getPossibleReturns().stream().map(callee::getDepsForValue)
-				.collect(Collectors.toList());
-		// assert(returnSites.stream().allMatch(f -> f.length == returnSites.get(0).length));
-		// assert(returnSites.size() == 1);
-		return returnSites.get(0);
+		return computeReturnDepsRec(callee.getCFG().entry());
+	}
+
+	private Formula[] computeReturnDepsRec(BBlock b) {
+		if (b.isReturnBlock()) {
+			return callee.getDepsForValue(b.getReturn().getUse(0));
+		} else if (b.isCondHeader()) {
+			SSAConditionalBranchInstruction condJmp = (SSAConditionalBranchInstruction) b.getWalaBasicBlock().getLastInstruction();
+			int blockIfTrue = condJmp.getTarget();
+			BBlock trueTarget = b.succs().stream().map(dummy -> dummy.succs().get(0)).filter(s -> s.getWalaBasicBlock().getFirstInstructionIndex() == blockIfTrue).findFirst().get();
+			BBlock falseTarget = b.succs().stream().map(dummy -> dummy.succs().get(0)).filter(s -> s.getWalaBasicBlock().getFirstInstructionIndex() != blockIfTrue).findFirst().get();
+			return LogicUtil.ternaryOp(b.getCondExpr(), computeReturnDepsRec(trueTarget), computeReturnDepsRec(falseTarget));
+		} else {
+			assert(b.succs().stream().filter(s -> !s.getWalaBasicBlock().isCatchBlock()).count() == 1);
+			return computeReturnDepsRec(b.succs().stream().filter(s -> !s.getWalaBasicBlock().isCatchBlock()).findFirst().get());
+		}
 	}
 }

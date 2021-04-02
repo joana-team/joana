@@ -101,4 +101,8 @@ public class Program {
 	public void addMethod(Method method) {
 		this.methods.put(method.identifier(), method);
 	}
+
+	public Collection<Method> getMethods() {
+		return this.methods.values();
+	}
 }

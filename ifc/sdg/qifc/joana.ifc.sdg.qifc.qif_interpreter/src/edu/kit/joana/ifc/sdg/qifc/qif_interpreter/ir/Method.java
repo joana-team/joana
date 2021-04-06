@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -33,6 +34,7 @@ public class Method {
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
 	private final List<Integer> possibleReturns;
+	private IReturnValue rv;
 	private int recursionDepth;
 
 	public static Method getEntryMethodFromProgram(Program p) {
@@ -86,11 +88,16 @@ public class Method {
 				for (int j = 0; j < i.getNumberOfUses(); j++) {
 					if (isConstant(i.getUse(j)) && !this.programValues.containsKey(i.getUse(j))) {
 						Type type = getConstType(i.getUse(j));
-						programValues.put(i.getUse(j), Value.createConstant(i.getUse(j), type, getConstantValue(i.getUse(j), type)));
+						programValues.put(i.getUse(j),
+								Value.createConstant(i.getUse(j), type, getConstantValue(i.getUse(j), type)));
 					}
 				}
 			}
 		}
+	}
+
+	public boolean isCallRecursive(SSAInvokeInstruction i) {
+		return i.getDeclaredTarget().getSignature().equals(this.identifier());
 	}
 
 	private Object getConstantValue(int valNum, Type type) {
@@ -263,6 +270,10 @@ public class Method {
 		return this.ir.getNumberOfParameters();
 	}
 
+	public Formula[] getReturnValueForCall(SSAInvokeInstruction callSite, Method caller) {
+		return this.rv.getReturnValueForCallSite(callSite, caller);
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {
@@ -332,5 +343,13 @@ public class Method {
 
 	public List<Integer> getPossibleReturns() {
 		return this.possibleReturns;
+	}
+
+	public Type getReturnType() {
+		return Type.from(cg.getMethod().getReturnType());
+	}
+
+	public void registerReturnValue(ReturnValue rv) {
+		this.rv = rv;
 	}
 }

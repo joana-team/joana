@@ -133,14 +133,33 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	@Override public void visitInvoke(SSAInvokeInstruction instruction) {
 		if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
 			m.getValue(instruction.getUse(0)).leak();
-		} else if (instruction.getNumberOfDefs() > 0) {
-			SimpleInvocationHandler handler = new SimpleInvocationHandler(m, instruction);
-			handler.analyze();
-		}
-	}
+		} else {
+			String calleeId = instruction.getDeclaredTarget().getSignature();
+			IInvocationHandler handler;
+			if (!m.getProg().hasMethod(calleeId)) {
+				if (m.getProg().isRecursive(instruction.getDeclaredTarget(), m.getCg())) {
+					handler = new RecursiveFunctionInvocationHandler();
+				} else {
+					handler = new InvocationHandler();
+				}
+				handler.analyze(m.getProg(), instruction.getDeclaredTarget());
+			}
 
-	private boolean isRecursiveCall(SSAInvokeInstruction instruction) {
-		return m.identifier().equals(instruction.getDeclaredTarget().getSignature());
+			if (instruction.getNumberOfDefs() > 0) {
+
+				Method callee = m.getProg().getMethod(instruction.getDeclaredTarget().getSignature());
+				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
+				if (!m.hasValue(instruction.getDef())) {
+					defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+							.createByType(instruction.getDef(), callee.getReturnType());
+					m.addValue(instruction.getDef(), defVal);
+				} else {
+					defVal = m.getValue(instruction.getDef());
+				}
+				assert defVal != null;
+				m.setDepsForvalue(instruction.getDef(), callee.getReturnValueForCall(instruction, m));
+			}
+		}
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {

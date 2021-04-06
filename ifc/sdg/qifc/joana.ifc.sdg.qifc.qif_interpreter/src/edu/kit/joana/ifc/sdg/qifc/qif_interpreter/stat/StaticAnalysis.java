@@ -45,15 +45,16 @@ public class StaticAnalysis {
 	}
 
 	public void computeSATDeps(Method m) {
+		computeSATDeps(m, new SATVisitor(this));
+	}
+
+	public void computeSATDeps(Method m, SATVisitor sv) {
 		initParameterDeps(m);
 		initConstants(m);
 
 		// implicit IF
 		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
 		imIFVisitor.compute(m.getCFG());
-
-		// explicit IF
-		SATVisitor sv = new SATVisitor(this);
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
@@ -79,8 +80,7 @@ public class StaticAnalysis {
 					sv.visitBlock(m, b, -1);
 
 					for (BBlock succ: b.succs()) {
-						if (succ.isLoopHeader() || succ.preds().stream()
-								.allMatch(pred -> visited.contains(pred.idx()))) {
+						if (succ.isLoopHeader() || succ.preds().stream().allMatch(pred -> visited.contains(pred.idx()))) {
 							toVisit.add(succ);
 						}
 					}

@@ -30,3 +30,5 @@ testResources/Fib.java
 testResources/Fib.java
 testResources/Recursion2.java
 testResources/Recursion2.java
+testResources/Recursion2.java
+testResources/Fib.java

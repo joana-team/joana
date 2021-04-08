@@ -1,10 +1,10 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class Fib {
+public class Recursion2 {
 
 	public  static void main(String[] args) {
 
-		Fib c = new Fib();
+		Recursion2 c = new Recursion2();
 		c.f(0);
 
 	}
@@ -18,6 +18,6 @@ public class Fib {
 		if (n <= 0) {
 			return 0;
 		}
-		return n + g(n - 1);
+		return 1 + g(0);
 	}
 }

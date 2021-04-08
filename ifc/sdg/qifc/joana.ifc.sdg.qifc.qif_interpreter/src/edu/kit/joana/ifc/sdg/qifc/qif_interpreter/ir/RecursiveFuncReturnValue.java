@@ -55,13 +55,20 @@ public class RecursiveFuncReturnValue implements IReturnValue {
 
 		Formula[] singleCall = substituteAll(returnDeps, argsForNextCall);
 
+		for (int j = 0; j < MAX_RECURSION_DEPTH; j++) {
+			computeNextArgs();
+			Formula[] nextCall =substituteAll(returnDeps, argsForNextCall);
+
+			Substitution s = new Substitution();
+			s.addMapping(m.getVarsForValue(recCall.getDef()), nextCall);
+			singleCall = LogicUtil.applySubstitution(singleCall, s);
+		}
+
+		computeNextArgs();
+		Formula[] lastRun = simulateLastRun();
 		Substitution s = new Substitution();
-		s.addMapping(m.getVarsForValue(recCall.getDef()), simulateLastRun());
-
-		Formula[] singleRecCall = LogicUtil.applySubstitution(returnDeps, s);
-
-		return singleRecCall;
-
+		s.addMapping(m.getVarsForValue(recCall.getDef()), lastRun);
+		return LogicUtil.applySubstitution(singleCall, s);
 	}
 
 	private Formula[] returnValRecPathNotTaken() {
@@ -137,9 +144,9 @@ public class RecursiveFuncReturnValue implements IReturnValue {
 
 	private void computeNextArgs() {
 		HashMap<Integer, Formula[]> newArgs = new HashMap<>();
-		for (int i = 1; i < recCall.getNumberOfUses(); i++) {
-			Formula[] arg = m.getDepsForValue(recCall.getUse(i));
-			newArgs.put(i + 1, substituteAll(arg, argsForNextCall));
+		for (int i = 0; i < paramValueNums.length; i++) {
+			Formula[] arg = m.getDepsForValue(argValNums[i]);
+			newArgs.put(paramValueNums[i], substituteAll(arg, argsForNextCall));
 		}
 		argsForNextCall = newArgs;
 	}

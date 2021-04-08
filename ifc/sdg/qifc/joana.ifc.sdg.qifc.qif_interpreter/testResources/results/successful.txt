@@ -23,3 +23,10 @@ testResources/MultipleReturns.java
 testResources/CallInCall.java
 testResources/Call.java
 testResources/CallTwice.java
+testResources/Recursion.java
+testResources/Fib.java
+testResources/Fib.java
+testResources/Fib.java
+testResources/Fib.java
+testResources/Recursion2.java
+testResources/Recursion2.java

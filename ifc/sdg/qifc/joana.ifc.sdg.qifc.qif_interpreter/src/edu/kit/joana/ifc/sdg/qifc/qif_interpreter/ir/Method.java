@@ -349,7 +349,7 @@ public class Method {
 		return Type.from(cg.getMethod().getReturnType());
 	}
 
-	public void registerReturnValue(ReturnValue rv) {
+	public void registerReturnValue(IReturnValue rv) {
 		this.rv = rv;
 	}
 }

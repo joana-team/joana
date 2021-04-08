@@ -88,19 +88,19 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("MultipleReturns");
+		Program p = TestUtils.build("Fib");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
 		sa.computeSATDeps();
 
-		for(Method m: p.getMethods()) {
+		for (Method m : p.getMethods()) {
 			System.out.println(m.identifier());
 			DotGrapher.exportDotGraph(m.getCFG());
 		}
 
-		i.execute(Arrays.asList("0"));
+		i.execute(Arrays.asList("3"));
 
 		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();

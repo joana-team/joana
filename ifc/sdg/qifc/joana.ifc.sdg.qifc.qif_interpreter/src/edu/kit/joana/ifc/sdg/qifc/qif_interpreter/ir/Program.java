@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.types.MethodReference;
@@ -10,6 +11,7 @@ import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -65,10 +67,12 @@ public class Program {
 
 	public boolean isRecursive(MethodReference mRef, CGNode calledFrom) {
 		Set<CGNode> recNodes = this.cg.getNodes(mRef);
-		for (CGNode node : recNodes) {
+		assert (recNodes.size() == 1);
 
-		}
-		return false;
+		CGNode node = recNodes.iterator().next();
+		List<CallSiteReference> callSites = Util.asList(node.iterateCallSites());
+
+		return callSites.stream().anyMatch(cs -> cs.getDeclaredTarget().getSignature().equals(mRef.getSignature()));
 	}
 
 	public boolean hasMethod(String bcString) {

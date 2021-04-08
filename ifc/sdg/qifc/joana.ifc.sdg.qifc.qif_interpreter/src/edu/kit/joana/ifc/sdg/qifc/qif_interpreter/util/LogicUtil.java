@@ -332,5 +332,4 @@ public class LogicUtil {
 		IntStream.range(0, res.length).forEach(i -> res[i] = f[i].substitute(s.toLogicNGSubstitution()));
 		return res;
 	}
-
 }

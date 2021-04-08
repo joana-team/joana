@@ -4,6 +4,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import org.logicng.formulas.Variable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class StaticAnalysis {
 		int[] params = m.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
 			m.setDepsForvalue(params[i], LogicUtil.createVars(params[i], m.getParamType(i).bitwidth()));
+			m.addVarsToValue(params[i], (Variable[]) m.getDepsForValue(params[i]));
 		}
 	}
 

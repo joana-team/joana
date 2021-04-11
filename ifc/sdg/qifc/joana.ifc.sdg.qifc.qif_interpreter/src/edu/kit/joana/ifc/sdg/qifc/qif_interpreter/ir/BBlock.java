@@ -309,7 +309,7 @@ public class BBlock implements DotNode {
 
 	@Override public String getLabel() {
 		if (isDummy) {
-			return "Dummy";
+			return "Dummy " + idx;
 		}
 		StringBuilder sb = new StringBuilder(String.valueOf(this.idx()));
 		for (SSAInstruction i: this.instructions) {

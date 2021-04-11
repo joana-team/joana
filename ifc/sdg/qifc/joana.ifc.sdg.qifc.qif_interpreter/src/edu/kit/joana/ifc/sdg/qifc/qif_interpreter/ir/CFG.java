@@ -61,6 +61,9 @@ public class CFG implements Graph<BBlock>, DotGraph {
 	}
 
 	public int getLevel(BBlock b) {
+		if (b.isDummy()) {
+			return getLevel(b.succs().get(0));
+		}
 		return nildumuDoms.loopDepth(b);
 	}
 

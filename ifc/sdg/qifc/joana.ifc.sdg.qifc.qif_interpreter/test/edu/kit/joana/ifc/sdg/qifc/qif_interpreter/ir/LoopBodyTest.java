@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -27,5 +28,35 @@ class LoopBodyTest {
 			m.getPhiValPossibilities().get(phi)
 					.forEach(poss -> System.out.println(Arrays.toString(poss.fst) + " " + poss.snd));
 		}
+	}
+
+	@Test void breaksTest() throws IOException, InterruptedException {
+		Program p = TestUtils.build("Break");
+
+		StaticAnalysis sa = new StaticAnalysis(p);
+		sa.computeSATDeps();
+
+		LoopBody l = p.getEntryMethod().getLoops().get(0);
+		Assertions.assertEquals(1, l.getBreaks().size());
+	}
+
+	@Test void breaksTest2() throws IOException, InterruptedException {
+		Program p = TestUtils.build("MultipleBreaks");
+
+		StaticAnalysis sa = new StaticAnalysis(p);
+		sa.computeSATDeps();
+
+		LoopBody l = p.getEntryMethod().getLoops().get(0);
+		Assertions.assertEquals(2, l.getBreaks().size());
+	}
+
+	@Test void breaksTest3() throws IOException, InterruptedException {
+		Program p = TestUtils.build("Breaks2");
+
+		StaticAnalysis sa = new StaticAnalysis(p);
+		sa.computeSATDeps();
+
+		LoopBody l = p.getEntryMethod().getLoops().get(1);
+		Assertions.assertEquals(2, l.getBreaks().size());
 	}
 }

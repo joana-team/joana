@@ -21,6 +21,7 @@ public class LoopBody {
 	private final Method owner;
 	private final BBlock head;
 	private final Set<BBlock> blocks;
+	private final Set<BBlock> breaks;
 	private final Formula jumpOut;
 
 	public LoopBody(Method owner, BBlock head) {
@@ -33,13 +34,24 @@ public class LoopBody {
 		this.beforeLoop = new HashMap<>();
 		this.head = head;
 		this.blocks = this.owner.getCFG().getBasicBlocksInLoop(head);
+		this.breaks = findBreaks();
 
 		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
 		Boolean evalTo = insideLoopSuccessor.getImplicitFlows().stream().filter(p -> p.fst == head.idx()).findFirst()
 				.get().snd;
 		assert (evalTo != null);
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
+	}
 
+	private Set<BBlock> findBreaks() {
+		Set<BBlock> breaks = new HashSet<>();
+		for (BBlock b : this.blocks) {
+			if (b.isCondHeader() && b.succs().stream()
+					.anyMatch(succ -> owner.getCFG().getLevel(succ) < owner.getCFG().getLevel(head))) {
+				breaks.add(b);
+			}
+		}
+		return breaks;
 	}
 
 	public Set<BBlock> getBlocks() {
@@ -178,5 +190,9 @@ public class LoopBody {
 
 	public Formula[] getBeforeLoop(int i) {
 		return this.beforeLoop.get(i);
+	}
+
+	public Set<BBlock> getBreaks() {
+		return this.breaks;
 	}
 }

@@ -25,13 +25,8 @@ testResources/Call.java
 testResources/CallTwice.java
 testResources/Recursion.java
 testResources/Fib.java
-testResources/Fib.java
-testResources/Fib.java
-testResources/Fib.java
 testResources/Recursion2.java
-testResources/Recursion2.java
-testResources/Recursion2.java
-testResources/Fib.java
 testResources/AlwaysBreak.java
 testResources/Break.java
 testResources/ConstantAssignment.java
+testResources/Break2.java

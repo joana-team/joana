@@ -11,17 +11,11 @@ public class Break2 {
 
 	public int f(int h) {
 		int l = 0;
-		while (l == 0) {
-			while (h >= l) {
-				l++;
-				if (l == 3) {
-					break;
-				}
-				if (l == 2) {
-					break;
-				}
-				l++;
+		while (l >= 0) {
+			if (l == 1) {
+				break;
 			}
+			l++;
 		}
 		Out.print(l);
 		return l;

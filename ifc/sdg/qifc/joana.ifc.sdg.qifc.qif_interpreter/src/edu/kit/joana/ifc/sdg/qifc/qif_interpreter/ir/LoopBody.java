@@ -84,7 +84,7 @@ public class LoopBody {
 		for (int i : out.keySet()) {
 			sb = sb.append(i).append(" ").append(Arrays.toString(out.get(i))).append(System.lineSeparator());
 		}
-		System.out.println(sb.toString());
+		System.out.println(sb);
 	}
 
 	public Map<Integer, Formula[]> getRun(int n) {
@@ -150,7 +150,7 @@ public class LoopBody {
 		return f.substitute(s.toLogicNGSubstitution());
 	}
 
-	public Formula getStayInLoop() {
+	public Formula getJumpOut() {
 		return this.jumpOut;
 	}
 
@@ -194,5 +194,12 @@ public class LoopBody {
 
 	public Set<BBlock> getBreaks() {
 		return this.breaks;
+	}
+
+	/**
+	 * returns true if the value with the provided value number is defined inside this loop, false otherwise
+	 */
+	public boolean ownsValue(int valNum) {
+		return blocks.stream().anyMatch(b -> b.ownsValue(valNum));
 	}
 }

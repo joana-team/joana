@@ -307,6 +307,10 @@ public class BBlock implements DotNode {
 		return (SSAReturnInstruction) this.walaBBlock.getLastInstruction();
 	}
 
+	public boolean ownsValue(int valNum) {
+		return instructions.stream().filter(SSAInstruction::hasDef).anyMatch(i -> i.getDef() == valNum);
+	}
+
 	@Override public String getLabel() {
 		if (isDummy) {
 			return "Dummy " + idx;

@@ -88,21 +88,21 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Fib");
+		Program p = TestUtils.build("Break");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
+		Method entry = p.getEntryMethod();
+		entry.getCFG().print();
+		DotGrapher.exportDotGraph(entry.getCFG());
+
 		sa.computeSATDeps();
 
-		for (Method m : p.getMethods()) {
-			System.out.println(m.identifier());
-			DotGrapher.exportDotGraph(m.getCFG());
-		}
+
 
 		i.execute(Arrays.asList("3"));
 
-		Method entry = p.getEntryMethod();
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
 		int[] params = entry.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
@@ -120,7 +120,7 @@ class AppTest {
 		System.out.println(a);
 		System.out.println(b);
 
-		String f = "~z & y & ~((x | ~y) & (~x | y)) | (x | ~y) & (~x | y)";
+		String f = "~(~z & ~((y | z) & (~y | ~z)) & ~((x | y | z) & (~x | ~(y | z)))) & ~((x | y | z) & (~x | ~(y | z)))";
 		TestUtils.printModels(ff.parse(f), ff);
 	}
 }

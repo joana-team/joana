@@ -75,8 +75,14 @@ public class StaticAnalysis {
 				LoopBody l = new LoopBody(m, b);
 				LoopHandler.analyze(l, sv);
 				m.addLoop(l);
-				toVisit.addAll(
-						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
+
+				// add all after-loop successors, but skip the dummy blocks
+				for (BBlock succ: b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList())) {
+					if (succ.isDummy()) {
+						succ = succ.succs().get(0);
+					}
+					toVisit.add(succ);
+				}
 			} else {
 				try {
 					sv.visitBlock(m, b, -1);

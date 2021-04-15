@@ -47,9 +47,9 @@ public class SimplePhiVisitor extends SSAInstruction.Visitor {
 
 			Formula iFlow = LogicUtil.ff.constant(true);
 			for (int j = 0; j < i; j++) {
-				iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(j, l.getStayInLoop()));
+				iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(j, l.getJumpOut()));
 			}
-			iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(i, LogicUtil.ff.not(l.getStayInLoop())));
+			iFlow = LogicUtil.ff.and(iFlow, l.substituteWithIterationOutputs(i, LogicUtil.ff.not(l.getJumpOut())));
 			m.addPhiValuePossibility(instruction.getDef(), Pair.make(val, iFlow));
 		}
 	}

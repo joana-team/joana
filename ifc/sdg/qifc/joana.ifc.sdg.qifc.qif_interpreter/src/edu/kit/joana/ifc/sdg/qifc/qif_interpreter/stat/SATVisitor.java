@@ -4,9 +4,7 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -200,10 +198,45 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	 */
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
 		if (!block.isLoopHeader()) {
-			handleCondPhi(instruction);
+			if (block.preds().stream().map(pred -> (pred.isDummy() ? pred.preds().get(0) : pred)).anyMatch(BBlock::isLoopHeader)) {
+				handleBreakPhi(instruction);
+			} else {
+				handleCondPhi(instruction);
+			}
 		} else {
 			handleLoopPhi(instruction);
 		}
+	}
+
+	// if the out-of-loop successor of a loop-header contains phi-instructions, these are the result of a break statement in the loop-body
+	// the actual value of this def depends on 2 conditions: the loop-head and the break-condition
+	private void handleBreakPhi(SSAPhiInstruction instruction) {
+		BBlock loopHeader = block.preds().stream().map(pred -> (pred.isDummy()) ? pred.preds().get(0) : pred).filter(BBlock::isLoopHeader).findFirst().get();
+		LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().equals(loopHeader)).findFirst().get();
+		int normalExitValueIdx = (loopHeader.ownsValue(instruction.getUse(0))) ? 0 : 1;
+		int normalExitValue = instruction.getUse(normalExitValueIdx);
+		int breakExitValue = instruction.getUse(1 - normalExitValueIdx);
+
+		// finding the block that ends w/ the break:
+		// predecessors of the current block (containing the phi-instruction resulting from the break statement) are a dummy node (coming from the loop header) and a non-dummy block (coming from the goto-block out of the loop)
+		// the break-block is then the first non-dumy predecessor of the goto-block
+		BBlock gotoBlock = block.preds().stream().filter(pred -> !pred.isDummy()).findFirst().get();
+		BBlock breakBlock = gotoBlock.preds().get(0).preds().get(0);
+		assert(!breakBlock.isDummy());
+		assert(l.getBreaks().contains(breakBlock));
+
+		Formula[] breakDeps = LoopHandler.computeBreakValues(l, instruction.getDef(), normalExitValue, breakExitValue, breakBlock);
+
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
+		if (!m.hasValue(instruction.getDef())) {
+			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+					.createByType(instruction.getDef(), m.getValue(normalExitValue).getType());
+			m.addValue(instruction.getDef(), defVal);
+		} else {
+			defVal = m.getValue(instruction.getDef());
+		}
+		assert defVal != null;
+		m.setDepsForvalue(instruction.getDef(), breakDeps);
 	}
 
 	private void handleLoopPhi(SSAPhiInstruction instruction) {

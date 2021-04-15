@@ -16,6 +16,7 @@ public class MultipleBreaks {
 			if (l == 3) {
 				break;
 			}
+			l++;
 			if (l == 2) {
 				break;
 			}

@@ -106,6 +106,7 @@ public class App {
 		}
 
 		Program p = builder.getProgram();
+		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
 
 		// execute
 		Interpreter i = new Interpreter(p);

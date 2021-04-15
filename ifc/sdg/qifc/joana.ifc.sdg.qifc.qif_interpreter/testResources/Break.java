@@ -10,13 +10,13 @@ public class Break {
 	}
 
 	public int f(int h) {
-		int l = 0;
-		while (h >= l) {
-			l++;
-			if (l == 3) {
+		int l = 1;
+		while (0 <= l) {
+			l = l & h;
+			if (l == 2) {
 				break;
 			}
-			l++;
+			l = -1;
 		}
 		Out.print(l);
 		return l;

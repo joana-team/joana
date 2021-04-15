@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
+import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
@@ -9,6 +10,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 
 import java.util.*;
@@ -58,24 +60,7 @@ public class LoopHandler {
 		}
 
 		extractDeps(m, head, loop);
-
-		Map<Integer, Formula[]> previousRun = new HashMap<>();
-
-		for (int i : m.getProgramValues().keySet()) {
-			Formula[] before = new Formula[m.getDepsForValue(i).length];
-			IntStream.range(0, before.length).forEach(k -> before[k] = (loop.getIn().containsKey(i)) ?
-					loop.getBeforeLoop(i)[k] :
-					m.getDepsForValue(i)[k]);
-			previousRun.put(i, before);
-		}
-
-		List<Pair<Map<Integer, Formula[]>, Formula>> runs = new ArrayList<>();
-		runs.add(Pair.make(previousRun,
-				loop.getStayInLoop().substitute(loop.generateInitialValueSubstitution().toLogicNGSubstitution())));
-
-		for (int i = 1; i < loopUnrollingMax; i++) {
-			runs.add(loop.simulateRun(runs.get(i - 1).fst));
-		}
+		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = computeRuns(loop, m);
 
 		Pair<Map<Integer, Formula[]>, Formula> last = runs.get(loopUnrollingMax - 1);
 		last.fst.keySet().forEach(i -> m.setDepsForvalue(i, last.fst.get(i)));
@@ -87,6 +72,33 @@ public class LoopHandler {
 					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.snd, run.fst.get(j), m.getDepsForValue(j))));
 		}
 		return loop;
+	}
+
+	/**
+	 * returns a list of pairs, that describes the program's values after a certain number of loop iterations. The i-th list entry corresponds to the value's after the i-th iteration
+	 * The 0th entry means, the loop was not executed at all.
+	 *
+	 *  The first element of a pair describes the programs values, the snd element describes the condition that must hold for the loop execution to be stopped after this iteration
+	 */
+	private static Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> computeRuns(LoopBody loop, Method m) {
+		Map<Integer, Formula[]> previousRun = new HashMap<>();
+
+		for (int i : m.getProgramValues().keySet()) {
+			Formula[] before = new Formula[m.getDepsForValue(i).length];
+			IntStream.range(0, before.length).forEach(k -> before[k] = (loop.getIn().containsKey(i)) ?
+					loop.getBeforeLoop(i)[k] :
+					m.getDepsForValue(i)[k]);
+			previousRun.put(i, before);
+		}
+
+		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = new HashMap<>();
+		runs.put(0, Pair.make(previousRun,
+				loop.getJumpOut().substitute(loop.generateInitialValueSubstitution().toLogicNGSubstitution())));
+
+		for (int i = 1; i < loopUnrollingMax; i++) {
+			runs.put(i, loop.simulateRun(runs.get(i - 1).fst));
+		}
+		return runs;
 	}
 
 	private static void extractDeps(Method m, BBlock head, LoopBody loop) {
@@ -112,5 +124,59 @@ public class LoopHandler {
 			}
 		}
 		loop.generateInitialValueSubstitution();
+	}
+
+	// TODO multiple breaks in a loop
+	public static Formula[] computeBreakValues(LoopBody l, int def, int normalUse, int breakUse, BBlock breakBlock) {
+		BBlock insideLoopSuccessor = breakBlock.succs().stream().filter(b -> l.getBlocks().contains(b)).findFirst().get().succs().get(0);
+		boolean breakIf = !insideLoopSuccessor.getImplicitFlows().stream().filter(p -> p.fst == breakBlock.idx()).findFirst().get().snd;
+
+		Formula breakCondition = breakIf ? breakBlock.getCondExpr() : LogicUtil.ff.not(breakBlock.getCondExpr());
+		Formula exitLoopCondition;
+
+		Formula[] temp = LogicUtil.createVars(def, l.getOwner().getValue(normalUse).getWidth(), "t");
+		Formula[] beforeLoop = l.getBeforeLoop(normalUse);
+		Formula[] atBreak = l.getOwner().getDepsForValue(breakUse);
+		Formula[] res;
+
+		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = computeRuns(l, l.getOwner());
+
+		// base result when loop is not taken
+		res = LogicUtil.ternaryOp(runs.get(0).snd, beforeLoop, temp);
+
+		for (int i = 1; i < loopUnrollingMax; i++) {
+			Formula breakThisIteration = substituteAll(l, breakCondition, runs.get(i - 1).fst);
+			Formula[] breakResult = substituteAll(l, atBreak, runs.get(i - 1).fst);
+			exitLoopCondition = runs.get(i).snd;
+			Formula[] afterLoop = runs.get(i).fst.get(normalUse);
+
+			Formula[] iterationResult;
+
+			if (i == loopUnrollingMax - 1) {
+				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult, afterLoop);
+			} else {
+				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult, LogicUtil.ternaryOp(exitLoopCondition, afterLoop, temp));
+			}
+			Substitution s = new Substitution();
+			s.addMapping(temp, iterationResult);
+			res = LogicUtil.applySubstitution(res, s);
+		}
+		return res;
+	}
+
+	private static Formula substituteAll(LoopBody l, Formula f, Map<Integer, Formula[]> args) {
+		Substitution s = new Substitution();
+		for (int i : l.getIn().keySet()) {
+			s.addMapping(l.getOwner().getVarsForValue(i), args.get(i));
+		}
+		return f.substitute(s.toLogicNGSubstitution());
+	}
+
+	private static Formula[] substituteAll(LoopBody l, Formula[] f, Map<Integer, Formula[]> args) {
+		Substitution s = new Substitution();
+		for (int i : l.getIn().keySet()) {
+			s.addMapping(l.getOwner().getVarsForValue(i), args.get(i));
+		}
+		return LogicUtil.applySubstitution(f, s);
 	}
 }

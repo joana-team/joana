@@ -219,13 +219,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		// finding the block that ends w/ the break:
 		// predecessors of the current block (containing the phi-instruction resulting from the break statement) are a dummy node (coming from the loop header) and a non-dummy block (coming from the goto-block out of the loop)
-		// the break-block is then the first non-dumy predecessor of the goto-block
+		// the break-block is then the first non-dummy predecessor of the goto-block
 		BBlock gotoBlock = block.preds().stream().filter(pred -> !pred.isDummy()).findFirst().get();
-		BBlock breakBlock = gotoBlock.preds().get(0).preds().get(0);
-		assert(!breakBlock.isDummy());
-		assert(l.getBreaks().contains(breakBlock));
 
-		Formula[] breakDeps = LoopHandler.computeBreakValues(l, instruction.getDef(), normalExitValue, breakExitValue, breakBlock);
+		Formula[] breakDeps = LoopHandler.computeBreakValues(l, instruction.getDef(), normalExitValue, breakExitValue, gotoBlock);
 
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 		if (!m.hasValue(instruction.getDef())) {

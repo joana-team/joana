@@ -129,14 +129,20 @@ public class BBlock implements DotNode {
 		}
 	}
 
-	public Formula generateImplicitFlowFormula() {
+	public static Formula generateImplicitFlowFormula(List<Pair<Integer, Boolean>> flows, CFG g) {
 		Formula iff = LogicUtil.ff.constant(true);
-		for (Pair<Integer, Boolean> p : implicitFlows) {
-			Formula x = this.g.getBlock(p.fst).condExpr;
+		for (Pair<Integer, Boolean> p : flows) {
+			Formula x = g.getBlock(p.fst).condExpr;
 			iff = LogicUtil.ff.and(iff, (p.snd) ? x : LogicUtil.ff.not(x));
 		}
 		return iff;
 	}
+
+	public Formula generateImplicitFlowFormula() {
+		return generateImplicitFlowFormula(this.implicitFlows, this.g);
+	}
+
+
 
 	public List<SSAInstruction> instructions() {
 		return instructions;

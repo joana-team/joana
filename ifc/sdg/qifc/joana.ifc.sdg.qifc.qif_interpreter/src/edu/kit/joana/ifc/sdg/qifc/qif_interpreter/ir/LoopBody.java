@@ -21,7 +21,7 @@ public class LoopBody {
 	private final Method owner;
 	private final BBlock head;
 	private final Set<BBlock> blocks;
-	private final Set<BBlock> breaks;
+	private final List<BBlock> breaks;
 	private final Formula jumpOut;
 
 	public LoopBody(Method owner, BBlock head) {
@@ -43,19 +43,37 @@ public class LoopBody {
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
 	}
 
-	private Set<BBlock> findBreaks() {
-		Set<BBlock> breaks = new HashSet<>();
+	private List<BBlock> findBreaks() {
+		List<BBlock> breaks = new ArrayList<>();
 		for (BBlock b : this.blocks) {
 			if (b.isCondHeader() && b.succs().stream()
 					.anyMatch(succ -> owner.getCFG().getLevel(succ) < owner.getCFG().getLevel(head))) {
 				breaks.add(b);
 			}
 		}
+
+		// sort the possible break locations inside the loop according to the block indices
+		// earliest possible break should be in front
+		//
+		// a blocks idx is always greater than that of its predecessors
+		// (exceptions iis the back edge to a loop head, but we are not looking at loop heads here, so it should be ok)
+		Comparator<BBlock> comp = new Comparator<BBlock>() {
+			@Override public int compare(BBlock o1, BBlock o2) {
+				assert(!o1.isDummy() && !o2.isDummy());
+				return o1.idx() - o2.idx();
+			}
+		};
+		breaks.sort(comp);
+
 		return breaks;
 	}
 
 	public Set<BBlock> getBlocks() {
 		return blocks;
+	}
+
+	public boolean hasBlock(int idx) {
+		return this.blocks.stream().anyMatch(b -> b.idx() == idx);
 	}
 
 	public BBlock getHead() {
@@ -192,7 +210,7 @@ public class LoopBody {
 		return this.beforeLoop.get(i);
 	}
 
-	public Set<BBlock> getBreaks() {
+	public List<BBlock> getBreaks() {
 		return this.breaks;
 	}
 

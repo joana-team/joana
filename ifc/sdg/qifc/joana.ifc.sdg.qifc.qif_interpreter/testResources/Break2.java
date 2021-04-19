@@ -12,10 +12,14 @@ public class Break2 {
 	public int f(int h) {
 		int l = 0;
 		while (l >= 0) {
+			if (h == 0) {
+				l++;
+			} else {
+				l--;
+			}
 			if (l == 1) {
 				break;
 			}
-			l++;
 		}
 		Out.print(l);
 		return l;

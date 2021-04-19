@@ -30,3 +30,8 @@ testResources/AlwaysBreak.java
 testResources/Break.java
 testResources/ConstantAssignment.java
 testResources/Break2.java
+testResources/Break.java
+testResources/AlwaysBreak.java
+testResources/MultipleBreaks.java
+testResources/DoubleBreak.java
+testResources/MultipleBreaks.java

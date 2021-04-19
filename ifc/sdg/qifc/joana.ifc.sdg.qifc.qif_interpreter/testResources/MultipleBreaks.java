@@ -12,10 +12,8 @@ public class MultipleBreaks {
 	public int f(int h) {
 		int l = 0;
 		while (h >= l) {
-			l++;
 			if (l > 0) {
 				if (l == 3) {
-					l++;
 					break;
 				}
 				l++;

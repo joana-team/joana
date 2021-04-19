@@ -35,3 +35,4 @@ testResources/AlwaysBreak.java
 testResources/MultipleBreaks.java
 testResources/DoubleBreak.java
 testResources/MultipleBreaks.java
+testResources/MultipleBreaks.java

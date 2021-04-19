@@ -202,10 +202,13 @@ public class LoopHandler {
 				new ArrayList<>());
 		possibleValues.sort((o1, o2) -> new IFComparator().compare(o1.snd, o2.snd));
 
-		Formula[] value = l.getOwner().getDepsForValue(possibleValues.get(possibleValues.size() - 1).fst);
+		int valnum = possibleValues.get(possibleValues.size() - 1).fst;
+		Formula[] value = (l.getIn().containsKey(valnum) ? l.getOwner().getVarsForValue(valnum) : l.getOwner().getDepsForValue(valnum));
 
 		for (int i = 0; i < possibleValues.size() - 1; i++) {
-			value = LogicUtil.ternaryOp(BBlock.generateImplicitFlowFormula(possibleValues.get(i).snd, l.getOwner().getCFG()), l.getOwner().getDepsForValue(possibleValues.get(i).fst), value);
+			valnum = possibleValues.get(i).fst;
+			Formula[] breakValue = l.getIn().containsKey(valnum) ? l.getOwner().getVarsForValue(valnum) : l.getOwner().getDepsForValue(valnum);
+			value = LogicUtil.ternaryOp(BBlock.generateImplicitFlowFormula(possibleValues.get(i).snd, l.getOwner().getCFG()), breakValue, value);
 		}
 
 		Formula condJumpTaken = possibleValues.stream().map(p -> p.snd).map(list -> BBlock.generateImplicitFlowFormula(list, l.getHead()

@@ -10,5 +10,7 @@ public interface DotNode {
 
 	List<DotNode> getPreds();
 
+	boolean isExceptionEdge(DotNode succ);
+
 	int getId();
 }

@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -329,11 +330,17 @@ public class BBlock implements DotNode {
 	}
 
 	@Override public List<DotNode> getSuccs() {
-		return this.succs.stream().map(b -> (DotNode)b).collect(Collectors.toList());
+		return this.succs.stream().map(b -> (DotNode) b).collect(Collectors.toList());
 	}
 
 	@Override public List<DotNode> getPreds() {
-		return this.preds.stream().map(b -> (DotNode)b).collect(Collectors.toList());
+		return this.preds.stream().map(b -> (DotNode) b).collect(Collectors.toList());
+	}
+
+	@Override public boolean isExceptionEdge(DotNode succ) {
+		assert (succs.contains(succ));
+		return this.g.getWalaCFG().getExceptionalSuccessors(this.walaBBlock).stream().mapToInt(IBasicBlock::getNumber)
+				.boxed().collect(Collectors.toList()).contains(succ.getId());
 	}
 
 	@Override public int getId() {

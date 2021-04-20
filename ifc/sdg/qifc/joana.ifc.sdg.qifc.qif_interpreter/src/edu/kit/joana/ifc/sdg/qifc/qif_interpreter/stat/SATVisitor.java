@@ -58,13 +58,11 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			res = LogicUtil.ternaryOp(assignmentCond, array.currentlyAssigned(i), res);
 		}
 
-		Value defVal;
 		if (!m.hasValue(instruction.getDef())) {
-			defVal = Value.createByType(instruction.getDef(), array.elementType());
-		} else {
-			defVal = m.getValue(instruction.getDef());
+			Value defVal = Value.createByType(instruction.getDef(), array.elementType());
+			m.addValue(instruction.getDef(), defVal);
 		}
-		defVal.setDeps(res);
+		m.setDepsForvalue(instruction.getDef(), res);
 	}
 
 	/*

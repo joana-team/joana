@@ -90,9 +90,9 @@ public class Array<T extends Value> extends Value {
 
 	public Formula[] currentlyAssigned(int idx) {
 		Stack<Triple<Formula, Formula, Formula[]>> element = this.possibleAssignments[idx];
-		Formula[] res = element.lastElement().getRight();
+		Formula[] res = element.peek().getRight();
 
-		for (int i = 0; i < element.size() - 1; i++) {
+		for (int i = element.size() - 1; i > 0; i--) {
 			res = LogicUtil.ternaryOp(LogicUtil.ff.and(element.get(i).getLeft(), element.get(i).getMiddle()),
 					element.get(i).getRight(), res);
 		}

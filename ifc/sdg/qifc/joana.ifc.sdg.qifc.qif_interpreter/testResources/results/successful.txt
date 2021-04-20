@@ -36,3 +36,8 @@ testResources/MultipleBreaks.java
 testResources/DoubleBreak.java
 testResources/MultipleBreaks.java
 testResources/MultipleBreaks.java
+testResources/SimpleArray.java
+testResources/Array.java
+testResources/Array2.java
+testResources/ArrayLength.java
+testResources/ArrayInIf.java

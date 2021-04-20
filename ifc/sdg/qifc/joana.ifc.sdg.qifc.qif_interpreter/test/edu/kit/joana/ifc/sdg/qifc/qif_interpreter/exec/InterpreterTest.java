@@ -5,6 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -283,6 +284,8 @@ class InterpreterTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
 		Interpreter i = new Interpreter(p, ps);
+
+		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
 
 		List<String> args = Collections.singletonList("2");
 

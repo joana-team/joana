@@ -250,4 +250,30 @@ class InterpreterTest {
 
 		assertEquals("3\n", baos.toString());
 	}
+
+	@Test public void arrayTest() throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+		Program p = TestUtils.build("Array");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("2");
+
+		i.execute(args);
+
+		assertEquals("3\n", baos.toString());
+	}
+
+	@Test public void arrayLengthTest() throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+		Program p = TestUtils.build("ArrayLength");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		List<String> args = Collections.singletonList("2");
+
+		i.execute(args);
+
+		assertEquals("2\n", baos.toString());
+	}
 }

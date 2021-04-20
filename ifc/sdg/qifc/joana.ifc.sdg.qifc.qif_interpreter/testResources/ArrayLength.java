@@ -10,12 +10,17 @@ public class Array {
 	}
 
 	public int f(int h) {
-		int l = 1 + 2;
-		int[] a = new int[l];
-		a[0] = h;
-		l = a[0] + 1;
-		Out.print(l);
-		return 0;
+		int[] a;
+		if (h == 1) {
+			a = new int[1];
+		} else if (h == 2) {
+			a = new int[2];
+		} else if (h == 3) {
+			a = new int[3];
+		} else {
+			a = new int[0];
+		}
+		Out.print(a.length);
 	}
 
 }

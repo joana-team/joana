@@ -162,21 +162,16 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {
-		if (instruction.getConcreteType().isArrayType()) {
-			Value length = m.getValue(instruction.getUse(0));
-			assert (length.isConstant() & length instanceof Int);
-			Type content = Type.from(instruction.getConcreteType().getArrayElementType());
-			assert (content.isPrimitive());
-
-			try {
-				Value res = Array.newArray(content, (Integer) length.getVal(), instruction.getDef());
-			} catch (UnexpectedTypeException e) {
-				e.printStackTrace();
+		if (!m.hasValue(instruction.getDef())) {
+			if (instruction.getConcreteType().isArrayType()) {
+				try {
+					Value res = Array.newArray(instruction, m);
+					m.addValue(instruction.getDef(), res);
+				} catch (UnexpectedTypeException e) {
+					e.printStackTrace();
+				}
 			}
 		}
-
-		containsOutOfScopeInstruction = true;
-		outOfScopeInstruction = instruction;
 	}
 
 	@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {

@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.ssa.SSANewInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
@@ -30,6 +31,15 @@ public class Array<T extends Value> extends Value {
 		throw new UnexpectedTypeException(t);
 	}
 
+	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m) throws UnexpectedTypeException {
+		Value length = m.getValue(instruction.getUse(0));
+		Type content = Type.from(instruction.getConcreteType().getArrayElementType());
+		assert (length.isConstant() & length instanceof Int);
+		assert (content.isPrimitive());
+		return Array.newArray(content, (Integer) length.getVal(), instruction.getDef());
+	}
+
+
 	@Override public boolean verifyType(Object val) {
 		return val instanceof Array;
 	}
@@ -44,5 +54,15 @@ public class Array<T extends Value> extends Value {
 
 	public Type elementType() {
 		return this.elementType;
+	}
+
+	public T access(int idx) {
+		return this.arr[idx];
+	}
+
+	public void store(Object val, int idx, int recursionDepth) {
+		Value dest = arr[idx];
+		assert(dest.verifyType(val));
+		dest.setVal(val, recursionDepth);
 	}
 }

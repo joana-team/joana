@@ -1,16 +1,16 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 
+import com.ibm.wala.ipa.callgraph.ContextItem;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 
 import java.io.PrintStream;
@@ -95,11 +95,17 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
-		containsOutOfScopeInstruction = true;
+		Array<? extends Value> arr = (Array<? extends Value>) m.getValue(instruction.getArrayRef());
+		Type resultType = arr.elementType();
+		Object val = arr.access((Integer)m.getValue(instruction.getIndex()).getVal()).getVal();
+		setDefValue(instruction, resultType, val);
 	}
 
 	@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-		containsOutOfScopeInstruction = true;
+		Value assigned = m.getValue(instruction.getValue());
+		int idx = (int) m.getValue(instruction.getIndex()).getVal();
+		((Array<? extends Value>) m.getValue(instruction.getArrayRef())).store(assigned.getVal(), idx,
+				m.getRecursionDepth());
 	}
 
 	@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
@@ -293,13 +299,20 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {
-		containsOutOfScopeInstruction = true;
-		outOfScopeInstruction = instruction;
+		if (!m.hasValue(instruction.getDef())) {
+			if (instruction.getConcreteType().isArrayType()) {
+				try {
+					Value res = Array.newArray(instruction, m);
+					m.addValue(instruction.getDef(), res);
+				} catch (UnexpectedTypeException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
-		containsOutOfScopeInstruction = true;
-		outOfScopeInstruction = instruction;
+		setDefValue(instruction, Type.INTEGER, ((Array<? extends Value>) m.getValue(instruction.getArrayRef())).length());
 	}
 
 	@Override public void visitThrow(SSAThrowInstruction instruction) {

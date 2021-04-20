@@ -4,9 +4,10 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
@@ -161,6 +162,19 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {
+		if (instruction.getConcreteType().isArrayType()) {
+			Value length = m.getValue(instruction.getUse(0));
+			assert (length.isConstant() & length instanceof Int);
+			Type content = Type.from(instruction.getConcreteType().getArrayElementType());
+			assert (content.isPrimitive());
+
+			try {
+				Value res = Array.newArray(content, (Integer) length.getVal(), instruction.getDef());
+			} catch (UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
+		}
+
 		containsOutOfScopeInstruction = true;
 		outOfScopeInstruction = instruction;
 	}

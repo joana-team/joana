@@ -6,8 +6,7 @@ import com.ibm.wala.types.TypeReference;
 
 public enum Type {
 
-	INTEGER(3),
-	CUSTOM(-1);
+	INTEGER(3), ARRAY(3), CUSTOM(-1);
 
 	private final int bitWidth;
 
@@ -16,8 +15,10 @@ public enum Type {
 	}
 
 	public static Type from(TypeReference paramType) {
-		if(paramType.equals(TypeReference.Int)) {
+		if (paramType.equals(TypeReference.Int)) {
 			return INTEGER;
+		} else if (paramType.isArrayType()) {
+			return ARRAY;
 		}
 		return CUSTOM;
 	}
@@ -35,5 +36,12 @@ public enum Type {
 
 	public static Type getResultType(IUnaryOpInstruction.Operator op, Type use) {
 		return use;
+	}
+
+	public boolean isPrimitive() {
+		if (this == INTEGER) {
+			return true;
+		}
+		return false;
 	}
 }

@@ -1,10 +1,10 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class Array {
+public class ArrayLength {
 
 	public  static void main(String[] args) {
 
-		Array a = new Array();
+		ArrayLength a = new ArrayLength();
 		a.f(1);
 
 	}
@@ -21,6 +21,7 @@ public class Array {
 			a = new int[0];
 		}
 		Out.print(a.length);
+		return 0;
 	}
 
 }

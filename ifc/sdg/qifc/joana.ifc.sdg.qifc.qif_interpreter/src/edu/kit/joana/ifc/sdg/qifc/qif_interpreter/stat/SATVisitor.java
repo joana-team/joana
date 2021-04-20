@@ -12,6 +12,8 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
+import java.util.stream.IntStream;
+
 public class SATVisitor implements SSAInstruction.IVisitor {
 	private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
@@ -44,14 +46,44 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
-		containsOutOfScopeInstruction = true;
-		outOfScopeInstruction = instruction;
+		Array<? extends Value> array = (Array<? extends Value>) m.getValue(instruction.getArrayRef());
+		Formula[] idx = m.getDepsForValue(instruction.getIndex());
+		Formula[] res = array.currentlyAssigned(array.length() - 1);
 
+		for (int i = 0; i < array.length() - 1; i++) {
+			Formula[] idxSatArray = LogicUtil.asFormulaArray(LogicUtil.twosComplement(i, Type.INTEGER.bitwidth()));
+			Formula assignmentCond = IntStream.range(0, Type.INTEGER.bitwidth())
+					.mapToObj(j -> LogicUtil.ff.equivalence(idx[j], idxSatArray[j]))
+					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
+			res = LogicUtil.ternaryOp(assignmentCond, array.currentlyAssigned(i), res);
+		}
+
+		Value defVal;
+		if (!m.hasValue(instruction.getDef())) {
+			defVal = Value.createByType(instruction.getDef(), array.elementType());
+		} else {
+			defVal = m.getValue(instruction.getDef());
+		}
+		defVal.setDeps(res);
 	}
 
+	/*
+	 * For each element of the referenced array:
+	 * - check if the idx could be the same as the element idx
+	 * - if yes: add assigned value as possible assignment
+	 */
 	@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-		containsOutOfScopeInstruction = true;
-		outOfScopeInstruction = instruction;
+		Array<? extends Value> array = (Array<? extends Value>) m.getValue(instruction.getArrayRef());
+		Formula[] idx = m.getDepsForValue(instruction.getIndex());
+		Formula[] assignedValue = m.getDepsForValue(instruction.getValue());
+
+		for (int i = 0; i < array.length(); i++) {
+			Formula[] idxSatArray = LogicUtil.asFormulaArray(LogicUtil.twosComplement(i, Type.INTEGER.bitwidth()));
+			Formula assignmentCond = IntStream.range(0, Type.INTEGER.bitwidth())
+					.mapToObj(j -> LogicUtil.ff.equivalence(idx[j], idxSatArray[j]))
+					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
+			array.addAssignment(block.generateImplicitFlowFormula(), i, assignmentCond, assignedValue);
+		}
 	}
 
 	@Override public void visitComparison(SSAComparisonInstruction instruction) {
@@ -175,8 +207,18 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
-		containsOutOfScopeInstruction = true;
-		outOfScopeInstruction = instruction;
+		Formula[] length = LogicUtil.asFormulaArray(LogicUtil
+				.twosComplement(((Array<? extends Value>) m.getValue(instruction.getArrayRef())).length(),
+						Type.INTEGER.bitwidth()));
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
+		if (!m.hasValue(instruction.getDef())) {
+			defVal = new Int(instruction.getDef());
+			m.addValue(instruction.getDef(), defVal);
+		} else {
+			defVal = m.getValue(instruction.getDef());
+		}
+		assert defVal != null;
+		m.setDepsForvalue(instruction.getDef(), length);
 	}
 
 	@Override public void visitThrow(SSAThrowInstruction instruction) {

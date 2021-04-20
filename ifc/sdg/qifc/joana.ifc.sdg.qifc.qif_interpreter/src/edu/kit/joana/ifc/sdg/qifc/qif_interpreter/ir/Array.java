@@ -3,8 +3,11 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ssa.SSANewInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import edu.kit.joana.util.Triple;
 import org.logicng.formulas.Formula;
 
+import java.util.Arrays;
+import java.util.Stack;
 import java.util.stream.IntStream;
 
 public class Array<T extends Value> extends Value {
@@ -12,20 +15,35 @@ public class Array<T extends Value> extends Value {
 	private Type elementType;
 	private int length;
 	private T[] arr;
+	private Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments;
 
 	public Array(int valNum) {
 		super(valNum);
 		this.setType(Type.ARRAY);
 		this.setWidth(Type.ARRAY.bitwidth());
+
+	}
+
+	private Stack<Triple<Formula, Formula, Formula[]>>[] initAssignments(int length) {
+		Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments = new Stack[length];
+		Formula[] initValue = new Formula[this.elementType.bitwidth()];
+		Arrays.fill(initValue, LogicUtil.ff.constant(false));
+		for (int i = 0; i < length; i++) {
+			possibleAssignments[i] = new Stack<>();
+			possibleAssignments[i]
+					.push(Triple.triple(LogicUtil.ff.constant(true), LogicUtil.ff.constant(true), initValue));
+		}
+		return possibleAssignments;
 	}
 
 	public static Array<? extends Value> newArray(Type t, int length, int valNum) throws UnexpectedTypeException {
 		if (t == Type.INTEGER) {
-			Array<Int> array = new Array<Int>(valNum);
+			Array<Int> array = new Array<>(valNum);
 			array.length = length;
 			array.arr = new Int[length];
 			array.elementType = t;
 			IntStream.range(0, length).forEach(i -> array.arr[i] = new Int(i));
+			array.possibleAssignments = array.initAssignments(length);
 			return array;
 		}
 		throw new UnexpectedTypeException(t);
@@ -62,7 +80,23 @@ public class Array<T extends Value> extends Value {
 
 	public void store(Object val, int idx, int recursionDepth) {
 		Value dest = arr[idx];
-		assert(dest.verifyType(val));
+		assert (dest.verifyType(val));
 		dest.setVal(val, recursionDepth);
+	}
+
+	public void addAssignment(Formula implicitIF, int idx, Formula assignmentCond, Formula[] assignedValue) {
+		this.possibleAssignments[idx].push(Triple.triple(implicitIF, assignmentCond, assignedValue));
+	}
+
+	public Formula[] currentlyAssigned(int idx) {
+		Stack<Triple<Formula, Formula, Formula[]>> element = this.possibleAssignments[idx];
+		Formula[] res = element.lastElement().getRight();
+
+		for (int i = 0; i < element.size() - 1; i++) {
+			res = LogicUtil.ternaryOp(LogicUtil.ff.and(element.get(i).getLeft(), element.get(i).getMiddle()),
+					element.get(i).getRight(), res);
+		}
+
+		return res;
 	}
 }

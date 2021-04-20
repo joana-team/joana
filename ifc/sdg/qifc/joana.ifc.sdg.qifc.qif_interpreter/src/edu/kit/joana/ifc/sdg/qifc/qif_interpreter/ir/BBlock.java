@@ -339,6 +339,9 @@ public class BBlock implements DotNode {
 
 	@Override public boolean isExceptionEdge(DotNode succ) {
 		assert (succs.contains(succ));
+		if (succ.getId() < 0 || this.isDummy) {
+			return false;
+		}
 		return this.g.getWalaCFG().getExceptionalSuccessors(this.walaBBlock).stream().mapToInt(IBasicBlock::getNumber)
 				.boxed().collect(Collectors.toList()).contains(succ.getId());
 	}

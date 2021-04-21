@@ -21,19 +21,29 @@ public class LoopHandler {
 	// temporary
 	private static final int loopUnrollingMax = 4;
 
-	public static LoopBody analyze(LoopBody loop, SATVisitor sv) {
-		BBlock head = loop.getHead();
-		Method m = loop.getOwner();
-
-		assert (head.isLoopHeader());
+	/**
+	 *
+	 * @param m Method object that contains the Loop
+	 * @param head Loop header -- has already been visited by {@code sv}, to initialize in-loop variables
+	 * @param sv SATVisitor that is used for analysis of the whole method
+	 * @return {@code LoopBody} object that contains all necessary loop information
+	 */
+	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) {
+		assert(head.isLoopHeader());
+		LoopBody loop = new LoopBody(m, head);
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
+
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
 		List<BBlock> breakSuccessors = new ArrayList<>();
+
+		// no need to visit head again --> add in-loop successor
 		toVisit.add(head.succs().stream().filter(loop.getBlocks()::contains).findFirst().get());
 		visited.add(head.idx());
 
+		// visit all loop blocks -- treat like separate function, where input variables are the variables assigned to the phi-def-values
+		// in the loop header
 		while (!toVisit.isEmpty()) {
 			BBlock b = toVisit.poll();
 			visited.add(b.idx());
@@ -45,9 +55,8 @@ public class LoopHandler {
 			}
 
 			if (b.isLoopHeader() && !b.equals(head)) {
-				LoopBody l = new LoopBody(m, b);
+				LoopBody l = LoopHandler.analyze(m, b, sv);
 				m.addLoop(l);
-				LoopHandler.analyze(l, sv);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
@@ -61,7 +70,8 @@ public class LoopHandler {
 			}
 		}
 
-		// if the loop has a (or more) break statements, we need to visit the basic blocks that connect the jump out of the loop with the after-loop successor-block of the loop header
+		// if the loop has a (or more) break statements,
+		// we visit the basic blocks that connect the jump out of the loop with the after-loop successor-block of the loop header
 		BBlock afterLoop = head.succs().stream().filter(succ -> !loop.hasBlock(succ.idx())).findFirst().get().succs().get(0);
 		List<Integer> visitedBreakBlocks = new ArrayList<>();
 		while (!breakSuccessors.isEmpty()) {
@@ -79,14 +89,15 @@ public class LoopHandler {
 		}
 
 		extractDeps(m, head, loop);
-		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = computeRuns(loop, m);
+		computeRuns(loop, m);
 
+		// combine all possible loop results into a single formula and set the value dependencies in the Vlaue objects accordingly
+		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = loop.getRuns();
 		Pair<Map<Integer, Formula[]>, Formula> last = runs.get(loopUnrollingMax - 1);
 		last.fst.keySet().forEach(i -> m.setDepsForvalue(i, last.fst.get(i)));
 
 		for (int i = loopUnrollingMax - 2; i >= 0; i--) {
 			Pair<Map<Integer, Formula[]>, Formula> run = runs.get(i);
-			// TODO this is where my initial values get replaced
 			loop.getIn().keySet().forEach(
 					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.snd, run.fst.get(j), m.getDepsForValue(j))));
 		}
@@ -94,12 +105,12 @@ public class LoopHandler {
 	}
 
 	/**
-	 * returns a list of pairs, that describes the program's values after a certain number of loop iterations. The i-th list entry corresponds to the value's after the i-th iteration
+	 * returns a Map of pairs, that describes the program's values after a certain number of loop iterations. The Map entry w/ key i corresponds to the values after the i-th iteration
 	 * The 0th entry means, the loop was not executed at all.
 	 * <p>
 	 * The first element of a pair describes the programs values, the snd element describes the condition that must hold for the loop execution to be stopped after this iteration
 	 */
-	private static Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> computeRuns(LoopBody loop, Method m) {
+	private static void computeRuns(LoopBody loop, Method m) {
 		Map<Integer, Formula[]> previousRun = new HashMap<>();
 
 		for (int i : m.getProgramValues().keySet()) {
@@ -117,13 +128,16 @@ public class LoopHandler {
 		for (int i = 1; i < loopUnrollingMax; i++) {
 			runs.put(i, loop.simulateRun(runs.get(i - 1).fst));
 		}
-		return runs;
+		loop.addRuns(runs);
 	}
 
+	/*
+	Method to populate the in-value Map, out-value Map and beforeLoop Map of the LoopBody l
+	 */
 	private static void extractDeps(Method m, BBlock head, LoopBody loop) {
 		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG().getPredNodes(head.getWalaBasicBlock());
 
-		// find position i of the phi-use that we need
+		// find position i of the phi-use value that belongs to the head's in-loop predecessor
 		int argNum = 0;
 		while (orderedPredsIter.hasNext()) {
 			int blockNum = orderedPredsIter.next().getNumber();
@@ -152,7 +166,7 @@ public class LoopHandler {
 	 * @param normalUse  valNum of value that is assigned if the loop is exited "normally" i.e. not through a break
 	 * @param breakUse   valNum of value that is assigned if the loop is exited through a break
 	 * @param breakBlock block 'between' the loop and the block where def is defined
-	 * @return
+	 * @return Formula that describes the value assigned to value number {@code def}, depending on whether the loop was exited 'normally' or through a break
 	 */
 	public static Formula[] computeBreakValues(LoopBody l, int def, int normalUse, int breakUse, BBlock breakBlock) {
 		Pair<Formula, Formula[]> breakRes = multipleBreaksCondition(l, breakUse, breakBlock);
@@ -165,7 +179,7 @@ public class LoopHandler {
 		Formula[] atBreak = breakRes.snd;
 		Formula[] res;
 
-		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = computeRuns(l, l.getOwner());
+		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = l.getRuns();
 
 		// base result when loop is not taken
 		res = LogicUtil.ternaryOp(runs.get(0).snd, beforeLoop, temp);

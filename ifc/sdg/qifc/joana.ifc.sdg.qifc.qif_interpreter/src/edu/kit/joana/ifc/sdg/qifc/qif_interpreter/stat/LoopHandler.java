@@ -103,6 +103,8 @@ public class LoopHandler {
 		Map<Integer, Formula[]> previousRun = new HashMap<>();
 
 		for (int i : m.getProgramValues().keySet()) {
+			if (m.getValue(i).isArrayType())
+				continue;
 			Formula[] before = new Formula[m.getDepsForValue(i).length];
 			IntStream.range(0, before.length).forEach(k -> before[k] = (loop.getIn().containsKey(i)) ?
 					loop.getBeforeLoop(i)[k] :

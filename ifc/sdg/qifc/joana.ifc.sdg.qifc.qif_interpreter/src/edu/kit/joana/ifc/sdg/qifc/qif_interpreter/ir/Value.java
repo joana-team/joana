@@ -166,4 +166,6 @@ public abstract class Value {
 	public Variable[] getVars() {
 		return this.vars;
 	}
+
+	public abstract boolean isArrayType();
 }

@@ -1,10 +1,5 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
-import org.logicng.formulas.Formula;
-
-import java.util.HashMap;
-import java.util.Map;
-
 public class Int extends Value {
 
 	public Int(int valNum) {
@@ -15,6 +10,10 @@ public class Int extends Value {
 
 	@Override public boolean verifyType(Object val) {
 		return val instanceof Integer;
+	}
+
+	@Override public boolean isArrayType() {
+		return false;
 	}
 
 }

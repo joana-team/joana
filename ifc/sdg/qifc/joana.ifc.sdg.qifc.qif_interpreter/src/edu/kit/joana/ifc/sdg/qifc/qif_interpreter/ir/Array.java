@@ -57,9 +57,12 @@ public class Array<T extends Value> extends Value {
 		return Array.newArray(content, (Integer) length.getVal(), instruction.getDef());
 	}
 
-
 	@Override public boolean verifyType(Object val) {
 		return val instanceof Array;
+	}
+
+	@Override public boolean isArrayType() {
+		return true;
 	}
 
 	public int length() {

@@ -109,7 +109,6 @@ public class App {
 			for (Method m: p.getMethods()) {
 				DotGrapher.exportDotGraph(m.getCFG());
 			}
-
 		}
 
 		// execute

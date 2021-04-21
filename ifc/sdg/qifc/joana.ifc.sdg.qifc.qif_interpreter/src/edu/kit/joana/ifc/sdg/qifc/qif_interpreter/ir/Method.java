@@ -7,6 +7,7 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.qifc.nildumu.ui.EntryPoint;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class Method {
 
 	private static final String CONSTRUCTOR = "<init>";
+	private static final String ENTRYPOINT_ANNOTATION_NAME = "Ledu/kit/joana/ifc/sdg/qifc/nildumu/ui/EntryPoint";
 
 	private Program prog;
 	private PDG pdg;
@@ -47,7 +49,31 @@ public class Method {
 		m.cfg = CFG.buildCFG(m);
 		m.createParamValues();
 		m.initConstants();
+		return m;
+	}
 
+	public static Method entrypoint(Program p){
+		PDG entryPDG = null;
+		for (PDG pdg: p.getBuilder().getAllPDGs()) {
+			if (pdg.getMethod().getAnnotations().stream().anyMatch(a -> a.getType().getName().toString().equals(ENTRYPOINT_ANNOTATION_NAME))) {
+				entryPDG = pdg;
+			}
+		}
+		assert (entryPDG != null);
+		SDGMethod entrySDG = p.getAna().getProgram().getMethod(entryPDG.getMethod().getSignature());
+		return createEntryPoint(entrySDG, entryPDG, p);
+	}
+
+	private static Method createEntryPoint(SDGMethod sdgMethod, PDG pdg, Program p) {
+		Method m = new Method();
+		m.prog = p;
+		m.pdg = pdg;
+		m.cg = m.pdg.cgNode;
+		m.ir = m.cg.getIR();
+		m.sdgMethod = sdgMethod;
+		m.cfg = CFG.buildCFG(m);
+		m.createParamValues();
+		m.initConstants();
 		return m;
 	}
 

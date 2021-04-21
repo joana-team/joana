@@ -40,15 +40,14 @@ The supported language includes the following features:
 - function calls
     - direct recursion is allowed, however we restrict functions to include maximally one recursive call
 
-The entry method of the program needs to be annotated with the ``@EntryPoint annotation``.
-
 The parameters of the entry method are per default secret inputs.  
 To mark a parameter as public, add the annotation ``@Source(level = Level.LOW`)``
 
 To leak a value to a public output, use the method ``Out.print()``
 
 Because the interpreter is based on JOANA, all input programs must be valid Java 8 programs.  
-Make sure to wrap the input program in a class and include an empty main function
+Make sure to wrap the input program in a class and include a main function, where a single object is created and the entrypoint method for the analysis is called.  
+(The parameters of this call will have no influence on the execution / analysis of the program).
 
 ````public static void main(String[] args)````
 

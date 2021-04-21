@@ -51,6 +51,7 @@ public class App {
 
 		if (jArgs.help) {
 			jc.usage();
+			System.exit(0);
 		}
 
 		try {

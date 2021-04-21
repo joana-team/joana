@@ -14,4 +14,4 @@ SCRIPT_PATH="`pwd`";
 
 popd  > /dev/null
 
-java -jar ${SCRIPT_PATH}/../../../../dist/joana.ifc.sdg.qifc.qif_interpreter.jar "$@" -workingDir `pwd`
+java -jar ${SCRIPT_PATH}/../../../../dist/joana.ifc.sdg.qifc.qif_interpreter.jar "$@" --workingDir `pwd`

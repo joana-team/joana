@@ -10,7 +10,7 @@ def run_test(args, path):
     cwd = os.getcwd()
     script_path = cwd + "/run.sh"
 
-    cmd = [script_path, path, "-args"] + [str(i) for i in args]
+    cmd = [script_path, path, "--args"] + [str(i) for i in args]
     result = subprocess.run(cmd, stdout=subprocess.PIPE)
     return result.stdout.decode("utf-8").strip()
 

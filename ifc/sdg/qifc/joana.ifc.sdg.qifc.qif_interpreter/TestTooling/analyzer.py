@@ -1,7 +1,8 @@
-import sys
-import subprocess
-import os
 import json
+import os
+import subprocess
+import sys
+
 import util
 
 
@@ -9,7 +10,7 @@ def execute(args, path):
     cwd = os.getcwd()
     script_path = cwd + "/run.sh"
 
-    cmd = [script_path, path, "--run", "-args"] + [str(i) for i in args]
+    cmd = [script_path, path, "--run", "--args"] + [str(i) for i in args]
     result = subprocess.run(cmd, stdout=subprocess.PIPE)
     return result.stdout.decode("utf-8").strip()
 

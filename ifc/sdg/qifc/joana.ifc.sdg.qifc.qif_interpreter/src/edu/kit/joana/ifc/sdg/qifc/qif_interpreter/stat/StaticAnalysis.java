@@ -72,12 +72,12 @@ public class StaticAnalysis {
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
 				}
-				LoopBody l = new LoopBody(m, b);
-				LoopHandler.analyze(l, sv);
+				LoopBody l = LoopHandler.analyze(m, b, sv);
 				m.addLoop(l);
 
 				// add all after-loop successors, but skip the dummy blocks
-				for (BBlock succ: b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList())) {
+				for (BBlock succ : b.succs().stream().filter(succ -> !l.getBlocks().contains(succ))
+						.collect(Collectors.toList())) {
 					if (succ.isDummy()) {
 						succ = succ.succs().get(0);
 					}

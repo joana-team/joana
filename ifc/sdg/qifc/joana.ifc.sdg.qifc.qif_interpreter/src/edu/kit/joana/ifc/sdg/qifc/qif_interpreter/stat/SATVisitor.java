@@ -285,6 +285,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		m.setDepsForvalue(instruction.getDef(), breakDeps);
 	}
 
+	/*
+	assign fresh variables to the def value
+	These are used as "input variables" for the in-loop computations and later substituted by the actual value formulas depending on the current iteration
+	 */
 	private void handleLoopPhi(SSAPhiInstruction instruction) {
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 
@@ -302,7 +306,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		Variable[] vars = LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth());
 		m.setDepsForvalue(instruction.getDef(), vars);
 		m.addVarsToValue(instruction.getDef(), vars);
-
 	}
 
 	private void handleCondPhi(SSAPhiInstruction instruction) {

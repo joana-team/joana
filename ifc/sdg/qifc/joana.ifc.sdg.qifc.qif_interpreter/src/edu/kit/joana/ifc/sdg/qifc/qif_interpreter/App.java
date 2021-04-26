@@ -51,6 +51,7 @@ public class App {
 
 		if (jArgs.help) {
 			jc.usage();
+			System.exit(0);
 		}
 
 		try {
@@ -101,12 +102,14 @@ public class App {
 			e.printStackTrace();
 		}
 
+		Program p = builder.getProgram();
+
 		if (jArgs.dumpGraphs) {
 			builder.dumpGraph(jArgs.outputDirectory);
+			for (Method m : p.getMethods()) {
+				DotGrapher.exportDotGraph(m.getCFG());
+			}
 		}
-
-		Program p = builder.getProgram();
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
 
 		// execute
 		Interpreter i = new Interpreter(p);
@@ -159,16 +162,16 @@ public class App {
 	public static class Args implements IParameterValidator, IStringConverter<String> {
 
 		private static final String OUTPUT_DIR_NAME = "out_";
-		@Parameter(names = "-o", description = "Specify a path where the output directory should be created (Default is the current working directory)") String outputDirectory = ".";
+		@Parameter(names = "--o", description = "Specify a path where the output directory should be created (Default is the current working directory)") String outputDirectory = ".";
 		@Parameter(names = "--usage", description = "Print help") private boolean help = false;
 		@Parameter(names = "--static", description = "Perform only static analysis on the input program") private boolean onlyStatic = false;
 		@Parameter(names = "--run", description = "Run the program without performing any analysis") private boolean onlyRun = false;
 		@Parameter(names = "--dump-graphs", description = "Dump graphs created by JOANA") private boolean dumpGraphs = false;
 		@Parameter(description = "A program for the interpreter to execute, plus optionally the result of a previous static analysis", validateWith = Args.class, converter = Args.class) private List<String> inputFiles = new ArrayList<>();
 
-		@Parameter(names = "-args", description = "Arguments for running the input program", variableArity = true) private List<String> args = new ArrayList<>();
+		@Parameter(names = "--args", description = "Arguments for running the input program", variableArity = true) private List<String> args = new ArrayList<>();
 
-		@Parameter(names = "-workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = System
+		@Parameter(names = "--workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = System
 				.getProperty("user.dir");
 
 		/**
@@ -183,7 +186,7 @@ public class App {
 		 * optionally a .dnnf file (if this is provided the static analysis will be skipped)
 		 * and the input parameters for the program execution
 		 *
-		 * @throws ParameterException if some paramter contraint is violated
+		 * @throws ParameterException if some parameter constraint is violated
 		 */
 		public void validate() throws ParameterException {
 

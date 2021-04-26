@@ -17,11 +17,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- *  data class to cluster together some objects pertaining to a method
+ * data class to cluster together some objects pertaining to a method
  */
 public class Method {
 
 	private static final String CONSTRUCTOR = "<init>";
+	private static final String ENTRYPOINT_ANNOTATION_NAME = "Ledu/kit/joana/ifc/sdg/qifc/nildumu/ui/EntryPoint";
 
 	private Program prog;
 	private PDG pdg;
@@ -47,7 +48,32 @@ public class Method {
 		m.cfg = CFG.buildCFG(m);
 		m.createParamValues();
 		m.initConstants();
+		return m;
+	}
 
+	public static Method entrypoint(Program p) {
+		PDG entryPDG = null;
+		for (PDG pdg : p.getBuilder().getAllPDGs()) {
+			if (pdg.getMethod().getAnnotations().stream()
+					.anyMatch(a -> a.getType().getName().toString().equals(ENTRYPOINT_ANNOTATION_NAME))) {
+				entryPDG = pdg;
+			}
+		}
+		assert (entryPDG != null);
+		SDGMethod entrySDG = p.getAna().getProgram().getMethod(entryPDG.getMethod().getSignature());
+		return createEntryPoint(entrySDG, entryPDG, p);
+	}
+
+	private static Method createEntryPoint(SDGMethod sdgMethod, PDG pdg, Program p) {
+		Method m = new Method();
+		m.prog = p;
+		m.pdg = pdg;
+		m.cg = m.pdg.cgNode;
+		m.ir = m.cg.getIR();
+		m.sdgMethod = sdgMethod;
+		m.cfg = CFG.buildCFG(m);
+		m.createParamValues();
+		m.initConstants();
 		return m;
 	}
 

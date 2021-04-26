@@ -8,7 +8,6 @@ import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LoopBody {
@@ -18,7 +17,7 @@ public class LoopBody {
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
 	private final Map<Integer, Integer> mapping;
-	private final Map<Integer, Map<Integer, Formula[]>> runs;
+	private Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs;
 	private final Method owner;
 	private final BBlock head;
 	private final Set<BBlock> blocks;
@@ -80,13 +79,13 @@ public class LoopBody {
 	 */
 	public Formula[] extractInLoopValue(int valNum) {
 		Formula[] base = this.owner.getDepsForValue(valNum);
-		assert(this.runs.size() > 0);
+		assert (this.runs.size() > 0);
 
-		Formula[] res = LoopHandler.substituteAll(this, base, runs.get(runs.size() - 1));
+		Formula[] res = LoopHandler.substituteAll(this, base, runs.get(runs.size() - 1).fst);
 
 		for (int i = runs.size() - 2; i > 0; i--) {
-			Formula jmpOut = LoopHandler.substituteAll(this, jumpOut, runs.get(i));
-			Formula[] iterationVal = LoopHandler.substituteAll(this, base, runs.get(i));
+			Formula jmpOut = runs.get(i).snd;
+			Formula[] iterationVal = LoopHandler.substituteAll(this, base, runs.get(i).fst);
 			res = LogicUtil.ternaryOp(jmpOut, iterationVal, res);
 		}
 
@@ -118,52 +117,6 @@ public class LoopBody {
 		this.beforeLoop.put(in, deps);
 	}
 
-	public void print() {
-		StringBuilder sb = new StringBuilder("in:").append(System.lineSeparator());
-		for (int i : in.keySet()) {
-			sb = sb.append(i).append(" ").append(Arrays.toString(in.get(i))).append(System.lineSeparator());
-		}
-		sb = sb.append("out:").append(System.lineSeparator());
-		for (int i : out.keySet()) {
-			sb = sb.append(i).append(" ").append(Arrays.toString(out.get(i))).append(System.lineSeparator());
-		}
-		System.out.println(sb);
-	}
-
-	public Map<Integer, Formula[]> getRun(int n) {
-		if (!runs.containsKey(n)) {
-			computeRunsUpTo(n);
-		}
-		return runs.get(n);
-	}
-
-	private void computeRunsUpTo(int n) {
-		int currMax = (runs.keySet().isEmpty()) ? 0 : Collections.max(runs.keySet());
-		while (currMax <= n) {
-			if (currMax == 0) {
-				runs.put(0, this.beforeLoop);
-			} else {
-				Map<Integer, Formula[]> runBefore = this.runs.get(currMax - 1);
-				Substitution sub = new Substitution();
-				for (Integer i : this.in.keySet()) {
-					for (int j = 0; j < this.in.get(i).length; j++) {
-						sub.addMapping((Variable) this.in.get(i)[j], runBefore.get(i)[j]);
-					}
-				}
-				Map<Integer, Formula[]> run = new HashMap<>();
-				for (Integer i : this.in.keySet()) {
-					Formula[] res = new Formula[this.in.get(i).length];
-					for (int j = 0; j < this.in.get(i).length; j++) {
-						res[j] = this.out.get(i)[j].substitute(sub.toLogicNGSubstitution());
-					}
-					run.put(i, res);
-				}
-				runs.put(currMax, run);
-			}
-			currMax++;
-		}
-	}
-
 	public boolean producesValNum(int valNum) {
 		return this.in.containsKey(valNum);
 	}
@@ -179,35 +132,13 @@ public class LoopBody {
 		return s;
 	}
 
-	public Map<Integer, Formula[]> getIn() {
-		return in;
-	}
-
-	public Formula substituteWithIterationOutputs(int run, Formula f) {
-		Substitution s = new Substitution();
-		for (int i : this.in.keySet()) {
-			for (int j = 0; j < this.in.get(i).length; j++) {
-				s.addMapping((Variable) this.in.get(i)[j], this.runs.get(run).get(i)[j]);
-			}
-		}
-		return f.substitute(s.toLogicNGSubstitution());
-	}
-
-	public Formula getJumpOut() {
-		return this.jumpOut;
-	}
-
-	public Method getOwner() {
-		return this.owner;
-	}
-
-	public Set<LoopBody> containedLoops() {
-		Set<BBlock> headers = this.blocks.stream()
-				.filter(b -> b.isLoopHeader() && owner.getCFG().getLevel(b) == this.level + 1)
-				.collect(Collectors.toSet());
-		return owner.getLoops().stream().filter(l -> headers.contains(l.head)).collect(Collectors.toSet());
-	}
-
+	/**
+	 * Simulates the execution of the loop
+	 *
+	 * @param inputs Map that contains all method values (not only those defined in the loop) at the start of the iteration
+	 * @return Pair, whith its first component being a map containg the method's values after the loop execution
+	 * and the second component being the condition that must be fulfilled, to exit the loop after the simulated iteration
+	 */
 	public Pair<Map<Integer, Formula[]>, Formula> simulateRun(Map<Integer, Formula[]> inputs) {
 		assert (inputs.keySet().containsAll(this.in.keySet()));
 		Map<Integer, Formula[]> result = new HashMap<>();
@@ -239,10 +170,23 @@ public class LoopBody {
 		return this.breaks;
 	}
 
-	/**
-	 * returns true if the value with the provided value number is defined inside this loop, false otherwise
-	 */
-	public boolean ownsValue(int valNum) {
-		return blocks.stream().anyMatch(b -> b.ownsValue(valNum));
+	public Map<Integer, Formula[]> getIn() {
+		return in;
+	}
+
+	public Formula getJumpOut() {
+		return this.jumpOut;
+	}
+
+	public Method getOwner() {
+		return this.owner;
+	}
+
+	public void addRuns(Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs) {
+		this.runs = runs;
+	}
+
+	public Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> getRuns() {
+		return this.runs;
 	}
 }

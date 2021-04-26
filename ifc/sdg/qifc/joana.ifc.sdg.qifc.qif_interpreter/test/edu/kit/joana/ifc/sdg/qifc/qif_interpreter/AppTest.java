@@ -88,7 +88,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("SimpleArray");
+		Program p = TestUtils.build("Loop");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);

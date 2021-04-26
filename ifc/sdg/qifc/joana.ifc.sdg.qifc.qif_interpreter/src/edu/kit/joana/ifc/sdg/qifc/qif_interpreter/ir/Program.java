@@ -116,4 +116,9 @@ public class Program {
 	public Collection<Method> getMethods() {
 		return this.methods.values();
 	}
+
+	public IFCAnalysis getAna() {
+		return ana;
+	}
+
 }

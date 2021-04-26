@@ -28,3 +28,13 @@ testResources/Array.java
 testResources/Array2.java
 testResources/ArrayLength.java
 testResources/ArrayInIf.java
+testResources/Break2.java
+MultipleBreaks.java
+Recursion.java
+Loop.java
+CallTwice.java
+Loop2.java
+LoopInIf.java
+IfinLoop.java
+WhileAfterIf.java
+SimpleArray.java

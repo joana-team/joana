@@ -5,6 +5,7 @@ import sys
 
 import util
 
+ignored = ["testResources/PrintInCall.java", "testResources/ArrayLoop.java"]
 
 def run_test(args, path):
     cwd = os.getcwd()
@@ -104,7 +105,7 @@ if __name__ == "__main__":
             if os.path.isdir(test_case):
                 continue
 
-            if test_case in unnecessary:
+            if test_case in unnecessary or test_case in ignored:
                 continue
 
             res = test(test_case)

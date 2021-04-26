@@ -15,6 +15,14 @@ public class Array<T extends Value> extends Value {
 	private Type elementType;
 	private int length;
 	private T[] arr;
+	/*
+	collects all possible assignments to the array
+
+	For each element we save a triple, that contains the following information:
+		- Left: controlFlow information --> must be true for the execution to reach the site of this assignment
+		- Middle: assignment Idx --> index to which the value was assigned
+		- Right: assigned value
+	 */
 	private Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments;
 
 	public Array(int valNum) {
@@ -36,25 +44,36 @@ public class Array<T extends Value> extends Value {
 		return possibleAssignments;
 	}
 
-	public static Array<? extends Value> newArray(Type t, int length, int valNum) throws UnexpectedTypeException {
+	public static Array<? extends Value> newArray(Type t, int length, int valNum, boolean initWithVars) throws UnexpectedTypeException {
 		if (t == Type.INTEGER) {
 			Array<Int> array = new Array<>(valNum);
 			array.length = length;
 			array.arr = new Int[length];
 			array.elementType = t;
 			IntStream.range(0, length).forEach(i -> array.arr[i] = new Int(i));
-			array.possibleAssignments = array.initAssignments(length);
+			array.possibleAssignments = (initWithVars) ? array.initVars(length) : array.initAssignments(length);
 			return array;
 		}
 		throw new UnexpectedTypeException(t);
 	}
 
-	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m) throws UnexpectedTypeException {
+	private Stack<Triple<Formula, Formula, Formula[]>>[] initVars(int length) {
+		Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments = new Stack[length];
+		for (int i = 0; i < length; i++) {
+			possibleAssignments[i] = new Stack<>();
+			Formula[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a"+ i + "_");
+			possibleAssignments[i]
+					.push(Triple.triple(LogicUtil.ff.constant(true), LogicUtil.ff.constant(true), initValue));
+		}
+		return possibleAssignments;
+	}
+
+	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m, boolean initWithVars) throws UnexpectedTypeException {
 		Value length = m.getValue(instruction.getUse(0));
 		Type content = Type.from(instruction.getConcreteType().getArrayElementType());
 		assert (length.isConstant() & length instanceof Int);
 		assert (content.isPrimitive());
-		return Array.newArray(content, (Integer) length.getVal(), instruction.getDef());
+		return Array.newArray(content, (Integer) length.getVal(), instruction.getDef(), initWithVars);
 	}
 
 	@Override public boolean verifyType(Object val) {
@@ -99,7 +118,6 @@ public class Array<T extends Value> extends Value {
 			res = LogicUtil.ternaryOp(LogicUtil.ff.and(element.get(i).getLeft(), element.get(i).getMiddle()),
 					element.get(i).getRight(), res);
 		}
-
 		return res;
 	}
 }

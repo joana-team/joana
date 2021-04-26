@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
@@ -16,6 +17,7 @@ public class LoopBody {
 	private final Map<Integer, Formula[]> in;
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
+	private final Map<Integer, Array<? extends Value>> placeholderArrays;
 	private final Map<Integer, Integer> mapping;
 	private Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs;
 	private final Method owner;
@@ -35,6 +37,7 @@ public class LoopBody {
 		this.head = head;
 		this.blocks = this.owner.getCFG().getBasicBlocksInLoop(head);
 		this.breaks = findBreaks();
+		this.placeholderArrays = new HashMap<>();
 
 		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
 		Boolean evalTo = insideLoopSuccessor.getImplicitFlows().stream().filter(p -> p.fst == head.idx()).findFirst()
@@ -92,35 +95,6 @@ public class LoopBody {
 		return base;
 	}
 
-	public Set<BBlock> getBlocks() {
-		return blocks;
-	}
-
-	public boolean hasBlock(int idx) {
-		return this.blocks.stream().anyMatch(b -> b.idx() == idx);
-	}
-
-	public BBlock getHead() {
-		return head;
-	}
-
-	public void addInDeps(int i, Formula[] deps) {
-		this.in.put(i, deps);
-	}
-
-	public void addOutDeps(int in, int out) {
-		this.mapping.put(in, out);
-		this.out.put(in, owner.getDepsForValue(out));
-	}
-
-	public void addBeforeLoopDeps(int in, Formula[] deps) {
-		this.beforeLoop.put(in, deps);
-	}
-
-	public boolean producesValNum(int valNum) {
-		return this.in.containsKey(valNum);
-	}
-
 	public Substitution generateInitialValueSubstitution() {
 		Substitution s = new Substitution();
 
@@ -160,6 +134,54 @@ public class LoopBody {
 		this.in.keySet().forEach(i -> afterSub.addMapping(this.in.get(i), result.get(i)));
 		Formula exitLoop = this.jumpOut.substitute(afterSub.toLogicNGSubstitution());
 		return Pair.make(result, exitLoop);
+	}
+
+	public void createPlaceholderArray(int valNum) {
+		assert(owner.hasValue(valNum));
+
+		Array<? extends Value> original = (Array<? extends Value>) owner.getValue(valNum);
+		try {
+			Array<? extends Value> placeHolder = Array.newArray(original.elementType(), original.length(), valNum, true);
+			this.placeholderArrays.put(valNum, placeHolder);
+		} catch (UnexpectedTypeException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Array<? extends Value> getPlaceholderArray(int valNum) {
+		if (!this.placeholderArrays.containsKey(valNum)) {
+			createPlaceholderArray(valNum);
+		}
+		return this.placeholderArrays.get(valNum);
+	}
+
+	public Set<BBlock> getBlocks() {
+		return blocks;
+	}
+
+	public boolean hasBlock(int idx) {
+		return this.blocks.stream().anyMatch(b -> b.idx() == idx);
+	}
+
+	public BBlock getHead() {
+		return head;
+	}
+
+	public void addInDeps(int i, Formula[] deps) {
+		this.in.put(i, deps);
+	}
+
+	public void addOutDeps(int in, int out) {
+		this.mapping.put(in, out);
+		this.out.put(in, owner.getDepsForValue(out));
+	}
+
+	public void addBeforeLoopDeps(int in, Formula[] deps) {
+		this.beforeLoop.put(in, deps);
+	}
+
+	public boolean producesValNum(int valNum) {
+		return this.in.containsKey(valNum);
 	}
 
 	public Formula[] getBeforeLoop(int i) {

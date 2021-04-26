@@ -72,7 +72,7 @@ public class StaticAnalysis {
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
 				}
-				LoopBody l = LoopHandler.analyze(m, b, sv);
+				LoopBody l = LoopHandler.analyze(m, b, this);
 				m.addLoop(l);
 
 				// add all after-loop successors, but skip the dummy blocks

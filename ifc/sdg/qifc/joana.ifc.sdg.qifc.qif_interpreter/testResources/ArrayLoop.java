@@ -11,9 +11,10 @@ public class ArrayLoop {
 
 	public int f(int h) {
 		int[] a = new int[1];
+		a[0] = 0;
 		int i = 0;
 		while (i <= 3) {
-			a[0] = i;
+			a[0] = 1 + a[0];
 			i++;
 		}
 		Out.print(a[0]);

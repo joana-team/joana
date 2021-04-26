@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.util.Triple;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 

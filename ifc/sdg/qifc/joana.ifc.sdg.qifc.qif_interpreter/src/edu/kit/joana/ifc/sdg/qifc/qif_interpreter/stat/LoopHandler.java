@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
@@ -19,12 +20,15 @@ import java.util.stream.IntStream;
 public class LoopHandler {
 
 	/**
+	 * analyzes loopbody and computes data and cf dependencies
+	 * sets dependency fields for computed values accordingly
+	 *
 	 * @param m    Method object that contains the Loop
 	 * @param head Loop header -- has already been visited by {@code sv}, to initialize in-loop variables
-	 * @param sv   SATVisitor that is used for analysis of the whole method
+	 * @param sa   StaticAnalysis object that is responsible for analysing the whole program
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
-	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) {
+	public static LoopBody analyze(Method m, BBlock head, StaticAnalysis sa) {
 		int loopUnrollingMax = m.getProg().getConfig().loopUnrollingMax();
 
 		assert (head.isLoopHeader());
@@ -32,6 +36,8 @@ public class LoopHandler {
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
+
+		SATVisitor sv = new LoopSATVisitor(sa, loop);
 
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
 		List<BBlock> breakSuccessors = new ArrayList<>();
@@ -53,7 +59,7 @@ public class LoopHandler {
 			}
 
 			if (b.isLoopHeader() && !b.equals(head)) {
-				LoopBody l = LoopHandler.analyze(m, b, sv);
+				LoopBody l = LoopHandler.analyze(m, b, sa);
 				m.addLoop(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
@@ -89,8 +95,9 @@ public class LoopHandler {
 
 		extractDeps(m, head, loop);
 		computeRuns(loop, m, loopUnrollingMax);
+		setModifiedArrayDependencies(m, loop);
 
-		// combine all possible loop results into a single formula and set the value dependencies in the Vlaue objects accordingly
+		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
 		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = loop.getRuns();
 		Pair<Map<Integer, Formula[]>, Formula> last = runs.get(loopUnrollingMax - 1);
 		last.fst.keySet().forEach(i -> m.setDepsForvalue(i, last.fst.get(i)));
@@ -101,6 +108,18 @@ public class LoopHandler {
 					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.snd, run.fst.get(j), m.getDepsForValue(j))));
 		}
 		return loop;
+	}
+
+	private static void setModifiedArrayDependencies(Method m, LoopBody loop) {
+		Set<Integer> modifiedArrays = new HashSet<>();
+		loop.getBlocks().forEach(b -> {
+			b.instructions().stream().filter(i -> i instanceof SSAArrayStoreInstruction)
+					.forEach(i -> modifiedArrays.add(i.getDef()));
+		});
+
+		for (int valNum: modifiedArrays) {
+
+		}
 	}
 
 	/**

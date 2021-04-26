@@ -302,7 +302,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		if (!m.hasValue(instruction.getDef())) {
 			if (instruction.getConcreteType().isArrayType()) {
 				try {
-					Value res = Array.newArray(instruction, m);
+					Value res = Array.newArray(instruction, m, false);
 					m.addValue(instruction.getDef(), res);
 				} catch (UnexpectedTypeException e) {
 					e.printStackTrace();

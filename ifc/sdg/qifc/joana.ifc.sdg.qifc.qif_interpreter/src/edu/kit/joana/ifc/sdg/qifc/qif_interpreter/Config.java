@@ -41,5 +41,4 @@ public class Config {
 	public int recDepthMax() {
 		return this.recDepthMax;
 	}
-
 }

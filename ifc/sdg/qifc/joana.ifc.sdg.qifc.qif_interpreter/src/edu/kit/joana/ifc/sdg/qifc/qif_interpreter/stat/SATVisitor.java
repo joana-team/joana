@@ -23,6 +23,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	private BBlock block;
 	private Method m;
 
+	public BBlock getCurrentBlock() {
+		return this.block;
+	}
+
 	public void visitBlock(Method m, BBlock b, int prevBlock) throws OutOfScopeException {
 		this.block = b;
 		this.m = m;
@@ -47,6 +51,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 	@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
 		Array<? extends Value> array = (Array<? extends Value>) m.getValue(instruction.getArrayRef());
+		visitArrayLoad(instruction, array);
+	}
+
+	public void visitArrayLoad(SSAArrayLoadInstruction instruction, Array<? extends Value> array) {
 		Formula[] idx = m.getDepsForValue(instruction.getIndex());
 		Formula[] res = array.currentlyAssigned(array.length() - 1);
 
@@ -72,6 +80,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	 */
 	@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
 		Array<? extends Value> array = (Array<? extends Value>) m.getValue(instruction.getArrayRef());
+		visitArrayStore(instruction, array, block.generateImplicitFlowFormula());
+	}
+
+	public void visitArrayStore(SSAArrayStoreInstruction instruction, Array<? extends Value> array, Formula implicitInfo) {
 		Formula[] idx = m.getDepsForValue(instruction.getIndex());
 		Formula[] assignedValue = m.getDepsForValue(instruction.getValue());
 
@@ -80,7 +92,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			Formula assignmentCond = IntStream.range(0, Type.INTEGER.bitwidth())
 					.mapToObj(j -> LogicUtil.ff.equivalence(idx[j], idxSatArray[j]))
 					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
-			array.addAssignment(block.generateImplicitFlowFormula(), i, assignmentCond, assignedValue);
+			array.addAssignment(implicitInfo, i, assignmentCond, assignedValue);
 		}
 	}
 
@@ -195,7 +207,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		if (!m.hasValue(instruction.getDef())) {
 			if (instruction.getConcreteType().isArrayType()) {
 				try {
-					Value res = Array.newArray(instruction, m);
+					Value res = Array.newArray(instruction, m, false);
 					m.addValue(instruction.getDef(), res);
 				} catch (UnexpectedTypeException e) {
 					e.printStackTrace();

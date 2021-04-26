@@ -38,3 +38,4 @@ LoopInIf.java
 IfinLoop.java
 WhileAfterIf.java
 SimpleArray.java
+testResources/Loop.java

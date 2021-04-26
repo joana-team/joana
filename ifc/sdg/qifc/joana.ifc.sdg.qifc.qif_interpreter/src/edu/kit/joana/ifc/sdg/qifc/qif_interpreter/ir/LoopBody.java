@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
@@ -66,6 +67,30 @@ public class LoopBody {
 		breaks.sort(comp);
 
 		return breaks;
+	}
+
+	/**
+	 * Compute dependencies of a value that is defined inside the loop
+	 * Make sure to simulate the loop before calling this method!
+	 *
+	 * Implicitly assumes that the loop body is executed at least once (otherwise this value wouldn't exist)
+	 *
+	 * @param valNum number of a value that is defined inside the loop
+	 * @return Formula, that describes the computed value depending on the # of loop iterations
+	 */
+	public Formula[] extractInLoopValue(int valNum) {
+		Formula[] base = this.owner.getDepsForValue(valNum);
+		assert(this.runs.size() > 0);
+
+		Formula[] res = LoopHandler.substituteAll(this, base, runs.get(runs.size() - 1));
+
+		for (int i = runs.size() - 2; i > 0; i--) {
+			Formula jmpOut = LoopHandler.substituteAll(this, jumpOut, runs.get(i));
+			Formula[] iterationVal = LoopHandler.substituteAll(this, base, runs.get(i));
+			res = LogicUtil.ternaryOp(jmpOut, iterationVal, res);
+		}
+
+		return base;
 	}
 
 	public Set<BBlock> getBlocks() {

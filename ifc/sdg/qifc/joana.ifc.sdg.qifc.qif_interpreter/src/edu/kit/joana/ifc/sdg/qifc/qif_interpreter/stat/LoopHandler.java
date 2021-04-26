@@ -249,7 +249,7 @@ public class LoopHandler {
 		}
 	}
 
-	private static Formula substituteAll(LoopBody l, Formula f, Map<Integer, Formula[]> args) {
+	public static Formula substituteAll(LoopBody l, Formula f, Map<Integer, Formula[]> args) {
 		Substitution s = new Substitution();
 		for (int i : l.getIn().keySet()) {
 			s.addMapping(l.getOwner().getVarsForValue(i), args.get(i));
@@ -257,7 +257,7 @@ public class LoopHandler {
 		return f.substitute(s.toLogicNGSubstitution());
 	}
 
-	private static Formula[] substituteAll(LoopBody l, Formula[] f, Map<Integer, Formula[]> args) {
+	public static Formula[] substituteAll(LoopBody l, Formula[] f, Map<Integer, Formula[]> args) {
 		Substitution s = new Substitution();
 		for (int i : l.getIn().keySet()) {
 			s.addMapping(l.getOwner().getVarsForValue(i), args.get(i));

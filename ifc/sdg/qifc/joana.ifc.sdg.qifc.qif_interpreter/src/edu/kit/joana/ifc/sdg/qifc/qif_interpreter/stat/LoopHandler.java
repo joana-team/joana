@@ -18,9 +18,6 @@ import java.util.stream.IntStream;
 
 public class LoopHandler {
 
-	// temporary
-	private static final int loopUnrollingMax = 4;
-
 	/**
 	 * @param m    Method object that contains the Loop
 	 * @param head Loop header -- has already been visited by {@code sv}, to initialize in-loop variables
@@ -28,6 +25,8 @@ public class LoopHandler {
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
 	public static LoopBody analyze(Method m, BBlock head, SATVisitor sv) {
+		int loopUnrollingMax = m.getProg().getConfig().loopUnrollingMax();
+
 		assert (head.isLoopHeader());
 		LoopBody loop = new LoopBody(m, head);
 
@@ -89,7 +88,7 @@ public class LoopHandler {
 		}
 
 		extractDeps(m, head, loop);
-		computeRuns(loop, m);
+		computeRuns(loop, m, loopUnrollingMax);
 
 		// combine all possible loop results into a single formula and set the value dependencies in the Vlaue objects accordingly
 		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = loop.getRuns();
@@ -110,7 +109,7 @@ public class LoopHandler {
 	 * <p>
 	 * The first element of a pair describes the programs values, the snd element describes the condition that must hold for the loop execution to be stopped after this iteration
 	 */
-	private static void computeRuns(LoopBody loop, Method m) {
+	private static void computeRuns(LoopBody loop, Method m, int loopUnrollingMax) {
 		Map<Integer, Formula[]> previousRun = new HashMap<>();
 
 		for (int i : m.getProgramValues().keySet()) {
@@ -186,7 +185,7 @@ public class LoopHandler {
 		// base result when loop is not taken
 		res = LogicUtil.ternaryOp(runs.get(0).snd, beforeLoop, temp);
 
-		for (int i = 1; i < loopUnrollingMax; i++) {
+		for (int i = 1; i < runs.size(); i++) {
 			Formula breakThisIteration = substituteAll(l, breakCondition, runs.get(i - 1).fst);
 			Formula[] breakResult = substituteAll(l, atBreak, runs.get(i - 1).fst);
 			exitLoopCondition = runs.get(i).snd;
@@ -194,10 +193,11 @@ public class LoopHandler {
 
 			Formula[] iterationResult;
 
-			if (i == loopUnrollingMax - 1) {
+			if (i == runs.size() - 1) {
 				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult, afterLoop);
 			} else {
-				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult, LogicUtil.ternaryOp(exitLoopCondition, afterLoop, temp));
+				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult,
+						LogicUtil.ternaryOp(exitLoopCondition, afterLoop, temp));
 			}
 			Substitution s = new Substitution();
 			s.addMapping(temp, iterationResult);

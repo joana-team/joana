@@ -11,6 +11,7 @@ import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
@@ -28,6 +29,7 @@ public class Program {
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
 	private final Map<String, Method> methods;
+	private Config config;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana) {
 		this.sdgProg = sdgProg;
@@ -39,6 +41,7 @@ public class Program {
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
 		this.methods = new HashMap<>();
 		this.methods.put(entryMethod.identifier(), entryMethod);
+		this.config = Config.defaultConfig();
 	}
 
 	/**
@@ -121,4 +124,7 @@ public class Program {
 		return ana;
 	}
 
+	public Config getConfig() {
+		return config;
+	}
 }

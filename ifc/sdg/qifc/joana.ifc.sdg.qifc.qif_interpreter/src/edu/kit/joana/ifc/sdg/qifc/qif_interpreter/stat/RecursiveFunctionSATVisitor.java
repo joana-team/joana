@@ -15,7 +15,6 @@ public class RecursiveFunctionSATVisitor extends SATVisitor {
 
 	private final Method m;
 	private final List<SSAInvokeInstruction> recCalls;
-	// private final RecursiveFuncReturnValue returnVal;
 
 	public RecursiveFunctionSATVisitor(StaticAnalysis staticAnalysis, Method m) {
 		super(staticAnalysis);

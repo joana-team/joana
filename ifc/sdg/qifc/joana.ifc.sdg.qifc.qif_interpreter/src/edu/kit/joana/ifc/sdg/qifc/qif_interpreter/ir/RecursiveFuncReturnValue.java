@@ -15,8 +15,6 @@ import java.util.Map;
 
 public class RecursiveFuncReturnValue implements IReturnValue {
 
-	private static final int MAX_RECURSION_DEPTH = 3;
-
 	private final Method m;
 	private final SSAInvokeInstruction recCall;
 	private final Pair<Integer, Variable[]> recCallDef;
@@ -55,9 +53,9 @@ public class RecursiveFuncReturnValue implements IReturnValue {
 
 		Formula[] singleCall = substituteAll(returnDeps, argsForNextCall);
 
-		for (int j = 0; j < MAX_RECURSION_DEPTH; j++) {
+		for (int j = 0; j < m.getProg().getConfig().recDepthMax(); j++) {
 			computeNextArgs();
-			Formula[] nextCall =substituteAll(returnDeps, argsForNextCall);
+			Formula[] nextCall = substituteAll(returnDeps, argsForNextCall);
 
 			Substitution s = new Substitution();
 			s.addMapping(m.getVarsForValue(recCall.getDef()), nextCall);

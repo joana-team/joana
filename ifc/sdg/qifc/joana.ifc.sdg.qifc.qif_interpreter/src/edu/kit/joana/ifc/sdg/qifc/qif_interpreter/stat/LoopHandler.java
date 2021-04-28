@@ -1,7 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
-import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
@@ -102,6 +101,19 @@ public class LoopHandler {
 					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), m.getDepsForValue(j))));
 		}
 
+		// same thing, but for arrays
+		for(int i: loop.getPlaceholderArrays().keySet()) {
+			Formula[][] res = loop.lastRun().getArray(i).clone();
+			for (int j = loop.getSimulatedIterationNum() - 1; j >= 0; j--) {
+				int finalJ = j;
+				IntStream.range(0, res.length).forEach(k ->
+						res[k] = LogicUtil.ternaryOp(loop.getRun(finalJ).getJumpOutAfterThisIteration(), loop.getRun(
+								finalJ).getArray(i)[k], res[k])
+						);
+			}
+			m.getArray(i).setValueDependencies(res);
+		}
+
 		// TODO do the same for arrays
 
 		return loop;
@@ -127,7 +139,7 @@ public class LoopHandler {
 				beforeLoop.addPrimitiveVal(i, before);
 			}
 		}
-
+		beforeLoop.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(loop.getJumpOut(), beforeLoop.makeSubstitution(loop.getIn(), loop.getPlaceholderArrayVars())));
 		loop.addIteration(beforeLoop);
 
 		for (int i = 1; i < loopUnrollingMax; i++) {

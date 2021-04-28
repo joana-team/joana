@@ -99,13 +99,13 @@ class AppTest {
 
 		sa.computeSATDeps();
 
-		i.execute(Arrays.asList("3"));
+		i.execute(Arrays.asList("0"));
 
 		Value leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst().get();
 		int[] params = entry.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		// System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
+		System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
 		lc.compute(null);
 	}

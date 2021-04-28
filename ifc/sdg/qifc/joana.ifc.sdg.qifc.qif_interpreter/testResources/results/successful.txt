@@ -39,3 +39,10 @@ IfinLoop.java
 WhileAfterIf.java
 SimpleArray.java
 testResources/Loop.java
+testResources/Array3.java
+testResources/Array.java
+testResources/Array2.java
+testResources/ArrayInIf.java
+testResources/ArrayLength.java
+testResources/SimpleArray.java
+testResources/ArrayLoop.java

@@ -9,7 +9,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 public class Config {
 
 	// default values
-	private static final int DEFAULT_LOOP_UNROLLING_MAX = 4;
+	private static final int DEFAULT_LOOP_UNROLLING_MAX = 5;
 	private static final int DEFAULT_RECURSION_DEPTH_MAX = 4;
 
 	private int loopUnrollingMax;

@@ -10,13 +10,19 @@ public class Array3 {
 	}
 
 	public int f(int h) {
-		int[] a = new int[3];
+		int[] a = new int[4];
 		int i = 0;
-		while (i < 3) {
+		while (i < 4) {
 			a[i] = i;
 			i++;
 		}
-		Out.print(a[h]);
+
+		if (h >= 0) {
+			i = h;
+		} else {
+			i = 0;
+		}
+		Out.print(a[i]);
 		return 0;
 	}
 

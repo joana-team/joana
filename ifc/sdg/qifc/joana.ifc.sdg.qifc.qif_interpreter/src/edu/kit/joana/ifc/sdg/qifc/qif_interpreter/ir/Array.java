@@ -16,33 +16,11 @@ public class Array<T extends Value> extends Value {
 	private int length;
 	private T[] arr;
 	private Formula[][] valueDependencies;
-	/*
-	collects all possible assignments to the array
-
-	For each element we save a triple, that contains the following information:
-		- Left: controlFlow information --> must be true for the execution to reach the site of this assignment
-		- Middle: assignment Idx --> index to which the value was assigned
-		- Right: assigned value
-	 */
-	private Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments;
 
 	public Array(int valNum) {
 		super(valNum);
 		this.setType(Type.ARRAY);
 		this.setWidth(Type.ARRAY.bitwidth());
-	}
-
-	private Stack<Triple<Formula, Formula, Formula[]>>[] initAssignments(int length) {
-		Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments = new Stack[length];
-		Formula[] initValue = new Formula[this.elementType.bitwidth()];
-		Arrays.fill(initValue, LogicUtil.ff.constant(false));
-		Arrays.fill(valueDependencies, initValue);
-		for (int i = 0; i < length; i++) {
-			possibleAssignments[i] = new Stack<>();
-			possibleAssignments[i]
-					.push(Triple.triple(LogicUtil.ff.constant(true), LogicUtil.ff.constant(true), initValue));
-		}
-		return possibleAssignments;
 	}
 
 	public static Array<? extends Value> newArray(Type t, int length, int valNum, boolean initWithVars) throws UnexpectedTypeException {
@@ -52,23 +30,25 @@ public class Array<T extends Value> extends Value {
 			array.arr = new Int[length];
 			array.elementType = t;
 			IntStream.range(0, length).forEach(i -> array.arr[i] = new Int(i));
-			array.valueDependencies = new Formula[array.length][array.elementType.bitwidth()];
-			array.possibleAssignments = (initWithVars) ? array.initVars(length) : array.initAssignments(length);
+			array.valueDependencies = (initWithVars) ? array.initVars(length) : array.initZeros(length);
 			return array;
 		}
 		throw new UnexpectedTypeException(t);
 	}
 
-	private Stack<Triple<Formula, Formula, Formula[]>>[] initVars(int length) {
-		Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments = new Stack[length];
+	private Formula[][] initVars(int length) {
+		Formula[][] initialValues = new Formula[length][this.elementType.bitwidth()];
 		for (int i = 0; i < length; i++) {
-			possibleAssignments[i] = new Stack<>();
 			Formula[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a"+ i);
-			valueDependencies[i] = initValue;
-			possibleAssignments[i]
-					.push(Triple.triple(LogicUtil.ff.constant(true), LogicUtil.ff.constant(true), initValue));
+			initialValues[i] = initValue;
 		}
-		return possibleAssignments;
+		return initialValues;
+	}
+
+	private Formula[][] initZeros(int length) {
+		Formula[][] initialValues = new Formula[length][this.elementType.bitwidth()];
+		IntStream.range(0, length).forEach(k -> Arrays.fill(initialValues[k], LogicUtil.ff.constant(false)));
+		return initialValues;
 	}
 
 	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m, boolean initWithVars) throws UnexpectedTypeException {
@@ -110,19 +90,11 @@ public class Array<T extends Value> extends Value {
 	}
 
 	public void addAssignment(Formula implicitIF, int idx, Formula assignmentCond, Formula[] assignedValue) {
-		this.possibleAssignments[idx].push(Triple.triple(implicitIF, assignmentCond, assignedValue));
 		this.valueDependencies[idx] = LogicUtil.ternaryOp(LogicUtil.ff.and(implicitIF, assignmentCond), assignedValue, this.valueDependencies[idx]);
 	}
 
 	public Formula[] currentlyAssigned(int idx) {
-		Stack<Triple<Formula, Formula, Formula[]>> element = this.possibleAssignments[idx];
-		Formula[] res = element.peek().getRight();
-
-		for (int i = element.size() - 1; i > 0; i--) {
-			res = LogicUtil.ternaryOp(LogicUtil.ff.and(element.get(i).getLeft(), element.get(i).getMiddle()),
-					element.get(i).getRight(), res);
-		}
-		return res;
+		return valueDependencies[idx];
 	}
 
 	public Formula[][] getValueDependencies() {

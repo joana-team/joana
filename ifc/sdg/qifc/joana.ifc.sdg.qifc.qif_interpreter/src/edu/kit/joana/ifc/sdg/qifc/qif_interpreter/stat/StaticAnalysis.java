@@ -30,6 +30,7 @@ public class StaticAnalysis {
 		// create literals for method parameters
 		int[] params = m.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
+			if (m.getParamType(i).equals(Type.ARRAY)) continue; // already initialized
 			m.setDepsForvalue(params[i], LogicUtil.createVars(params[i], m.getParamType(i).bitwidth()));
 			m.addVarsToValue(params[i], (Variable[]) m.getDepsForValue(params[i]));
 		}

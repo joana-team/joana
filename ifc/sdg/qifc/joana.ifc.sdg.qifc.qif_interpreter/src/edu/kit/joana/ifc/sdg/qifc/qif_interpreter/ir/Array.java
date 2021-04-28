@@ -12,8 +12,9 @@ import java.util.stream.IntStream;
 
 public class Array<T extends Value> extends Value {
 
+	private static final int LENGTH = Type.INTEGER.bitwidth();
+
 	private Type elementType;
-	private int length;
 	private T[] arr;
 	private Formula[][] valueDependencies;
 
@@ -23,14 +24,14 @@ public class Array<T extends Value> extends Value {
 		this.setWidth(Type.ARRAY.bitwidth());
 	}
 
-	public static Array<? extends Value> newArray(Type t, int length, int valNum, boolean initWithVars) throws UnexpectedTypeException {
+	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars) throws UnexpectedTypeException {
 		if (t == Type.INTEGER) {
 			Array<Int> array = new Array<>(valNum);
-			array.length = length;
-			array.arr = new Int[length];
+			array.arr = new Int[LENGTH];
 			array.elementType = t;
-			IntStream.range(0, length).forEach(i -> array.arr[i] = new Int(i));
-			array.valueDependencies = (initWithVars) ? array.initVars(length) : array.initZeros(length);
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i] = new Int(i));
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i].setVal(0, -1));
+			array.valueDependencies = (initWithVars) ? array.initVars(LENGTH) : array.initZeros(LENGTH);
 			return array;
 		}
 		throw new UnexpectedTypeException(t);
@@ -56,7 +57,7 @@ public class Array<T extends Value> extends Value {
 		Type content = Type.from(instruction.getConcreteType().getArrayElementType());
 		assert (length.isConstant() & length instanceof Int);
 		assert (content.isPrimitive());
-		return Array.newArray(content, (Integer) length.getVal(), instruction.getDef(), initWithVars);
+		return Array.newArray(content, instruction.getDef(), initWithVars);
 	}
 
 	@Override public boolean verifyType(Object val) {
@@ -68,11 +69,11 @@ public class Array<T extends Value> extends Value {
 	}
 
 	public int length() {
-		return this.length;
+		return LENGTH;
 	}
 
 	public Formula[] boolLength() {
-		return LogicUtil.asFormulaArray(LogicUtil.twosComplement(length, this.getWidth()));
+		return LogicUtil.asFormulaArray(LogicUtil.twosComplement(LENGTH, this.getWidth()));
 	}
 
 	public Type elementType() {
@@ -107,5 +108,12 @@ public class Array<T extends Value> extends Value {
 
 	public void setValueDependencies(int idx, Formula[] deps) {
 		this.valueDependencies[idx] = deps;
+	}
+
+	@Override
+	public String getValAsString() {
+		String[] currentVal = new String[length()];
+		IntStream.range(0, currentVal.length).forEach(i -> currentVal[i] = this.arr[i].getValAsString());
+		return Arrays.toString(currentVal);
 	}
 }

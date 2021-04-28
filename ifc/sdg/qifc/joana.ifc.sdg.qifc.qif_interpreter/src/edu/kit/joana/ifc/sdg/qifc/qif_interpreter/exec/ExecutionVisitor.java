@@ -276,7 +276,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			List<String> args = new ArrayList<>();
 			// first arg is this-reference -> skip
 			IntStream.range(1, instruction.getNumberOfUses())
-					.forEach(use -> args.add(String.valueOf(m.getValue(instruction.getUse(use)).getVal())));
+					.forEach(use -> args.add(String.valueOf(m.getValue(instruction.getUse(use)).getValAsString())));
 
 			Object returnVal = null;
 			Type returnType = null;

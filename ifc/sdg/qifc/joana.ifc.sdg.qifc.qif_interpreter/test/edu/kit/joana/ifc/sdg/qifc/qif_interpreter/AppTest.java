@@ -88,14 +88,14 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Array3");
+		Program p = TestUtils.build("ArrayParam");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
 
 		Method entry = p.getEntryMethod();
 		entry.getCFG().print();
-		DotGrapher.exportDotGraph(entry.getCFG());
+		p.getMethods().forEach(m -> DotGrapher.exportDotGraph(m.getCFG()));
 
 		sa.computeSATDeps();
 

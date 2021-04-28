@@ -139,7 +139,7 @@ public class LoopBody {
 
 		Array<? extends Value> original = (Array<? extends Value>) owner.getValue(valNum);
 		try {
-			Array<? extends Value> placeHolder = Array.newArray(original.elementType(), original.length(), valNum, true);
+			Array<? extends Value> placeHolder = Array.newArray(original.elementType(), valNum, true);
 			Formula[][] vars = placeHolder.getValueDependencies();
 			this.placeholderArrayVars.put(valNum, vars.clone());
 			this.placeholderArrays.put(valNum, placeHolder);

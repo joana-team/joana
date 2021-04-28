@@ -23,16 +23,23 @@ public class ReturnValue implements IReturnValue {
 	@Override public Formula[] getReturnValueForCallSite(SSAInvokeInstruction callSite, Method caller) {
 		// create variable substitution for args @ callsite
 		Substitution s = new Substitution();
-		int[] argValueNUm = new int[callSite.getNumberOfUses()];
-		IntStream.range(0, argValueNUm.length).forEach(i -> argValueNUm[i] = callSite.getUse(i));
+		int[] argValueNum = new int[callSite.getNumberOfUses()];
+		IntStream.range(0, argValueNum.length).forEach(i -> argValueNum[i] = callSite.getUse(i));
 
 		// idx 0 is this-reference --> skip
 		for (int i = 1; i < m.getParamNum(); i++) {
-			s.addMapping(m.getDepsForValue(paramValueNums[i]), caller.getDepsForValue(argValueNUm[i]));
+			if (caller.isArrayType(argValueNum[i])) {
+				Formula[][] valDeps = caller.getArray(argValueNum[i]).getValueDependencies();
+				int finalI = i;
+				IntStream.range(0, valDeps.length).forEach(k -> s.addMapping(m.getArray(paramValueNums[finalI]).getValueDependencies()[k], valDeps[k]));
+			} else {
+				s.addMapping(m.getDepsForValue(paramValueNums[i]), caller.getDepsForValue(argValueNum[i]));
+			}
 		}
 		return LogicUtil.applySubstitution(returnDeps, s);
 	}
 
+	// creates a Formula that describes the return value of the function
 	private Formula[] computeReturnDeps(Method callee) {
 		return computeReturnDepsRec(callee, callee.getCFG().entry());
 	}
@@ -51,9 +58,15 @@ public class ReturnValue implements IReturnValue {
 			return LogicUtil.ternaryOp(b.getCondExpr(), computeReturnDepsRec(callee, trueTarget),
 					computeReturnDepsRec(callee, falseTarget));
 		} else {
-			assert (b.succs().stream().filter(s -> !s.getWalaBasicBlock().isCatchBlock()).count() == 1);
+			assert (b.succs().stream()
+					.filter(s -> !s.getWalaBasicBlock().isCatchBlock())
+					.filter(s -> !s.getWalaBasicBlock().isExitBlock())
+					.count() == 1);
 			return computeReturnDepsRec(callee,
-					b.succs().stream().filter(s -> !s.getWalaBasicBlock().isCatchBlock()).findFirst().get());
+					b.succs().stream()
+							.filter(s -> !s.getWalaBasicBlock().isCatchBlock())
+							.filter(s -> !s.getWalaBasicBlock().isExitBlock())
+							.findFirst().get());
 		}
 	}
 }

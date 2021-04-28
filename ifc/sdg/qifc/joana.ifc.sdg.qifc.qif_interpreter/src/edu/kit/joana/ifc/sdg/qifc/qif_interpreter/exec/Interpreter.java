@@ -3,12 +3,15 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
+import org.apache.commons.exec.util.StringUtils;
 
 import java.io.PrintStream;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Interpreter {
 
@@ -26,8 +29,6 @@ public class Interpreter {
 
 
 	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException {
-
-		// System.out.println("----------- Starting program execution -----------");
 
 		executeMethod(program.getEntryMethod(), args);
 
@@ -79,24 +80,27 @@ public class Interpreter {
 		for(int i = 0; i < args.size(); i++) {
 			int paramNum = i + 1;
 			Object paramVal;
+			int valNum = m.getIr().getParameter(paramNum);
 			switch(m.getParamType(paramNum)) {
+			case ARRAY:
+				String[] arr = args.get(i).substring(1, args.get(i).length() - 1).split(",");
+				IntStream.range(0, arr.length).forEach(k -> m.getArray(valNum).store(Integer.parseInt(arr[k].replaceAll("\\s+","")), k, 0));
+				break;
 			case INTEGER:
 				try {
 					paramVal = Integer.parseInt(args.get(i));
 				} catch (NumberFormatException e) {
 					return false;
 				}
+				try {
+					m.setValue(valNum, paramVal);
+				} catch (MissingValueException e) {
+					e.printStackTrace();
+				}
 				break;
 			case CUSTOM:
 			default:
 				throw new IllegalStateException("Unexpected value: " + m.getParamType(paramNum));
-			}
-
-			int valNum = m.getIr().getParameter(paramNum);
-			try {
-				m.setValue(valNum, paramVal);
-			} catch (MissingValueException e) {
-				e.printStackTrace();
 			}
 		}
 		return true;

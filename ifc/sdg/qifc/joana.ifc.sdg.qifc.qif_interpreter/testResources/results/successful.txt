@@ -46,3 +46,4 @@ testResources/ArrayInIf.java
 testResources/ArrayLength.java
 testResources/SimpleArray.java
 testResources/ArrayLoop.java
+testResources/ArrayParam.java

@@ -169,4 +169,6 @@ public abstract class Value {
 	}
 
 	public abstract boolean isArrayType();
+
+	public abstract String getValAsString();
 }

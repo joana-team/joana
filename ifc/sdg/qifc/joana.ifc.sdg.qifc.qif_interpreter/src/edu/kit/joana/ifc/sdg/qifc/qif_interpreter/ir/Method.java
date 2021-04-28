@@ -8,6 +8,7 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
@@ -102,9 +103,21 @@ public class Method {
 	private void createParamValues() {
 		int numParam = this.getIr().getNumberOfParameters();
 		for (int i = 1; i < numParam; i++) {
+			Type type = getParamType(i);
 			int valNum = this.getIr().getParameter(i);
-			Type type = Type.from(this.getPdg().getParamType(i));
-			programValues.put(valNum, Value.createByType(valNum, type));
+			if (type == Type.ARRAY) {
+				Type elementType = Type.from(this.pdg.getParamType(i).getArrayElementType());
+				try {
+					Array<? extends Value> array = Array.newArray(elementType, valNum,true);
+					programValues.put(valNum, array);
+				} catch (UnexpectedTypeException e) {
+					e.printStackTrace();
+				}
+
+			} else {
+				programValues.put(valNum, Value.createByType(valNum, type));
+			}
+
 		}
 	}
 
@@ -139,8 +152,12 @@ public class Method {
 	 * @return matchign type, if none is found it is assumed that the type is userdefined and CUSTOM is returned
 	 */
 	public Type getParamType(int i) {
-		String name = pdg.getParamType(i).getName().toString();
 
+		 if (this.pdg.getParamType(i).isArrayType()) {
+			return Type.ARRAY;
+		}
+
+		String name = pdg.getParamType(i).getName().toString();
 		switch (name) {
 		case "I":
 			return Type.INTEGER;
@@ -303,6 +320,10 @@ public class Method {
 	public Array<? extends Value> getArray(int valNum) {
 		assert(this.programValues.get(valNum) instanceof Array);
 		return (Array<? extends Value>) this.programValues.get(valNum);
+	}
+
+	public boolean isArrayType(int valNum) {
+		return this.programValues.get(valNum).getType() == Type.ARRAY;
 	}
 
 	// ----------------------- getters and setters ------------------------------------------

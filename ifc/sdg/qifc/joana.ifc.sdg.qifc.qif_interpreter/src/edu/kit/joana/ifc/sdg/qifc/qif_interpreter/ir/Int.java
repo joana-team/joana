@@ -16,4 +16,8 @@ public class Int extends Value {
 		return false;
 	}
 
+	@Override public String getValAsString() {
+		return String.valueOf(this.getVal());
+	}
+
 }

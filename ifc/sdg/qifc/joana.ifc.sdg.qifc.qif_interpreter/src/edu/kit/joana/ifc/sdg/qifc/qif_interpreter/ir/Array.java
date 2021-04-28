@@ -15,6 +15,7 @@ public class Array<T extends Value> extends Value {
 	private Type elementType;
 	private int length;
 	private T[] arr;
+	private Formula[][] valueDependencies;
 	/*
 	collects all possible assignments to the array
 
@@ -29,13 +30,13 @@ public class Array<T extends Value> extends Value {
 		super(valNum);
 		this.setType(Type.ARRAY);
 		this.setWidth(Type.ARRAY.bitwidth());
-
 	}
 
 	private Stack<Triple<Formula, Formula, Formula[]>>[] initAssignments(int length) {
 		Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments = new Stack[length];
 		Formula[] initValue = new Formula[this.elementType.bitwidth()];
 		Arrays.fill(initValue, LogicUtil.ff.constant(false));
+		Arrays.fill(valueDependencies, initValue);
 		for (int i = 0; i < length; i++) {
 			possibleAssignments[i] = new Stack<>();
 			possibleAssignments[i]
@@ -51,6 +52,7 @@ public class Array<T extends Value> extends Value {
 			array.arr = new Int[length];
 			array.elementType = t;
 			IntStream.range(0, length).forEach(i -> array.arr[i] = new Int(i));
+			array.valueDependencies = new Formula[array.length][array.elementType.bitwidth()];
 			array.possibleAssignments = (initWithVars) ? array.initVars(length) : array.initAssignments(length);
 			return array;
 		}
@@ -61,7 +63,8 @@ public class Array<T extends Value> extends Value {
 		Stack<Triple<Formula, Formula, Formula[]>>[] possibleAssignments = new Stack[length];
 		for (int i = 0; i < length; i++) {
 			possibleAssignments[i] = new Stack<>();
-			Formula[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a"+ i + "_");
+			Formula[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a"+ i);
+			valueDependencies[i] = initValue;
 			possibleAssignments[i]
 					.push(Triple.triple(LogicUtil.ff.constant(true), LogicUtil.ff.constant(true), initValue));
 		}
@@ -108,6 +111,7 @@ public class Array<T extends Value> extends Value {
 
 	public void addAssignment(Formula implicitIF, int idx, Formula assignmentCond, Formula[] assignedValue) {
 		this.possibleAssignments[idx].push(Triple.triple(implicitIF, assignmentCond, assignedValue));
+		this.valueDependencies[idx] = LogicUtil.ternaryOp(LogicUtil.ff.and(implicitIF, assignmentCond), assignedValue, this.valueDependencies[idx]);
 	}
 
 	public Formula[] currentlyAssigned(int idx) {
@@ -119,5 +123,17 @@ public class Array<T extends Value> extends Value {
 					element.get(i).getRight(), res);
 		}
 		return res;
+	}
+
+	public Formula[][] getValueDependencies() {
+		return valueDependencies;
+	}
+
+	public void setValueDependencies(Formula[][] deps) {
+		this.valueDependencies = deps;
+	}
+
+	public void setValueDependencies(int idx, Formula[] deps) {
+		this.valueDependencies[idx] = deps;
 	}
 }

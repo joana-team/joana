@@ -5,9 +5,7 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
@@ -95,31 +93,18 @@ public class LoopHandler {
 
 		extractDeps(m, head, loop);
 		computeRuns(loop, m, loopUnrollingMax);
-		setModifiedArrayDependencies(m, loop);
 
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
-		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = loop.getRuns();
-		Pair<Map<Integer, Formula[]>, Formula> last = runs.get(loopUnrollingMax - 1);
-		last.fst.keySet().forEach(i -> m.setDepsForvalue(i, last.fst.get(i)));
-
+		loop.lastRun().getPrimitive().keySet().forEach(i -> m.setDepsForvalue(i, loop.lastRun().getPrimitive(i)));
 		for (int i = loopUnrollingMax - 2; i >= 0; i--) {
-			Pair<Map<Integer, Formula[]>, Formula> run = runs.get(i);
+			LoopIteration run = loop.getRun(i);
 			loop.getIn().keySet().forEach(
-					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.snd, run.fst.get(j), m.getDepsForValue(j))));
+					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), m.getDepsForValue(j))));
 		}
+
+		// TODO do the same for arrays
+
 		return loop;
-	}
-
-	private static void setModifiedArrayDependencies(Method m, LoopBody loop) {
-		Set<Integer> modifiedArrays = new HashSet<>();
-		loop.getBlocks().forEach(b -> {
-			b.instructions().stream().filter(i -> i instanceof SSAArrayStoreInstruction)
-					.forEach(i -> modifiedArrays.add(i.getDef()));
-		});
-
-		for (int valNum: modifiedArrays) {
-
-		}
 	}
 
 	/**
@@ -129,26 +114,26 @@ public class LoopHandler {
 	 * The first element of a pair describes the programs values, the snd element describes the condition that must hold for the loop execution to be stopped after this iteration
 	 */
 	private static void computeRuns(LoopBody loop, Method m, int loopUnrollingMax) {
-		Map<Integer, Formula[]> previousRun = new HashMap<>();
+		LoopIteration beforeLoop = new LoopIteration(0);
 
 		for (int i : m.getProgramValues().keySet()) {
-			if (m.getValue(i).isArrayType())
-				continue;
-			Formula[] before = new Formula[m.getDepsForValue(i).length];
-			IntStream.range(0, before.length).forEach(k -> before[k] = (loop.getIn().containsKey(i)) ?
-					loop.getBeforeLoop(i)[k] :
-					m.getDepsForValue(i)[k]);
-			previousRun.put(i, before);
+			if (m.getValue(i).isArrayType()) {
+				beforeLoop.addArr(i, ((Array<? extends Value>) m.getValue(i)).getValueDependencies());
+			} else {
+				Formula[] before = new Formula[m.getDepsForValue(i).length];
+				IntStream.range(0, before.length).forEach(k -> before[k] = (loop.getIn().containsKey(i)) ?
+						loop.getBeforeLoop(i)[k] :
+						m.getDepsForValue(i)[k]);
+				beforeLoop.addPrimitiveVal(i, before);
+			}
 		}
 
-		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = new HashMap<>();
-		runs.put(0, Pair.make(previousRun,
-				loop.getJumpOut().substitute(loop.generateInitialValueSubstitution().toLogicNGSubstitution())));
+		loop.addIteration(beforeLoop);
 
 		for (int i = 1; i < loopUnrollingMax; i++) {
-			runs.put(i, loop.simulateRun(runs.get(i - 1).fst));
+			LoopIteration iteration = loop.simulateRun(loop.getRun(i - 1));
+			loop.addIteration(iteration);
 		}
-		loop.addRuns(runs);
 	}
 
 	/*
@@ -199,20 +184,18 @@ public class LoopHandler {
 		Formula[] atBreak = breakRes.snd;
 		Formula[] res;
 
-		Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs = l.getRuns();
-
 		// base result when loop is not taken
-		res = LogicUtil.ternaryOp(runs.get(0).snd, beforeLoop, temp);
+		res = LogicUtil.ternaryOp(l.beforeLoop().getJumpOutAfterThisIteration(), beforeLoop, temp);
 
-		for (int i = 1; i < runs.size(); i++) {
-			Formula breakThisIteration = substituteAll(l, breakCondition, runs.get(i - 1).fst);
-			Formula[] breakResult = substituteAll(l, atBreak, runs.get(i - 1).fst);
-			exitLoopCondition = runs.get(i).snd;
-			Formula[] afterLoop = runs.get(i).fst.get(normalUse);
+		for (int i = 1; i < l.getSimulatedIterationNum(); i++) {
+			Formula breakThisIteration = breakCondition.substitute(l.getRun(i - 1).makeSubstitution(l.getIn(), l.getPlaceholderArrayVars()).toLogicNGSubstitution());
+			Formula[] breakResult = LogicUtil.applySubstitution(atBreak, l.getRun(i - 1).makeSubstitution(l.getIn(), l.getPlaceholderArrayVars()));
+			exitLoopCondition = l.getRun(i).getJumpOutAfterThisIteration();
+			Formula[] afterLoop = l.getRun(i).getPrimitive(normalUse);
 
 			Formula[] iterationResult;
 
-			if (i == runs.size() - 1) {
+			if (i == l.getSimulatedIterationNum() - 1) {
 				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult, afterLoop);
 			} else {
 				iterationResult = LogicUtil.ternaryOp(breakThisIteration, breakResult,
@@ -280,22 +263,6 @@ public class LoopHandler {
 
 			return vals;
 		}
-	}
-
-	public static Formula substituteAll(LoopBody l, Formula f, Map<Integer, Formula[]> args) {
-		Substitution s = new Substitution();
-		for (int i : l.getIn().keySet()) {
-			s.addMapping(l.getOwner().getVarsForValue(i), args.get(i));
-		}
-		return f.substitute(s.toLogicNGSubstitution());
-	}
-
-	public static Formula[] substituteAll(LoopBody l, Formula[] f, Map<Integer, Formula[]> args) {
-		Substitution s = new Substitution();
-		for (int i : l.getIn().keySet()) {
-			s.addMapping(l.getOwner().getVarsForValue(i), args.get(i));
-		}
-		return LogicUtil.applySubstitution(f, s);
 	}
 
 	private static class IFComparator implements Comparator<List<Pair<Integer, Boolean>>> {

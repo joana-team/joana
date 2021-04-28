@@ -1,15 +1,12 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
-import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class LoopBody {
 
@@ -18,8 +15,8 @@ public class LoopBody {
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
 	private final Map<Integer, Array<? extends Value>> placeholderArrays;
-	private final Map<Integer, Integer> mapping;
-	private Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs;
+	private final Map<Integer, Formula[][]> placeholderArrayVars;
+	private final Map<Integer, LoopIteration> runs;
 	private final Method owner;
 	private final BBlock head;
 	private final Set<BBlock> blocks;
@@ -32,12 +29,12 @@ public class LoopBody {
 		this.in = new HashMap<>();
 		this.out = new HashMap<>();
 		this.runs = new HashMap<>();
-		this.mapping = new HashMap<>();
 		this.beforeLoop = new HashMap<>();
 		this.head = head;
 		this.blocks = this.owner.getCFG().getBasicBlocksInLoop(head);
 		this.breaks = findBreaks();
 		this.placeholderArrays = new HashMap<>();
+		this.placeholderArrayVars = new HashMap<>();
 
 		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
 		Boolean evalTo = insideLoopSuccessor.getImplicitFlows().stream().filter(p -> p.fst == head.idx()).findFirst()
@@ -67,7 +64,6 @@ public class LoopBody {
 			}
 		};
 		breaks.sort(comp);
-
 		return breaks;
 	}
 
@@ -84,11 +80,11 @@ public class LoopBody {
 		Formula[] base = this.owner.getDepsForValue(valNum);
 		assert (this.runs.size() > 0);
 
-		Formula[] res = LoopHandler.substituteAll(this, base, runs.get(runs.size() - 1).fst);
+		Formula[] res = LogicUtil.applySubstitution(base, lastRun().makeSubstitution(this.in, this.placeholderArrayVars));
 
 		for (int i = runs.size() - 2; i > 0; i--) {
-			Formula jmpOut = runs.get(i).snd;
-			Formula[] iterationVal = LoopHandler.substituteAll(this, base, runs.get(i).fst);
+			Formula jmpOut = runs.get(i).getJumpOutAfterThisIteration();
+			Formula[] iterationVal = LogicUtil.applySubstitution(base, runs.get(i).makeSubstitution(this.in, this.placeholderArrayVars));
 			res = LogicUtil.ternaryOp(jmpOut, iterationVal, res);
 		}
 
@@ -109,31 +105,33 @@ public class LoopBody {
 	/**
 	 * Simulates the execution of the loop
 	 *
-	 * @param inputs Map that contains all method values (not only those defined in the loop) at the start of the iteration
-	 * @return Pair, whith its first component being a map containg the method's values after the loop execution
+	 * @param previous previous run. For the first loop iteration these are the values before the loop is entered
+	 * @return Pair, with its first component being a map containg the method's values after the loop execution
 	 * and the second component being the condition that must be fulfilled, to exit the loop after the simulated iteration
 	 */
-	public Pair<Map<Integer, Formula[]>, Formula> simulateRun(Map<Integer, Formula[]> inputs) {
-		assert (inputs.keySet().containsAll(this.in.keySet()));
-		Map<Integer, Formula[]> result = new HashMap<>();
+	public LoopIteration simulateRun(LoopIteration previous) {
+		LoopIteration res = new LoopIteration(previous.getIteration() + 1);
+		Substitution substituteInputs = previous.makeSubstitution(this.in, this.placeholderArrayVars);
 
-		Substitution s = new Substitution();
-		out.keySet().forEach(i -> s.addMapping(this.in.get(i), inputs.get(i)));
-
-		for (int i : inputs.keySet()) {
-			if (out.containsKey(i)) {
-				Formula[] res = new Formula[inputs.get(i).length];
-				IntStream.range(0, out.get(i).length)
-						.forEach(k -> res[k] = out.get(i)[k].substitute(s.toLogicNGSubstitution()));
-				result.put(i, res);
-			} else {
-				result.put(i, inputs.get(i));
-			}
+		// primitive values
+		for (int i: this.in.keySet()) {
+			res.addPrimitiveVal(i, LogicUtil.applySubstitution(this.out.get(i), substituteInputs));
 		}
-		Substitution afterSub = new Substitution();
-		this.in.keySet().forEach(i -> afterSub.addMapping(this.in.get(i), result.get(i)));
-		Formula exitLoop = this.jumpOut.substitute(afterSub.toLogicNGSubstitution());
-		return Pair.make(result, exitLoop);
+
+		// array values
+		for (int i: this.placeholderArrays.keySet()) {
+			Formula[][] arrayResult = new Formula[this.placeholderArrayVars.get(i).length][this.placeholderArrays.get(i).elementType().bitwidth()];
+			for (int j = 0; j < arrayResult.length; j++) {
+				arrayResult[j] = LogicUtil.applySubstitution(this.placeholderArrays.get(i).getValueDependencies()[j], substituteInputs);
+			}
+			res.addArr(i, arrayResult);
+		}
+
+		// jump out condition
+		Substitution substituteOutputs = res.makeSubstitution(this.in, this.placeholderArrayVars);
+		res.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(this.jumpOut, substituteOutputs));
+
+		return res;
 	}
 
 	public void createPlaceholderArray(int valNum) {
@@ -142,6 +140,8 @@ public class LoopBody {
 		Array<? extends Value> original = (Array<? extends Value>) owner.getValue(valNum);
 		try {
 			Array<? extends Value> placeHolder = Array.newArray(original.elementType(), original.length(), valNum, true);
+			Formula[][] vars = placeHolder.getValueDependencies();
+			this.placeholderArrayVars.put(valNum, vars.clone());
 			this.placeholderArrays.put(valNum, placeHolder);
 		} catch (UnexpectedTypeException e) {
 			e.printStackTrace();
@@ -153,6 +153,14 @@ public class LoopBody {
 			createPlaceholderArray(valNum);
 		}
 		return this.placeholderArrays.get(valNum);
+	}
+
+	public void addIteration(LoopIteration iteration) {
+		this.runs.put(iteration.getIteration(), iteration);
+	}
+
+	public LoopIteration getRun(int i) {
+		return this.runs.get(i);
 	}
 
 	public Set<BBlock> getBlocks() {
@@ -172,7 +180,6 @@ public class LoopBody {
 	}
 
 	public void addOutDeps(int in, int out) {
-		this.mapping.put(in, out);
 		this.out.put(in, owner.getDepsForValue(out));
 	}
 
@@ -204,11 +211,23 @@ public class LoopBody {
 		return this.owner;
 	}
 
-	public void addRuns(Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> runs) {
-		this.runs = runs;
+	public Map<Integer, Array<? extends Value>> getPlaceholderArrays() {
+		return placeholderArrays;
 	}
 
-	public Map<Integer, Pair<Map<Integer, Formula[]>, Formula>> getRuns() {
-		return this.runs;
+	public Map<Integer, Formula[][]> getPlaceholderArrayVars() {
+		return this.placeholderArrayVars;
+	}
+
+	public LoopIteration beforeLoop() {
+		return this.runs.get(0);
+	}
+
+	public LoopIteration lastRun() {
+		return this.runs.get(this.runs.size() - 1);
+	}
+
+	public int getSimulatedIterationNum() {
+		return this.runs.size();
 	}
 }

@@ -300,6 +300,11 @@ public class Method {
 		return this.rv.getReturnValueForCallSite(callSite, caller);
 	}
 
+	public Array<? extends Value> getArray(int valNum) {
+		assert(this.programValues.get(valNum) instanceof Array);
+		return (Array<? extends Value>) this.programValues.get(valNum);
+	}
+
 	// ----------------------- getters and setters ------------------------------------------
 
 	public IR getIr() {

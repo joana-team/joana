@@ -115,7 +115,7 @@ public class Method {
 				}
 
 			} else {
-				programValues.put(valNum, Value.createByType(valNum, type));
+				programValues.put(valNum, Value.createPrimitiveByType(valNum, type));
 			}
 
 		}

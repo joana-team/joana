@@ -280,6 +280,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
 			Object returnVal = null;
 			Type returnType = null;
+
 			try {
 				Interpreter i = new Interpreter(m.getProg());
 				i.executeMethod(target, args);
@@ -290,9 +291,16 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 				}
 				target.resetValues();
 				if (returnVal != null) {
-					setDefValue(instruction, returnType, returnVal);
+
+					if (returnType == Type.ARRAY && !m.hasValue(instruction.getDef())) {
+						Array<? extends Value> arr = Array.newArray(target.getArray(target.getReturnValue()).elementType(), instruction.getDef(), false);
+						arr.setVal((Object[]) returnVal, m.getRecursionDepth());
+						m.addValue(instruction.getDef(), arr);
+					} else {
+						setDefValue(instruction, returnType, returnVal);
+					}
 				}
-			} catch (OutOfScopeException | ParameterException e) {
+			} catch (OutOfScopeException | ParameterException | UnexpectedTypeException e) {
 				e.printStackTrace();
 			}
 		}
@@ -346,7 +354,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
 	private void setDefValue(SSAInstruction i, Type type, Object def) {
 		if (!m.hasValue(i.getDef())) {
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value.createByType(i.getDef(), type);
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value.createPrimitiveByType(i.getDef(), type);
 			m.addValue(i.getDef(), defVal);
 		}
 		try {
@@ -355,5 +363,4 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			e.printStackTrace();
 		}
 	}
-
 }

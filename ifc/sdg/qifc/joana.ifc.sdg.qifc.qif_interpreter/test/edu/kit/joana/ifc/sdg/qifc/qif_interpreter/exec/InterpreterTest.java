@@ -291,6 +291,22 @@ class InterpreterTest {
 
 		i.execute(args);
 
-		assertEquals("2\n", baos.toString());
+		assertEquals("3\n", baos.toString());
+	}
+
+	@Test public void arrayReturnTest()
+			throws IOException, InterruptedException, ParameterException, OutOfScopeException {
+		Program p = TestUtils.build("ArrayReturn");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
+		Interpreter i = new Interpreter(p, ps);
+
+		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+
+		List<String> args = Collections.singletonList("2");
+
+		i.execute(args);
+
+		assertEquals("0\n", baos.toString());
 	}
 }

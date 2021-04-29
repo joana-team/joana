@@ -67,7 +67,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		}
 
 		if (!m.hasValue(instruction.getDef())) {
-			Value defVal = Value.createByType(instruction.getDef(), array.elementType());
+			Value defVal = Value.createPrimitiveByType(instruction.getDef(), array.elementType());
 			m.addValue(instruction.getDef(), defVal);
 		}
 		m.setDepsForvalue(instruction.getDef(), res);
@@ -192,7 +192,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 				if (!m.hasValue(instruction.getDef())) {
 					defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-							.createByType(instruction.getDef(), callee.getReturnType());
+							.createPrimitiveByType(instruction.getDef(), callee.getReturnType());
 					m.addValue(instruction.getDef(), defVal);
 				} else {
 					defVal = m.getValue(instruction.getDef());
@@ -288,7 +288,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 		if (!m.hasValue(instruction.getDef())) {
 			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createByType(instruction.getDef(), m.getValue(normalExitValue).getType());
+					.createPrimitiveByType(instruction.getDef(), m.getValue(normalExitValue).getType());
 			m.addValue(instruction.getDef(), defVal);
 		} else {
 			defVal = m.getValue(instruction.getDef());
@@ -309,7 +309,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		if (!m.hasValue(instruction.getDef())) {
 			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createByType(instruction.getDef(), m.getValue(op).getType());
+					.createPrimitiveByType(instruction.getDef(), m.getValue(op).getType());
 			m.addValue(instruction.getDef(), defVal);
 		} else {
 			defVal = m.getValue(instruction.getDef());
@@ -343,7 +343,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 		if (!m.hasValue(instruction.getDef())) {
 			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createByType(instruction.getDef(), m.getValue(instruction.getUse(0)).getType());
+					.createPrimitiveByType(instruction.getDef(), m.getValue(instruction.getUse(0)).getType());
 			m.addValue(instruction.getDef(), defVal);
 		} else {
 			defVal = m.getValue(instruction.getDef());
@@ -378,7 +378,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		// make sure Value object for def exists
 		if (!m.hasValue(def)) {
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createByType(def,
+					.createPrimitiveByType(def,
 							Type.getResultType(operator, m.type(instruction.getUse(0)), m.type(instruction.getUse(1))));
 			m.addValue(def, defVal);
 		}
@@ -440,7 +440,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		// make sure Value object for def exists
 		if (!m.hasValue(def)) {
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value
-					.createByType(def, Type.getResultType(operator, m.type(opValNum)));
+					.createPrimitiveByType(def, Type.getResultType(operator, m.type(opValNum)));
 			m.addValue(def, defVal);
 		}
 

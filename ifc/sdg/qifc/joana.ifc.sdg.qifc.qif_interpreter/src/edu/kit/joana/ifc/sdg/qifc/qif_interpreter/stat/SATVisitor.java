@@ -156,8 +156,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 	@Override public void visitReturn(SSAReturnInstruction instruction) {
 		if (!instruction.returnsVoid()) {
-			m.addPossibleReturn(instruction.getUse(0));
-			m.setReturnValue(instruction.getUse(0));
+			m.getReturn().addReturnSite(instruction, block);
 		}
 	}
 
@@ -198,7 +197,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 					defVal = m.getValue(instruction.getDef());
 				}
 				assert defVal != null;
-				m.setDepsForvalue(instruction.getDef(), callee.getReturnValueForCall(instruction, m));
+				m.setDepsForvalue(instruction.getDef(), (Formula[]) callee.getReturnValueForCall(instruction, m));
 			}
 		}
 	}

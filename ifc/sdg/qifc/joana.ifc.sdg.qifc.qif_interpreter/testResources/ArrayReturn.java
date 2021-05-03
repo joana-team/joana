@@ -21,6 +21,7 @@ public class ArrayReturn {
 			a[0] = 1;
 			return a;
 		}
+		a[0] = 2;
 		return a;
 	}
 }

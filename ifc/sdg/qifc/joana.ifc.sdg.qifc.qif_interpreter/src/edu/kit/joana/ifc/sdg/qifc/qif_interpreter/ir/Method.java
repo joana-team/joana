@@ -35,8 +35,7 @@ public class Method {
 	private final List<LoopBody> loops;
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
-	private final List<Integer> possibleReturns;
-	private IReturnValue rv;
+	private IReturnValue<? extends Object> rv;
 	private int recursionDepth;
 
 	public static Method getEntryMethodFromProgram(Program p) {
@@ -83,7 +82,19 @@ public class Method {
 		this.phiValPossibilities = new HashMap<>();
 		this.loops = new ArrayList<>();
 		this.recursionDepth = -1;
-		this.possibleReturns = new ArrayList<>();
+
+		Type returnType = this.getReturnType();
+		switch(returnType) {
+
+		case INTEGER:
+			this.rv = new ReturnValue(this);
+			break;
+		case ARRAY:
+			this.rv = new ArrayReturnValue(this);
+			break;
+		case CUSTOM:
+			break;
+		}
 	}
 
 	public Method(MethodReference ref, Program p) {
@@ -275,24 +286,6 @@ public class Method {
 		return this.loops.stream().anyMatch(l -> l.producesValNum(valNum));
 	}
 
-	public List<Pair<Formula[], Formula>> getPossibleValues(int valNum) {
-		return this.phiValPossibilities.get(valNum);
-	}
-
-	public void addPhiValuePossibility(int valNum, Pair<Formula[], Formula> poss) {
-		if (!this.phiValPossibilities.containsKey(valNum)) {
-			this.phiValPossibilities.put(valNum, new ArrayList<>());
-		}
-		this.phiValPossibilities.get((valNum)).add(poss);
-	}
-
-	public void addPhiValuePossibility(int valNum, List<Pair<Formula[], Formula>> poss) {
-		if (!this.phiValPossibilities.containsKey(valNum)) {
-			this.phiValPossibilities.put(valNum, new ArrayList<>());
-		}
-		this.phiValPossibilities.get((valNum)).addAll(poss);
-	}
-
 	public void addVarsToValue(int valNum, Variable[] vars) {
 		this.programValues.get(valNum).addVars(vars);
 	}
@@ -313,7 +306,7 @@ public class Method {
 		return this.ir.getNumberOfParameters();
 	}
 
-	public Formula[] getReturnValueForCall(SSAInvokeInstruction callSite, Method caller) {
+	public Object[] getReturnValueForCall(SSAInvokeInstruction callSite, Method caller) {
 		return this.rv.getReturnValueForCallSite(callSite, caller);
 	}
 
@@ -389,19 +382,11 @@ public class Method {
 		this.recursionDepth--;
 	}
 
-	public void addPossibleReturn(int def) {
-		this.possibleReturns.add(def);
-	}
-
-	public List<Integer> getPossibleReturns() {
-		return this.possibleReturns;
-	}
-
 	public Type getReturnType() {
 		return Type.from(cg.getMethod().getReturnType());
 	}
 
-	public void registerReturnValue(IReturnValue rv) {
-		this.rv = rv;
+	public IReturnValue getReturn() {
+		return this.rv;
 	}
 }

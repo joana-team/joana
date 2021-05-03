@@ -27,7 +27,7 @@ public class BBlock implements DotNode {
 	 * The first element of the pair refers to the block indices, the second element states whether
 	 * the conditional jump condition needs to be true or false for this block to be executed
 	 */
-	private final List<Pair<Integer, Boolean>> implicitFlows;
+	private final SortedSet<Pair<Integer, Boolean>> implicitFlows;
 	private final int idx;
 	private final boolean isDummy;
 	private List<BBlock> succs;
@@ -49,7 +49,7 @@ public class BBlock implements DotNode {
 				.collect(Collectors.toList());
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
-		this.implicitFlows = new ArrayList<>();
+		this.implicitFlows = new TreeSet<>(Comparator.comparing(o -> o.fst));
 		this.isDummy = false;
 		this.idx = walaBBlock.getNumber();
 		g.addRep(walaBBlock, this);
@@ -62,7 +62,7 @@ public class BBlock implements DotNode {
 		this.instructions = new ArrayList<>();
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
-		this.implicitFlows = new ArrayList<>();
+		this.implicitFlows = new TreeSet<>(Comparator.comparing(o -> o.fst));
 		this.idx = idx;
 		this.g = g;
 		dummies.put(this.idx, this);
@@ -130,7 +130,7 @@ public class BBlock implements DotNode {
 		}
 	}
 
-	public static Formula generateImplicitFlowFormula(List<Pair<Integer, Boolean>> flows, CFG g) {
+	public static Formula generateImplicitFlowFormula(SortedSet<Pair<Integer, Boolean>> flows, CFG g) {
 		Formula iff = LogicUtil.ff.constant(true);
 		for (Pair<Integer, Boolean> p : flows) {
 			Formula x = g.getBlock(p.fst).condExpr;
@@ -267,7 +267,7 @@ public class BBlock implements DotNode {
 		this.implicitFlows.addAll(BBlock.getBlockForIdx(m, blockIdx).getImplicitFlows());
 	}
 
-	public List<Pair<Integer, Boolean>> getImplicitFlows() {
+	public SortedSet<Pair<Integer, Boolean>> getImplicitFlows() {
 		return this.implicitFlows;
 	}
 

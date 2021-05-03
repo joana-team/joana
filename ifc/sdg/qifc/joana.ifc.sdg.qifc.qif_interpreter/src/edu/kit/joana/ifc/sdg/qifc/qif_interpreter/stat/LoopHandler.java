@@ -228,7 +228,7 @@ public class LoopHandler {
 		// we might have multiple breaks in the loop. Here we collect all values that could possibly be our "output" value, i.e. the value that is ultimately assigned to the break-phi,
 		// possibly though multiple phi-instructions in between
 		// The second component of each pair describes the implicit information contained in each value
-		List<Pair<Integer, List<Pair<Integer, Boolean>>>> possibleValues = findBreakValuesRec(l, breakUse, breakBlock,
+		List<Pair<Integer, SortedSet<Pair<Integer, Boolean>>>> possibleValues = findBreakValuesRec(l, breakUse, breakBlock,
 				new ArrayList<>());
 		possibleValues.sort((o1, o2) -> new IFComparator().compare(o1.snd, o2.snd));
 
@@ -247,7 +247,7 @@ public class LoopHandler {
 		return Pair.make(condJumpTaken, value);
 	}
 
-	private static List<Pair<Integer, List<Pair<Integer, Boolean>>>> findBreakValuesRec(LoopBody l, int breakUse, BBlock block, List<Pair<Integer, List<Pair<Integer, Boolean>>>> vals) {
+	private static List<Pair<Integer, SortedSet<Pair<Integer, Boolean>>>> findBreakValuesRec(LoopBody l, int breakUse, BBlock block, List<Pair<Integer, SortedSet<Pair<Integer, Boolean>>>> vals) {
 
 		// skip dummy blocks
 		if (block.isDummy()) {
@@ -267,9 +267,10 @@ public class LoopHandler {
 			// the block might have multiple predecessors --> multiple break locations return the same value
 			// we add all possible break-locations separately bc they represent different control flow information
 			for (BBlock pred: block.preds()) {
-				List<Pair<Integer, Boolean>> loopImplicitFlow = pred.getImplicitFlows().stream()
+				SortedSet<Pair<Integer, Boolean>> loopImplicitFlow = pred.getImplicitFlows().stream()
 						.filter(p -> l.hasBlock(p.fst) && !(l.getHead().idx() == p.fst))
-						.sorted(Comparator.comparingInt(o -> o.fst)).collect(Collectors.toList());
+						.collect(Collectors.toCollection(() -> new TreeSet<>(
+								Comparator.comparing(o -> o.fst))));
 				vals.add(Pair.make(breakUse, loopImplicitFlow));
 			}
 
@@ -277,20 +278,10 @@ public class LoopHandler {
 		}
 	}
 
-	private static class IFComparator implements Comparator<List<Pair<Integer, Boolean>>> {
+	private static class IFComparator implements Comparator<SortedSet<Pair<Integer, Boolean>>> {
 
-		@Override public int compare(List<Pair<Integer, Boolean>> o1, List<Pair<Integer, Boolean>> o2) {
-			int i = 0;
-			while (i < o1.size() && i < o2.size() && o1.get(i).fst.equals(o2.get(i).fst)) {
-				i++;
-			}
-			if (o1.size() <= i) {
-				return 1;
-			} else if (o2.size() <= i) {
-				return -1;
-			} else {
-				return o1.get(i).fst - o2.get(i).fst;
-			}
+		@Override public int compare(SortedSet<Pair<Integer, Boolean>> o1, SortedSet<Pair<Integer, Boolean>> o2) {
+			return -1;
 		}
 	}
 }

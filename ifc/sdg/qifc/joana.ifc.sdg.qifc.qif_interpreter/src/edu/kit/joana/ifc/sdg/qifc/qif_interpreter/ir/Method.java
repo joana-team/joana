@@ -48,6 +48,7 @@ public class Method {
 		m.cfg = CFG.buildCFG(m);
 		m.createParamValues();
 		m.initConstants();
+		m.initReturnValue();
 		return m;
 	}
 
@@ -74,6 +75,7 @@ public class Method {
 		m.cfg = CFG.buildCFG(m);
 		m.createParamValues();
 		m.initConstants();
+		m.initReturnValue();
 		return m;
 	}
 
@@ -82,19 +84,6 @@ public class Method {
 		this.phiValPossibilities = new HashMap<>();
 		this.loops = new ArrayList<>();
 		this.recursionDepth = -1;
-
-		Type returnType = this.getReturnType();
-		switch(returnType) {
-
-		case INTEGER:
-			this.rv = new ReturnValue(this);
-			break;
-		case ARRAY:
-			this.rv = new ArrayReturnValue(this);
-			break;
-		case CUSTOM:
-			break;
-		}
 	}
 
 	public Method(MethodReference ref, Program p) {
@@ -108,7 +97,23 @@ public class Method {
 		this.cfg = CFG.buildCFG(this);
 		this.createParamValues();
 		this.initConstants();
+		this.initReturnValue();
 		p.addMethod(this);
+	}
+
+	private void initReturnValue() {
+		Type returnType = this.getReturnType();
+		switch(returnType) {
+
+		case INTEGER:
+			this.rv = new ReturnValue(this);
+			break;
+		case ARRAY:
+			this.rv = new ArrayReturnValue(this);
+			break;
+		case CUSTOM:
+			break;
+		}
 	}
 
 	private void createParamValues() {

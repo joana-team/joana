@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RecursiveFuncReturnValue implements IReturnValue<Formula> {
+public class RecursiveFuncReturnValue implements IReturnValue<Formula[]> {
 
 	private final Method m;
 	private final SSAInvokeInstruction recCall;

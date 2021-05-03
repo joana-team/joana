@@ -7,7 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 
-public class ReturnValue implements IReturnValue<Formula> {
+public class ReturnValue implements IReturnValue<Formula[]> {
 
 	private final Method m;
 	int[] paramValueNums;

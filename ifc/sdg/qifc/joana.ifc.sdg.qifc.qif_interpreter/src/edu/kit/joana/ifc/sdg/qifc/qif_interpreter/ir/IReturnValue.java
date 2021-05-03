@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 
 public interface IReturnValue<T> {
 
-	T[] getReturnValueForCallSite(SSAInvokeInstruction i, Method caller);
+	T getReturnValueForCallSite(SSAInvokeInstruction i, Method caller);
 
 	boolean isArrayType();
 

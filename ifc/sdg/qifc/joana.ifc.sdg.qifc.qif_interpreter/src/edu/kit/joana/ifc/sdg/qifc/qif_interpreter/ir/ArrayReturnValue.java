@@ -9,7 +9,7 @@ import org.logicng.formulas.Formula;
 
 import java.util.stream.IntStream;
 
-public class ArrayReturnValue implements IReturnValue<Formula[]> {
+public class ArrayReturnValue implements IReturnValue<Formula[][]> {
 
 	private final Method m;
 	private final int[] paramValueNums;

@@ -292,8 +292,8 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 				target.resetValues();
 				if (returnVal != null) {
 
-					if (returnType == Type.ARRAY && !m.hasValue(instruction.getDef())) {
-						Array<? extends Value> arr = Array.newArray(target.getArray(target.getReturnValue()).elementType(), instruction.getDef(), false);
+					if (returnType == Type.ARRAY) {
+						Array<? extends Value> arr = (m.hasValue(instruction.getDef())) ? m.getArray(instruction.getDef()) : Array.newArray(target.getArray(target.getReturnValue()).elementType(), instruction.getDef(), false);
 						arr.setVal((Object[]) returnVal, m.getRecursionDepth());
 						m.addValue(instruction.getDef(), arr);
 					} else {

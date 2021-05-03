@@ -311,7 +311,7 @@ public class Method {
 		return this.ir.getNumberOfParameters();
 	}
 
-	public Object[] getReturnValueForCall(SSAInvokeInstruction callSite, Method caller) {
+	public Object getReturnValueForCall(SSAInvokeInstruction callSite, Method caller) {
 		return this.rv.getReturnValueForCallSite(callSite, caller);
 	}
 
@@ -389,6 +389,11 @@ public class Method {
 
 	public Type getReturnType() {
 		return Type.from(cg.getMethod().getReturnType());
+	}
+
+	public Type getReturnElementType() {
+		assert (this.getReturnType().equals(Type.ARRAY));
+		return Type.from(cg.getMethod().getReturnType().getArrayElementType());
 	}
 
 	public IReturnValue getReturn() {

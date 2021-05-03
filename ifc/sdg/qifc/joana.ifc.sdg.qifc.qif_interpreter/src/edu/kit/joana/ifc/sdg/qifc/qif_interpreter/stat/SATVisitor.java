@@ -188,16 +188,30 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			if (instruction.getNumberOfDefs() > 0) {
 
 				Method callee = m.getProg().getMethod(instruction.getDeclaredTarget().getSignature());
-				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
-				if (!m.hasValue(instruction.getDef())) {
-					defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-							.createPrimitiveByType(instruction.getDef(), callee.getReturnType());
-					m.addValue(instruction.getDef(), defVal);
+				Type returnType = callee.getReturnType();
+
+				if (returnType.equals(Type.ARRAY)) {
+					try {
+						Array arr = Array.newArray(callee.getReturnElementType(), instruction.getDef(), false);
+						arr.setValueDependencies(((IReturnValue<Formula[][]>)callee.getReturn()).getReturnValueForCallSite(instruction, m));
+						m.addValue(instruction.getDef(), arr);
+					} catch (UnexpectedTypeException e) {
+						e.printStackTrace();
+					}
+
 				} else {
-					defVal = m.getValue(instruction.getDef());
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
+					if (!m.hasValue(instruction.getDef())) {
+						defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+								.createPrimitiveByType(instruction.getDef(), callee.getReturnType());
+						m.addValue(instruction.getDef(), defVal);
+					} else {
+						defVal = m.getValue(instruction.getDef());
+					}
+					assert defVal != null;
+					m.setDepsForvalue(instruction.getDef(), (Formula[]) callee.getReturnValueForCall(instruction, m));
 				}
-				assert defVal != null;
-				m.setDepsForvalue(instruction.getDef(), (Formula[]) callee.getReturnValueForCall(instruction, m));
+
 			}
 		}
 	}

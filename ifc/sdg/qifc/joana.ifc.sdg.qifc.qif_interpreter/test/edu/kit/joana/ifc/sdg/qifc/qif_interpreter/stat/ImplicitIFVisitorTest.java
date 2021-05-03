@@ -5,6 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -110,7 +111,7 @@ class ImplicitIFVisitorTest {
 
 		System.out.println("Values");
 		p.getEntryMethod().getProgramValues().keySet()
-				.forEach(i -> System.out.println(i + " " + p.getEntryMethod().getDepsForValue(i)));
+				.forEach(i -> System.out.println(i + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(i))));
 
 		p.getEntryMethod().getCFG().getBlocks().forEach(b -> System.out.println(b.idx() + " " + b.getImplicitFlows()));
 

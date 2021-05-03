@@ -5,10 +5,11 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import org.logicng.formulas.Formula;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.SortedSet;
 import java.util.stream.IntStream;
-
 
 public class DecisionTree<T> {
 
@@ -19,6 +20,9 @@ public class DecisionTree<T> {
 		IntStream.range(0, x.length).forEach(i -> res[i] = LogicUtil.ternaryOp(cond, x[i], y[i]));
 		return res;
 	};
+
+	public static final TernaryOperator<Map<Integer, Formula[]>> INT_MAP_COMBINATOR = getMapOperator(INT_COMBINATOR);
+	public static final TernaryOperator<Map<Integer, Formula[][]>> ARRAY_MAP_OPERATOR = getMapOperator(ARRAY_COMBINATOR);
 
 	private final Method m;
 	private int nodeIdx;
@@ -65,17 +69,20 @@ public class DecisionTree<T> {
 		}
 	}
 
-	public DecisionTree<T> addInnerNode(int idx, Formula pathCondition, List<Pair<Integer, Boolean>> implicitFlows) {
+	public DecisionTree<T> addInnerNode(int idx, Formula pathCondition, SortedSet<Pair<Integer, Boolean>> implicitFlows) {
 		if (implicitFlows.size() == 0) {
 			addInnerNode(idx, pathCondition);
+			return root();
 		}
-
-		Pair<Integer, Boolean> nextDecision = implicitFlows.remove(0);
-		assert(nextDecision.fst == this.nodeIdx);
 
 		if (this.type == NodeType.LEAF) {
-			this.addInnerNode(nextDecision.fst, BBlock.getBlockForIdx(m, nextDecision.fst).getCondExpr());
+			DecisionTree<T> newInner = this.addInnerNode(implicitFlows.first().fst, BBlock.getBlockForIdx(m, implicitFlows.first().fst).getCondExpr());
+			return newInner.addLeaf(idx, leafVal, implicitFlows);
 		}
+
+		Pair<Integer, Boolean> nextDecision = implicitFlows.first();
+		implicitFlows.remove(nextDecision);
+		assert(nextDecision.fst == this.nodeIdx);
 
 		if (nextDecision.snd) {
 			this.trueSubTree.addInnerNode(idx, pathCondition, implicitFlows);
@@ -85,17 +92,20 @@ public class DecisionTree<T> {
 		return this.root();
 	}
 
-	public DecisionTree<T> addLeaf(int idx, T leafVal, List<Pair<Integer, Boolean>> implicitFlows) {
+	public DecisionTree<T> addLeaf(int idx, T leafVal, SortedSet<Pair<Integer, Boolean>> implicitFlows) {
 		if (implicitFlows.size() == 0) {
 			addLeaf(idx, leafVal);
+			return root();
 		}
-
-		Pair<Integer, Boolean> nextDecision = implicitFlows.remove(0);
-		assert(nextDecision.fst == this.nodeIdx);
 
 		if (this.type == NodeType.LEAF) {
-			this.addInnerNode(nextDecision.fst, BBlock.getBlockForIdx(m, nextDecision.fst).getCondExpr());
+			DecisionTree<T> newInner = this.addInnerNode(implicitFlows.first().fst, BBlock.getBlockForIdx(m, implicitFlows.first().fst).getCondExpr());
+			return newInner.addLeaf(idx, leafVal, implicitFlows);
 		}
+
+		Pair<Integer, Boolean> nextDecision = implicitFlows.first();
+		implicitFlows.remove(nextDecision);
+		assert(nextDecision.fst == this.nodeIdx);
 
 		if (nextDecision.snd) {
 			this.trueSubTree.addLeaf(idx, leafVal, implicitFlows);
@@ -110,13 +120,23 @@ public class DecisionTree<T> {
 	 * @param idx blockIdx corresponding to the new node
 	 * @param pathCondition conditional jmp condition to execute either trueSubtree oder FalseSubTree
 	 */
-	private void addInnerNode(int idx, Formula pathCondition) {
+	private DecisionTree<T> addInnerNode(int idx, Formula pathCondition) {
 		assert(this.type == NodeType.LEAF);
 		DecisionTree<T> newInner = new DecisionTree<T>(m, idx, pathCondition);
-		newInner.trueSubTree = this;
-		newInner.falseSubTree = this;
-		this.parent = newInner.parent;
-		newInner.parent.replaceChild(this, newInner);
+		newInner.parent = (this.isRoot()) ? newInner : this.parent;
+		if (!this.isRoot()) {
+			newInner.parent.replaceChild(this, newInner);
+		}
+		this.parent = newInner;
+		newInner.trueSubTree = copyLeaf(this);
+		newInner.falseSubTree = copyLeaf(this);
+		return newInner;
+	}
+
+	private DecisionTree<T> copyLeaf(DecisionTree<T> original) {
+		DecisionTree<T> copy = new DecisionTree<T>(original.m, original.nodeIdx, original.leafVal, original.isRoot());
+		copy.parent = original.parent;
+		return copy;
 	}
 
 	/**
@@ -142,16 +162,12 @@ public class DecisionTree<T> {
 		}
 	}
 
-	public void setTrueSubTree(DecisionTree<T> trueSubTree) {
-		this.trueSubTree = trueSubTree;
-	}
-
-	public void setFalseSubTree(DecisionTree<T> falseSubTree) {
-		this.falseSubTree = falseSubTree;
-	}
-
-	public void setLeafVal(T leafVal) {
-		this.leafVal = leafVal;
+	public DecisionTree<T> root() {
+		if (this.isRoot()) {
+			return this;
+		} else {
+			return this.parent.root();
+		}
 	}
 
 	@Override public boolean equals(Object o) {
@@ -167,16 +183,17 @@ public class DecisionTree<T> {
 		return Objects.hash(nodeIdx, type, pathCondition, parent, trueSubTree, falseSubTree, leafVal);
 	}
 
+	public static <T> TernaryOperator<Map<Integer, T>> getMapOperator(TernaryOperator<T> operator) {
+		TernaryOperator<Map<Integer, T>> mapOperator = (cond, x, y) -> {
+			Map<Integer, T> res = new HashMap<>();
+			x.keySet().forEach(k -> res.put(k, operator.apply(cond, x.get(k), y.get(k))));
+			return res;
+		};
+		return mapOperator;
+	}
+
 	private enum NodeType {
 		INNER,
 		LEAF;
-	}
-
-	public DecisionTree<T> root() {
-		if (this.isRoot()) {
-			return this;
-		} else {
-			return this.parent.root();
-		}
 	}
 }

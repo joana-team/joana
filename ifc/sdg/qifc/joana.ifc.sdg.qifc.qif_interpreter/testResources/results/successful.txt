@@ -48,3 +48,5 @@ testResources/SimpleArray.java
 testResources/ArrayLoop.java
 testResources/ArrayParam.java
 testResources/Array4.java
+testResources/Comparison.java
+testResources/If.java

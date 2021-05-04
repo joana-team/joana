@@ -349,7 +349,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			defVal = m.getValue(instruction.getDef());
 		}
 		assert defVal != null;
-		m.setDepsForvalue(instruction.getDef(), LogicUtil.ternaryOp(pathZero, op1, op2));
+		m.setDepsForvalue(instruction.getDef(), LogicUtil.ternaryOp(predZero.generateImplicitFlowFormula(), op1, op2));
 	}
 
 	@Override public void visitPi(SSAPiInstruction instruction) {

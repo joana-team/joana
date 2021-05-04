@@ -1,10 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.cfg.IBasicBlock;
-import com.ibm.wala.ssa.ISSABasicBlock;
-import com.ibm.wala.ssa.SSACFG;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAReturnInstruction;
+import com.ibm.wala.ssa.*;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -28,6 +25,7 @@ public class BBlock implements DotNode {
 	 * the conditional jump condition needs to be true or false for this block to be executed
 	 */
 	private final List<Pair<Integer, Boolean>> implicitFlows;
+	private IFTreeNode ifTree;
 	private final int idx;
 	private final boolean isDummy;
 	private List<BBlock> succs;
@@ -50,6 +48,7 @@ public class BBlock implements DotNode {
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
 		this.implicitFlows = new ArrayList<>();
+		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.isDummy = false;
 		this.idx = walaBBlock.getNumber();
 		g.addRep(walaBBlock, this);
@@ -63,6 +62,7 @@ public class BBlock implements DotNode {
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
 		this.implicitFlows = new ArrayList<>();
+		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.idx = idx;
 		this.g = g;
 		dummies.put(this.idx, this);
@@ -140,10 +140,8 @@ public class BBlock implements DotNode {
 	}
 
 	public Formula generateImplicitFlowFormula() {
-		return generateImplicitFlowFormula(this.implicitFlows, this.g);
+		return this.ifTree.getImplicitFlowFormula();
 	}
-
-
 
 	public List<SSAInstruction> instructions() {
 		return instructions;
@@ -309,7 +307,7 @@ public class BBlock implements DotNode {
 	}
 
 	public SSAReturnInstruction getReturn() {
-		assert(this.isReturnBlock());
+		assert (this.isReturnBlock());
 		// return is last instruction in block
 		return (SSAReturnInstruction) this.walaBBlock.getLastInstruction();
 	}
@@ -318,12 +316,32 @@ public class BBlock implements DotNode {
 		return instructions.stream().filter(SSAInstruction::hasDef).anyMatch(i -> i.getDef() == valNum);
 	}
 
+	public int getTrueTarget() {
+		assert (this.splitsControlFlow());
+		int instructionIdx = ((SSAConditionalBranchInstruction) this.getWalaBasicBlock().getLastInstruction())
+				.getTarget();
+		int realTarget = this.getCFG().getBlocks().stream()
+				.filter(b -> b.getWalaBasicBlock().getFirstInstructionIndex() == instructionIdx).findFirst().get().idx;
+
+		int dummyTarget = BBlock.getBlockForIdx(this.g.getMethod(), realTarget).preds.stream()
+				.filter(pred -> this.succs.contains(pred)).findFirst().get().idx;
+		return dummyTarget;
+	}
+
+	public IFTreeNode getIfTree() {
+		return ifTree;
+	}
+
+	public void setIfTree(IFTreeNode ifTree) {
+		this.ifTree = ifTree;
+	}
+
 	@Override public String getLabel() {
 		if (isDummy) {
 			return "Dummy " + idx;
 		}
 		StringBuilder sb = new StringBuilder(String.valueOf(this.idx()));
-		for (SSAInstruction i: this.instructions) {
+		for (SSAInstruction i : this.instructions) {
 			sb.append("\n").append(i.toString());
 		}
 		return sb.toString();

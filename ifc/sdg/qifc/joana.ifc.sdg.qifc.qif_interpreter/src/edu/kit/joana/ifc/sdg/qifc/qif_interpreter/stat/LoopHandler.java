@@ -272,7 +272,6 @@ public class LoopHandler {
 						.sorted(Comparator.comparingInt(o -> o.fst)).collect(Collectors.toList());
 				vals.add(Pair.make(breakUse, loopImplicitFlow));
 			}
-
 			return vals;
 		}
 	}

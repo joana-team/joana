@@ -5,6 +5,7 @@ import com.ibm.wala.ssa.SSAInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.CFG;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.IBBlockVisitor;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.IFTreeNode;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,7 +31,9 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 		unvisited.remove(toVisit.idx());
 		toVisit.acceptVisitor(this);
 		for (BBlock b: toVisit.succs()) {
-			if (unvisited.contains(b.idx())) {
+			Set<Integer> finalUnvisited = unvisited;
+			if (unvisited.contains(b.idx()) && b.preds().stream().filter(pred -> !pred.getCFG().isDominatedBy(pred, b))
+					.noneMatch(pred -> finalUnvisited.contains(pred.idx()))) {
 				unvisited = this.computeRec(b, unvisited);
 			}
 		}
@@ -50,6 +53,27 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 		BBlock immDom = g.getImmDom(node);
 		assert (immDom != null);
 		node.copyImplicitFlowsFrom(g.getMethod(), immDom.idx());
+
+		IFTreeNode if_ = node.preds().get(0).getIfTree();
+		if (node.preds().get(0).splitsControlFlow()) {
+			if_ = addCFSplit(if_, node.preds().get(0), node);
+		}
+
+		for (int i = 1; i < node.preds().size(); i++) {
+			IFTreeNode predIF = node.preds().get(i).getIfTree();
+			if (node.preds().get(i).splitsControlFlow()) {
+				predIF = addCFSplit(predIF, node.preds().get(i), node);
+			}
+			if_ = new IFTreeNode.OrNode(if_, predIF);
+		}
+		node.setIfTree(if_);
+	}
+
+	private IFTreeNode addCFSplit(IFTreeNode old, BBlock pred, BBlock curr) {
+		SSAInstruction condInstr = pred.getWalaBasicBlock().getLastInstruction();
+		assert (condInstr instanceof SSAConditionalBranchInstruction);
+		return new IFTreeNode.AndNode(old,
+				new IFTreeNode.LeafNode(pred.getCFG().getMethod(), pred.idx(), pred.getTrueTarget() == curr.idx()));
 	}
 
 	@Override public void visitDecisionNode(BBlock node) {

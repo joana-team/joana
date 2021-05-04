@@ -3,11 +3,10 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ssa.SSANewInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
-import edu.kit.joana.util.Triple;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
-import java.util.Stack;
 import java.util.stream.IntStream;
 
 public class Array<T extends Value> extends Value {
@@ -17,6 +16,7 @@ public class Array<T extends Value> extends Value {
 	private Type elementType;
 	private T[] arr;
 	private Formula[][] valueDependencies;
+	private Variable[][] vars;
 
 	public Array(int valNum) {
 		super(valNum);
@@ -24,7 +24,8 @@ public class Array<T extends Value> extends Value {
 		this.setWidth(Type.ARRAY.bitwidth());
 	}
 
-	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars) throws UnexpectedTypeException {
+	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars)
+			throws UnexpectedTypeException {
 		if (t == Type.INTEGER) {
 			Array<Int> array = new Array<>(valNum);
 			array.arr = new Int[LENGTH];
@@ -52,11 +53,12 @@ public class Array<T extends Value> extends Value {
 	}
 
 	private Formula[][] initVars(int length) {
-		Formula[][] initialValues = new Formula[length][this.elementType.bitwidth()];
+		Variable[][] initialValues = new Variable[length][this.elementType.bitwidth()];
 		for (int i = 0; i < length; i++) {
-			Formula[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a"+ i);
+			Variable[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a" + i);
 			initialValues[i] = initValue;
 		}
+		this.vars = initialValues;
 		return initialValues;
 	}
 
@@ -114,6 +116,10 @@ public class Array<T extends Value> extends Value {
 
 	public Formula[][] getValueDependencies() {
 		return valueDependencies;
+	}
+
+	public Variable[][] getArrayVars() {
+		return vars;
 	}
 
 	public void setValueDependencies(Formula[][] deps) {

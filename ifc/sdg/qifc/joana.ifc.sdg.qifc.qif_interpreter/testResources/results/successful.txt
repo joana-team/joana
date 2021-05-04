@@ -51,3 +51,7 @@ testResources/Array4.java
 testResources/Call.java
 testResources/MultipleReturns.java
 testResources/ArrayReturn.java
+testResources/ArrayReturn.java
+testResources/MultipleReturns.java
+testResources/Call.java
+testResources/CallTwice.java

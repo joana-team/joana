@@ -55,3 +55,8 @@ testResources/ArrayReturn.java
 testResources/MultipleReturns.java
 testResources/Call.java
 testResources/CallTwice.java
+testResources/Recursion.java
+testResources/Recursion.java
+testResources/Recursion2.java
+testResources/Fib.java
+testResources/ArrayRecursion.java

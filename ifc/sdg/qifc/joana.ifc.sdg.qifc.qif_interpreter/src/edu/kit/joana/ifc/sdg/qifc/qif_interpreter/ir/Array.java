@@ -72,7 +72,10 @@ public class Array<T extends Value> extends Value {
 			initialValues[i] = initValue;
 		}
 		this.vars = initialValues;
-		return initialValues;
+		Formula[][] asFormulaArray = new Formula[initialValues.length][initialValues[0].length];
+		IntStream.range(0, asFormulaArray.length)
+				.forEach(i -> asFormulaArray[i] = Arrays.copyOfRange(initialValues[i], 0, initialValues[i].length));
+		return asFormulaArray;
 	}
 
 	private Formula[][] initVars(int length, String ident) {
@@ -82,8 +85,11 @@ public class Array<T extends Value> extends Value {
 					.createVars(this.getValNum(), this.elementType.bitwidth(), "a" + i + "_" + ident);
 			initialValues[i] = initValue;
 		}
+		Formula[][] asFormulaArray = new Formula[initialValues.length][initialValues[0].length];
+		IntStream.range(0, asFormulaArray.length)
+				.forEach(i -> asFormulaArray[i] = Arrays.copyOfRange(initialValues[i], 0, initialValues[i].length));
 		this.vars = initialValues;
-		return initialValues;
+		return asFormulaArray;
 	}
 
 	private Formula[][] initZeros(int length) {
@@ -132,7 +138,9 @@ public class Array<T extends Value> extends Value {
 	}
 
 	public void addAssignment(Formula implicitIF, int idx, Formula assignmentCond, Formula[] assignedValue) {
-		this.valueDependencies[idx] = LogicUtil.ternaryOp(LogicUtil.ff.and(implicitIF, assignmentCond), assignedValue, this.valueDependencies[idx]);
+		Formula[] assignment = LogicUtil
+				.ternaryOp(LogicUtil.ff.and(implicitIF, assignmentCond), assignedValue, this.valueDependencies[idx]);
+		this.valueDependencies[idx] = assignment;
 	}
 
 	public Formula[] currentlyAssigned(int idx) {

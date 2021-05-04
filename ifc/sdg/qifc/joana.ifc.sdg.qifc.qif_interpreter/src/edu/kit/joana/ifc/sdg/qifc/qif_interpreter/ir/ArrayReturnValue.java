@@ -30,25 +30,28 @@ public class ArrayReturnValue extends RecursiveReturnValue<Formula[][]> {
 		this.returnValDecisionNoRecursion = new DecisionTree<>(m, true);
 	}
 
-	@Override public Formula[][] getReturnValueForCallSite(SSAInvokeInstruction callSite, Method caller) {
-		if (returnDeps == null) {
-			this.returnDeps = returnValDecision.getDecision(DecisionTree.ARRAY_COMBINATOR);
-		}
-
-		Substitution s = getCallSiteSubstitution(callSite, caller, m, paramValueNums);
-		Formula[][] res = new Formula[returnDeps.length][returnDeps[0].length];
-		IntStream.range(0, res.length).forEach(i -> res[i] = LogicUtil.applySubstitution(returnDeps[i], s));
-		return res;
-	}
-
 	@Override protected Formula[][] substituteAll(Formula[][] returnValueNoRecursion,
 			Map<Integer, Formula[]> primitiveArgsForNextCall, Map<Integer, Formula[][]> arrayArgsForNextCall) {
-		return new Formula[0][];
+		Formula[][] res = new Formula[returnValueNoRecursion.length][returnValueNoRecursion[0].length];
+		Substitution s = new Substitution();
+
+		primitiveArgsForNextCall.keySet()
+				.forEach(k -> s.addMapping(m.getVarsForValue(k), primitiveArgsForNextCall.get(k)));
+		arrayArgsForNextCall.keySet()
+				.forEach(k -> s.addMapping(m.getArray(k).getArrayVars(), arrayArgsForNextCall.get(k)));
+
+		IntStream.range(0, res.length).forEach(i -> res[i] = LogicUtil.applySubstitution(returnValueNoRecursion[i], s));
+		return res;
 	}
 
 	@Override protected Formula[][] substituteReturnValue(Formula[][] containsRecCall, Formula[][] recCallReturnValue,
 			Formula[][] vars) {
-		return new Formula[0][];
+		Formula[][] res = new Formula[containsRecCall.length][containsRecCall[0].length];
+		Substitution s = new Substitution();
+
+		s.addMapping(vars, recCallReturnValue);
+		IntStream.range(0, res.length).forEach(i -> res[i] = LogicUtil.applySubstitution(containsRecCall[i], s));
+		return res;
 	}
 
 	@Override public boolean isArrayType() {
@@ -67,6 +70,9 @@ public class ArrayReturnValue extends RecursiveReturnValue<Formula[][]> {
 	}
 
 	@Override public boolean containsRecursionVar(Formula[][] testValue) {
+		if (!this.isRecursive()) {
+			return false;
+		}
 		return Arrays.stream(testValue)
 				.anyMatch(arr -> Arrays.stream(arr).anyMatch(f -> LogicUtil.containsAny(f, getRecVars())));
 	}

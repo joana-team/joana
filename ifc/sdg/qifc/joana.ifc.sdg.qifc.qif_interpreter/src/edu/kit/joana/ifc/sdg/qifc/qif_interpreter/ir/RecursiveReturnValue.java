@@ -20,8 +20,8 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 	private T returnValVars;
 	private Set<Variable> recVars;
 
-	private Map<Integer, Formula[]> primitiveArgsForNextCall;
-	private Map<Integer, Formula[][]> arrayArgsForNextCall;
+	private Map<Integer, Formula[]> primitiveArgsForNextCall = new HashMap<>();
+	private Map<Integer, Formula[][]> arrayArgsForNextCall = new HashMap<>();
 
 	public void registerRecCall(Method m, SSAInvokeInstruction recCall, T returnValVars) {
 		this.m = m;
@@ -45,7 +45,7 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 	 * @return formulas that represents the return value of the called method
 	 */
 	@Override public T getReturnValueForCallSite(SSAInvokeInstruction callSite, Method caller) {
-		if (this.isRecursive() && isRecursiveCall(callSite)) {
+		if (this.isRecursive()) {
 			return this.getRecursiveReturnValueForCallSite(callSite, caller);
 		} else {
 			return getReturnValueNonRecursiveCallsite(callSite, caller);
@@ -55,13 +55,12 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 	@Override public T getRecursiveReturnValueForCallSite(SSAInvokeInstruction instruction, Method caller) {
 
 		// args w/ which the recursive function was called
-		int[] argValnums = new int[instruction.getNumberOfUses() - 1];
-		for (int j = 0; j < argValnums.length; j++) {
-			if (caller.isArrayType(instruction.getUse(j + 1))) {
-				primitiveArgsForNextCall.put(paramValNums[j], caller.getDepsForValue(instruction.getUse(j + 1)));
-			} else {
+		for (int j = 1; j < instruction.getNumberOfUses(); j++) {
+			if (caller.isArrayType(instruction.getUse(j))) {
 				arrayArgsForNextCall
-						.put(paramValNums[j], caller.getArray(instruction.getUse(j + 1)).getValueDependencies());
+						.put(paramValNums[j - 1], caller.getArray(instruction.getUse(j)).getValueDependencies());
+			} else {
+				primitiveArgsForNextCall.put(paramValNums[j - 1], caller.getDepsForValue(instruction.getUse(j)));
 			}
 		}
 

@@ -52,6 +52,9 @@ public class ReturnValue extends RecursiveReturnValue<Formula[]> {
 	}
 
 	@Override public boolean containsRecursionVar(Formula[] testValue) {
+		if (!this.isRecursive()) {
+			return false;
+		}
 		return Arrays.stream(testValue).anyMatch(f -> LogicUtil.containsAny(f, getRecVars()));
 	}
 

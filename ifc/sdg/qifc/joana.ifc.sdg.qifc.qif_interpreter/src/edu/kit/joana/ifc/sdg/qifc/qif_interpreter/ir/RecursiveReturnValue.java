@@ -4,10 +4,12 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecursiveReturnValue<T> {
 
@@ -16,6 +18,7 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 	private int[] paramValNums;
 	private int[] argValNums;
 	private T returnValVars;
+	private Set<Variable> recVars;
 
 	private Map<Integer, Formula[]> primitiveArgsForNextCall;
 	private Map<Integer, Formula[][]> arrayArgsForNextCall;
@@ -29,6 +32,7 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 			argValNums[i - 1] = recCall.getUse(i);
 		}
 		this.returnValVars = returnValVars;
+		this.recVars = collectRecVars();
 	}
 
 	/**
@@ -126,6 +130,14 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 
 	@Override public boolean isRecursive() {
 		return recCall != null;
+	}
+
+	@Override public Set<Variable> getRecVars() {
+		return this.recVars;
+	}
+
+	@Override public T getReturnValVars() {
+		return this.returnValVars;
 	}
 
 	protected abstract T substituteAll(T returnValueNoRecursion, Map<Integer, Formula[]> primitiveArgsForNextCall,

@@ -1,12 +1,10 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Variable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * SAT Visitor that is used to analyse functions that contain recursive calls
@@ -14,32 +12,37 @@ import java.util.List;
 public class RecursiveFunctionSATVisitor extends SATVisitor {
 
 	private final Method m;
-	private final List<SSAInvokeInstruction> recCalls;
 
 	public RecursiveFunctionSATVisitor(StaticAnalysis staticAnalysis, Method m) {
 		super(staticAnalysis);
 		this.m = m;
-		this.recCalls = new ArrayList<>();
 	}
 
 	@Override public void visitInvoke(SSAInvokeInstruction instruction) {
 		if (m.isCallRecursive(instruction)) {
-			Variable[] newVars = LogicUtil.createVars(instruction.getDef(), m.getReturnType().bitwidth(), "r");
+			if (m.getReturnType().equals(Type.ARRAY)) {
+				try {
+					Array arr = Array.newArray(m.getReturnElementType(), instruction.getDef(), true, "r");
+					m.addValue(instruction.getDef(), arr);
+					((ArrayReturnValue) m.getReturn()).registerRecCall(m, instruction, arr.getArrayVars());
+				} catch (UnexpectedTypeException e) {
+					e.printStackTrace();
+				}
 
-			if (!m.hasValue(instruction.getDef())) {
-				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-						.createPrimitiveByType(instruction.getDef(), m.getReturnType());
-				m.addValue(instruction.getDef(), defVal);
+			} else {
+				Variable[] newVars = LogicUtil.createVars(instruction.getDef(), m.getReturnType().bitwidth(), "r");
+
+				if (!m.hasValue(instruction.getDef())) {
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
+							.createPrimitiveByType(instruction.getDef(), m.getReturnType());
+					m.addValue(instruction.getDef(), defVal);
+				}
+				m.setDepsForvalue(instruction.getDef(), newVars);
+				m.addVarsToValue(instruction.getDef(), newVars);
+				((ReturnValue) m.getReturn()).registerRecCall(m, instruction, newVars);
 			}
-			m.setDepsForvalue(instruction.getDef(), newVars);
-			m.addVarsToValue(instruction.getDef(), newVars);
-			recCalls.add(instruction);
 		} else {
 			super.visitInvoke(instruction);
 		}
-	}
-
-	public List<SSAInvokeInstruction> getRecCalls() {
-		return this.recCalls;
 	}
 }

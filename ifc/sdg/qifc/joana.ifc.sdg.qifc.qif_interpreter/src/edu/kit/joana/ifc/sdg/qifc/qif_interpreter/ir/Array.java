@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class Array<T extends Value> extends Value {
 
-	private static final int LENGTH = Type.INTEGER.bitwidth();
+	public static final int LENGTH = Type.INTEGER.bitwidth();
 
 	private Type elementType;
 	private T[] arr;
@@ -38,6 +38,19 @@ public class Array<T extends Value> extends Value {
 		throw new UnexpectedTypeException(t);
 	}
 
+	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars, String ident)
+			throws UnexpectedTypeException {
+		if (t == Type.INTEGER) {
+			Array<Int> array = new Array<>(valNum);
+			array.arr = new Int[LENGTH];
+			array.elementType = t;
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i] = new Int(i));
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i].setVal(0, -1));
+			array.valueDependencies = (initWithVars) ? array.initVars(LENGTH, ident) : array.initZeros(LENGTH);
+			return array;
+		}
+		throw new UnexpectedTypeException(t);
+	}
 
 	public static Array<? extends Value> newArray(int valNum, Object[] val) throws UnexpectedTypeException {
 		if (val[0] instanceof Integer) {
@@ -62,13 +75,25 @@ public class Array<T extends Value> extends Value {
 		return initialValues;
 	}
 
+	private Formula[][] initVars(int length, String ident) {
+		Variable[][] initialValues = new Variable[length][this.elementType.bitwidth()];
+		for (int i = 0; i < length; i++) {
+			Variable[] initValue = LogicUtil
+					.createVars(this.getValNum(), this.elementType.bitwidth(), "a" + i + "_" + ident);
+			initialValues[i] = initValue;
+		}
+		this.vars = initialValues;
+		return initialValues;
+	}
+
 	private Formula[][] initZeros(int length) {
 		Formula[][] initialValues = new Formula[length][this.elementType.bitwidth()];
 		IntStream.range(0, length).forEach(k -> Arrays.fill(initialValues[k], LogicUtil.ff.constant(false)));
 		return initialValues;
 	}
 
-	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m, boolean initWithVars) throws UnexpectedTypeException {
+	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m, boolean initWithVars)
+			throws UnexpectedTypeException {
 		Value length = m.getValue(instruction.getUse(0));
 		Type content = Type.from(instruction.getConcreteType().getArrayElementType());
 		assert (length.isConstant() & length instanceof Int);

@@ -20,14 +20,12 @@ public class ReturnValue extends RecursiveReturnValue<Formula[]> {
 	private DecisionTree<Formula[]> returnValDecision;
 	private DecisionTree<Formula[]> returnValDecisionNoRecursion;
 	private Formula[] returnDeps;
-	private final Set<Variable> recVars;
 
 	public ReturnValue(Method m) {
 		this.m = m;
 		this.paramValueNums = m.getIr().getParameterValueNumbers();
 		this.returnValDecision = new DecisionTree<>(m, true);
 		this.returnValDecisionNoRecursion = new DecisionTree<>(m, true);
-		this.recVars = new HashSet<>();
 	}
 
 	public Formula[] getReturnValueNonRecursiveCallsite(SSAInvokeInstruction callSite, Method caller) {
@@ -54,7 +52,7 @@ public class ReturnValue extends RecursiveReturnValue<Formula[]> {
 	}
 
 	@Override public boolean containsRecursionVar(Formula[] testValue) {
-		return Arrays.stream(testValue).anyMatch(f -> LogicUtil.containsAny(f, recVars));
+		return Arrays.stream(testValue).anyMatch(f -> LogicUtil.containsAny(f, getRecVars()));
 	}
 
 	@Override public Formula[] getReturnValue() {
@@ -80,5 +78,11 @@ public class ReturnValue extends RecursiveReturnValue<Formula[]> {
 		Substitution s = new Substitution();
 		s.addMapping(vars, recCallReturnValue);
 		return LogicUtil.applySubstitution(containsRecCall, s);
+	}
+
+	@Override public Set<Variable> collectRecVars() {
+		Set<Variable> recVars = new HashSet<>();
+		Arrays.stream(this.getReturnValVars()).map(f -> (Variable) f).forEach(recVars::add);
+		return recVars;
 	}
 }

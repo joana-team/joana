@@ -35,7 +35,7 @@ public class Method {
 	private final List<LoopBody> loops;
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
-	private IReturnValue<? extends Object> rv;
+	private IReturnValue<?> rv;
 	private int recursionDepth;
 
 	public static Method getEntryMethodFromProgram(Program p) {

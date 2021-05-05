@@ -50,3 +50,6 @@ testResources/ArrayParam.java
 testResources/Array4.java
 testResources/Comparison.java
 testResources/If.java
+testResources/Comparison2.java
+testResources/Comparison3.java
+testResources/Loop.java

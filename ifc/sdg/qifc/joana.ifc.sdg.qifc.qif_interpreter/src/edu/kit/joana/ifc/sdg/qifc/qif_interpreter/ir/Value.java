@@ -35,7 +35,7 @@ public abstract class Value {
 		this.vars = vars;
 	}
 
-	public static Value createByType(int valNum, Type type) {
+	public static Value createPrimitiveByType(int valNum, Type type) {
 		switch (type) {
 		case INTEGER:
 			return new Int(valNum);
@@ -66,7 +66,7 @@ public abstract class Value {
 
 	private void checkWidth(int i) {
 		if (i >= this.deps.length) {
-			throw new ArrayIndexOutOfBoundsException("Invald Array Access: Value type only has width " + this.type.bitwidth());
+			throw new ArrayIndexOutOfBoundsException("Invalid Array Access: Value type only has width " + this.type.bitwidth());
 		}
 	}
 

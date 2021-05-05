@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RecursiveFuncReturnValue implements IReturnValue {
+public class RecursiveFuncReturnValue implements IReturnValue<Formula[]> {
 
 	private final Method m;
 	private final SSAInvokeInstruction recCall;
@@ -67,6 +68,14 @@ public class RecursiveFuncReturnValue implements IReturnValue {
 		Substitution s = new Substitution();
 		s.addMapping(m.getVarsForValue(recCall.getDef()), lastRun);
 		return LogicUtil.applySubstitution(singleCall, s);
+	}
+
+	@Override public boolean isArrayType() {
+		return false;
+	}
+
+	@Override public void addReturnSite(SSAReturnInstruction instruction, BBlock b) {
+
 	}
 
 	private Formula[] returnValRecPathNotTaken() {

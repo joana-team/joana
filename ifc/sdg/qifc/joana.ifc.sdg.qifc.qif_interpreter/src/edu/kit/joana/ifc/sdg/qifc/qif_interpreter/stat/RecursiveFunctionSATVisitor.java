@@ -28,7 +28,7 @@ public class RecursiveFunctionSATVisitor extends SATVisitor {
 
 			if (!m.hasValue(instruction.getDef())) {
 				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-						.createByType(instruction.getDef(), m.getReturnType());
+						.createPrimitiveByType(instruction.getDef(), m.getReturnType());
 				m.addValue(instruction.getDef(), defVal);
 			}
 			m.setDepsForvalue(instruction.getDef(), newVars);

@@ -37,9 +37,7 @@ public class LoopBody {
 		this.placeholderArrayVars = new HashMap<>();
 
 		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
-		Boolean evalTo = insideLoopSuccessor.getImplicitFlows().stream().filter(p -> p.fst == head.idx()).findFirst()
-				.get().snd;
-		assert (evalTo != null);
+		boolean evalTo = head.getTrueTarget() == insideLoopSuccessor.idx();
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
 	}
 

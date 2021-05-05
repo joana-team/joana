@@ -5,4 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
 public class UnexpectedTypeException extends Exception {
 	public UnexpectedTypeException(Type type) {
 	}
+
+	public UnexpectedTypeException(String type) {
+	}
 }

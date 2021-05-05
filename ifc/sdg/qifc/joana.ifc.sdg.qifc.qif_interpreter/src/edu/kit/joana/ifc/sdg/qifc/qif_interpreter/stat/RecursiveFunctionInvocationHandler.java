@@ -16,9 +16,6 @@ public class RecursiveFunctionInvocationHandler implements IInvocationHandler {
 		RecursiveFunctionSATVisitor sv = new RecursiveFunctionSATVisitor(sa, callee);
 		sa.computeSATDeps(callee, sv);
 
-		RecursiveFuncReturnValue rv = new RecursiveFuncReturnValue(callee, sv.getRecCalls());
-		callee.registerReturnValue(rv);
-
 		return callee;
 	}
 }

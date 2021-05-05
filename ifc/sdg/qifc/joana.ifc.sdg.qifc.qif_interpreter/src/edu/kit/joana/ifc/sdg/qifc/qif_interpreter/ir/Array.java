@@ -37,6 +37,20 @@ public class Array<T extends Value> extends Value {
 		throw new UnexpectedTypeException(t);
 	}
 
+
+	public static Array<? extends Value> newArray(int valNum, Object[] val) throws UnexpectedTypeException {
+		if (val[0] instanceof Integer) {
+			Array<Int> array = new Array<>(valNum);
+			array.arr = new Int[LENGTH];
+			array.elementType = Type.INTEGER;
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i] = new Int(i));
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i].setVal(val[i], -1));
+			array.valueDependencies = array.initZeros(LENGTH);
+			return array;
+		}
+		throw new UnexpectedTypeException(Object.class.toString());
+	}
+
 	private Formula[][] initVars(int length) {
 		Formula[][] initialValues = new Formula[length][this.elementType.bitwidth()];
 		for (int i = 0; i < length; i++) {
@@ -115,5 +129,17 @@ public class Array<T extends Value> extends Value {
 		String[] currentVal = new String[length()];
 		IntStream.range(0, currentVal.length).forEach(i -> currentVal[i] = this.arr[i].getValAsString());
 		return Arrays.toString(currentVal);
+	}
+
+	public void setVal(Object[] val, int recursionDepth) {
+		assert(val.length == this.length());
+		IntStream.range(0, val.length).forEach(i -> this.arr[i].setVal(val[i], recursionDepth));
+	}
+
+	@Override
+	public Object[] getVal() {
+		Object[] val = new Object[this.length()];
+		IntStream.range(0, length()).forEach(i -> val[i] = this.arr[i].getVal());
+		return val;
 	}
 }

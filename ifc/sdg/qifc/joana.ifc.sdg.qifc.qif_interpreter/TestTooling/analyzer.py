@@ -19,6 +19,7 @@ def collect_results(path, possible_args):
     results = {}
     for args in possible_args:
         res = execute(args, path)
+        print("in " + ''.join(str(args)) + " -- out: " + res)
         if res == "2\n1\n1":
             print(args)
         if res not in results.keys():

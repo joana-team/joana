@@ -5,6 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,13 +40,13 @@ class ImplicitIFVisitorTest {
 		assertEquals(1, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().size());
 		assertEquals(1, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().size());
 
-		assertEquals(2, p.getEntryMethod().getCFG().getBlock(3).getImplicitFlows().get(0).fst);
-		assertEquals(2, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().get(0).fst);
-		assertEquals(2, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().get(0).fst);
+		assertEquals(2, p.getEntryMethod().getCFG().getBlock(3).getImplicitFlows().first().fst);
+		assertEquals(2, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().first().fst);
+		assertEquals(2, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().first().fst);
 
-		assertEquals(false, p.getEntryMethod().getCFG().getBlock(3).getImplicitFlows().get(0).snd);
-		assertEquals(false, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().get(0).snd);
-		assertEquals(true, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().get(0).snd);
+		assertEquals(false, p.getEntryMethod().getCFG().getBlock(3).getImplicitFlows().first().snd);
+		assertEquals(false, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().first().snd);
+		assertEquals(true, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().first().snd);
 	}
 
 	@Test void implicitFlowTestLoop() throws IOException, InterruptedException {
@@ -68,14 +69,14 @@ class ImplicitIFVisitorTest {
 		assertEquals(1, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().size());
 		assertEquals(1, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().size());
 
-		p.getEntryMethod().getCFG().getBlocks().stream().filter(b -> b.getImplicitFlows().size() > 1).forEach(b -> assertEquals(2, b.getImplicitFlows().get(0).fst));
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(b -> b.getImplicitFlows().size() > 1).forEach(b -> assertEquals(2, b.getImplicitFlows().first().fst));
 
-		assertEquals(false, p.getEntryMethod().getCFG().getBlock(3).getImplicitFlows().get(0).snd);
-		assertEquals(false, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().get(0).snd);
-		assertEquals(true, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().get(0).snd);
-		assertEquals(true, p.getEntryMethod().getCFG().getBlock(4).getImplicitFlows().get(0).snd);
-		assertEquals(true, p.getEntryMethod().getCFG().getBlock(6).getImplicitFlows().get(0).snd);
-		assertEquals(true, p.getEntryMethod().getCFG().getBlock(5).getImplicitFlows().get(0).snd);
+		assertEquals(false, p.getEntryMethod().getCFG().getBlock(3).getImplicitFlows().first().snd);
+		assertEquals(false, p.getEntryMethod().getCFG().getBlock(-3).getImplicitFlows().first().snd);
+		assertEquals(true, p.getEntryMethod().getCFG().getBlock(-2).getImplicitFlows().first().snd);
+		assertEquals(true, p.getEntryMethod().getCFG().getBlock(4).getImplicitFlows().first().snd);
+		assertEquals(true, p.getEntryMethod().getCFG().getBlock(6).getImplicitFlows().first().snd);
+		assertEquals(true, p.getEntryMethod().getCFG().getBlock(5).getImplicitFlows().first().snd);
 	}
 
 	@Test void implicitFlowTestIfinIf() throws IOException, InterruptedException {
@@ -112,7 +113,7 @@ class ImplicitIFVisitorTest {
 
 		System.out.println("Values");
 		p.getEntryMethod().getProgramValues().keySet()
-				.forEach(i -> System.out.println(i + " " + p.getEntryMethod().getDepsForValue(i)));
+				.forEach(i -> System.out.println(i + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(i))));
 
 		p.getEntryMethod().getCFG().getBlocks().forEach(b -> System.out.println(b.idx() + " " + b.getImplicitFlows()));
 

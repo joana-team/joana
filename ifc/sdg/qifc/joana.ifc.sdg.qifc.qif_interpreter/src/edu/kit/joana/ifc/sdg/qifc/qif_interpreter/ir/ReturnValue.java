@@ -1,72 +1,50 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
-import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSAReturnInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 
-import java.util.stream.IntStream;
-
-public class ReturnValue implements IReturnValue {
+public class ReturnValue implements IReturnValue<Formula[]> {
 
 	private final Method m;
 	int[] paramValueNums;
+	DecisionTree<Formula[]> returnValDecision;
 	Formula[] returnDeps;
 
 	public ReturnValue(Method m) {
 		this.m = m;
 		this.paramValueNums = m.getIr().getParameterValueNumbers();
-		this.returnDeps = computeReturnDeps(m);
+		this.returnValDecision = new DecisionTree<>(m, true);
 	}
 
+	/**
+	 * computes formulas that represents the return value of the called method {@code m} @ callsite {@code callsite} by {@code caller}.
+	 *
+	 * Result is computed by obtaining the used arguments from {@code caller} and substituting those values in for the parameter variables of {@code returnDeps}
+	 *
+	 * @param callSite invokeInstruction where the return value is used
+	 * @param caller Method that calls the function. Has to contain value dependencies for the arguments used in {@code callSite}
+	 * @return formulas that represents the return value of the called method
+	 */
 	@Override public Formula[] getReturnValueForCallSite(SSAInvokeInstruction callSite, Method caller) {
-		// create variable substitution for args @ callsite
-		Substitution s = new Substitution();
-		int[] argValueNum = new int[callSite.getNumberOfUses()];
-		IntStream.range(0, argValueNum.length).forEach(i -> argValueNum[i] = callSite.getUse(i));
-
-		// idx 0 is this-reference --> skip
-		for (int i = 1; i < m.getParamNum(); i++) {
-			if (caller.isArrayType(argValueNum[i])) {
-				Formula[][] valDeps = caller.getArray(argValueNum[i]).getValueDependencies();
-				int finalI = i;
-				IntStream.range(0, valDeps.length).forEach(k -> s.addMapping(m.getArray(paramValueNums[finalI]).getValueDependencies()[k], valDeps[k]));
-			} else {
-				s.addMapping(m.getDepsForValue(paramValueNums[i]), caller.getDepsForValue(argValueNum[i]));
-			}
+		if (returnDeps == null) {
+			returnDeps = returnValDecision.getDecision(DecisionTree.INT_COMBINATOR);
 		}
+		Substitution s = getCallSiteSubstitution(callSite, caller, m, paramValueNums);
 		return LogicUtil.applySubstitution(returnDeps, s);
 	}
 
-	// creates a Formula that describes the return value of the function
-	private Formula[] computeReturnDeps(Method callee) {
-		return computeReturnDepsRec(callee, callee.getCFG().entry());
+	@Override public boolean isArrayType() {
+		return false;
 	}
 
-	private Formula[] computeReturnDepsRec(Method callee, BBlock b) {
-		if (b.isReturnBlock()) {
-			return callee.getDepsForValue(b.getReturn().getUse(0));
-		} else if (b.isCondHeader()) {
-			SSAConditionalBranchInstruction condJmp = (SSAConditionalBranchInstruction) b.getWalaBasicBlock()
-					.getLastInstruction();
-			int blockIfTrue = condJmp.getTarget();
-			BBlock trueTarget = b.succs().stream().map(dummy -> dummy.succs().get(0))
-					.filter(s -> s.getWalaBasicBlock().getFirstInstructionIndex() == blockIfTrue).findFirst().get();
-			BBlock falseTarget = b.succs().stream().map(dummy -> dummy.succs().get(0))
-					.filter(s -> s.getWalaBasicBlock().getFirstInstructionIndex() != blockIfTrue).findFirst().get();
-			return LogicUtil.ternaryOp(b.getCondExpr(), computeReturnDepsRec(callee, trueTarget),
-					computeReturnDepsRec(callee, falseTarget));
-		} else {
-			assert (b.succs().stream()
-					.filter(s -> !s.getWalaBasicBlock().isCatchBlock())
-					.filter(s -> !s.getWalaBasicBlock().isExitBlock())
-					.count() == 1);
-			return computeReturnDepsRec(callee,
-					b.succs().stream()
-							.filter(s -> !s.getWalaBasicBlock().isCatchBlock())
-							.filter(s -> !s.getWalaBasicBlock().isExitBlock())
-							.findFirst().get());
-		}
+	@Override
+	public void addReturnSite(SSAReturnInstruction instruction, BBlock b) {
+		int returnedValNum = instruction.getResult();
+		Formula[] returnedValue = m.getDepsForValue(returnedValNum);
+		this.returnValDecision = this.returnValDecision.addLeaf(b.idx(), returnedValue, b.getImplicitFlows());
 	}
 }

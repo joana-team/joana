@@ -13,9 +13,6 @@ public class InvocationHandler implements IInvocationHandler {
 		StaticAnalysis sa = new StaticAnalysis(p);
 		sa.computeSATDeps(callee);
 
-		ReturnValue rv = new ReturnValue(callee);
-		callee.registerReturnValue(rv);
-
 		return callee;
 	}
 }

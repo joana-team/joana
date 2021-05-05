@@ -2,9 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.ssa.*;
-import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
 
@@ -19,12 +17,6 @@ public class BBlock implements DotNode {
 	private final SSACFG.BasicBlock walaBBlock;
 	private final CFG g;
 	private final List<SSAInstruction> instructions;
-	/**
-	 * describes which blocks' conditional jumps influence if this block will be executed or not.
-	 * The first element of the pair refers to the block indices, the second element states whether
-	 * the conditional jump condition needs to be true or false for this block to be executed
-	 */
-	private final List<Pair<Integer, Boolean>> implicitFlows;
 	private IFTreeNode ifTree;
 	private final int idx;
 	private final boolean isDummy;
@@ -47,7 +39,6 @@ public class BBlock implements DotNode {
 				.collect(Collectors.toList());
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
-		this.implicitFlows = new ArrayList<>();
 		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.isDummy = false;
 		this.idx = walaBBlock.getNumber();
@@ -61,7 +52,6 @@ public class BBlock implements DotNode {
 		this.instructions = new ArrayList<>();
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
-		this.implicitFlows = new ArrayList<>();
 		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.idx = idx;
 		this.g = g;
@@ -128,15 +118,6 @@ public class BBlock implements DotNode {
 			ISSABasicBlock b = it.next();
 			this.preds.add(g.repMap().get(b));
 		}
-	}
-
-	public static Formula generateImplicitFlowFormula(List<Pair<Integer, Boolean>> flows, CFG g) {
-		Formula iff = LogicUtil.ff.constant(true);
-		for (Pair<Integer, Boolean> p : flows) {
-			Formula x = g.getBlock(p.fst).condExpr;
-			iff = LogicUtil.ff.and(iff, (p.snd) ? x : LogicUtil.ff.not(x));
-		}
-		return iff;
 	}
 
 	public Formula generateImplicitFlowFormula() {
@@ -255,18 +236,6 @@ public class BBlock implements DotNode {
 		} else {
 			v.visitStandardNode(this);
 		}
-	}
-
-	public void addImplicitFlow(int blockIdx, boolean condition) {
-		this.implicitFlows.add(Pair.make(blockIdx, condition));
-	}
-
-	public void copyImplicitFlowsFrom(Method m, int blockIdx) {
-		this.implicitFlows.addAll(BBlock.getBlockForIdx(m, blockIdx).getImplicitFlows());
-	}
-
-	public List<Pair<Integer, Boolean>> getImplicitFlows() {
-		return this.implicitFlows;
 	}
 
 	public Formula getCondExpr() {

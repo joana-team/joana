@@ -53,3 +53,4 @@ testResources/If.java
 testResources/Comparison2.java
 testResources/Comparison3.java
 testResources/Loop.java
+testResources/Comparison2.java

@@ -49,10 +49,6 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 	}
 
 	@Override public void visitStandardNode(BBlock node) {
-		// copy the implicit flows from our immediate dominator
-		BBlock immDom = g.getImmDom(node);
-		assert (immDom != null);
-		node.copyImplicitFlowsFrom(g.getMethod(), immDom.idx());
 
 		IFTreeNode if_ = node.preds().get(0).getIfTree();
 		if (node.preds().get(0).splitsControlFlow()) {
@@ -79,18 +75,6 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 	@Override public void visitDecisionNode(BBlock node) {
 		// no special handling necessary for this node
 		visitStandardNode(node);
-
-		// add the new implicit information that we gain by splitting the CF to our successors
-		SSAInstruction condInstr = node.getWalaBasicBlock().getLastInstruction();
-		assert (condInstr instanceof SSAConditionalBranchInstruction);
-
-		int trueTarget = g.getMethod().getBlockStartingAt(((SSAConditionalBranchInstruction) condInstr).getTarget())
-				.idx();
-		assert (node.succs().size() == 2);
-		for (BBlock succ : node.succs()) {
-			BBlock nonDummySucc = succ.succs().get(0);
-			succ.addImplicitFlow(node.idx(), nonDummySucc.idx() == trueTarget);
-		}
 	}
 
 	@Override public void visitDummyNode(BBlock node) {

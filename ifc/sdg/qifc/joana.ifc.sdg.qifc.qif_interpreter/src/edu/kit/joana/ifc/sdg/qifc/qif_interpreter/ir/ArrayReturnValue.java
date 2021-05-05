@@ -40,6 +40,7 @@ public class ArrayReturnValue implements IReturnValue<Formula[][]> {
 	@Override public void addReturnSite(SSAReturnInstruction instruction, BBlock b) {
 		int returnedValNum = instruction.getResult();
 		Formula[][] returnedValue = m.getArray(returnedValNum).getValueDependencies();
-		this. returnValDecision = this.returnValDecision.addLeaf(b.idx(), returnedValue, b.getImplicitFlows());
+		// TODO let returnvalues handle iftrees
+		this. returnValDecision = this.returnValDecision.addLeaf(b.idx(), returnedValue, null);
 	}
 }

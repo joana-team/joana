@@ -45,6 +45,7 @@ public class ReturnValue implements IReturnValue<Formula[]> {
 	public void addReturnSite(SSAReturnInstruction instruction, BBlock b) {
 		int returnedValNum = instruction.getResult();
 		Formula[] returnedValue = m.getDepsForValue(returnedValNum);
-		this.returnValDecision = this.returnValDecision.addLeaf(b.idx(), returnedValue, b.getImplicitFlows());
+		// TODO what to do with implicit flows ???
+		this.returnValDecision = this.returnValDecision.addLeaf(b.idx(), returnedValue, null);
 	}
 }

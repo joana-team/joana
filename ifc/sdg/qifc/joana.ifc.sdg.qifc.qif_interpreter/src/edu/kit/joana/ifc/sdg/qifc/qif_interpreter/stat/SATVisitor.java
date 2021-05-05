@@ -156,7 +156,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 	@Override public void visitReturn(SSAReturnInstruction instruction) {
 		if (!instruction.returnsVoid()) {
-			/// m.getReturn().addReturnSite(instruction, block);
+			m.getReturn().addReturnSite(instruction, block);
 		}
 	}
 

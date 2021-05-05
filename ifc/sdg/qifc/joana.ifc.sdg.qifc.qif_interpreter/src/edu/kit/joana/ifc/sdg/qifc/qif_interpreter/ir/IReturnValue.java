@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSAReturnInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.TernaryOperator;
 import org.logicng.formulas.Formula;
 
 import java.util.stream.IntStream;
@@ -14,6 +15,8 @@ public interface IReturnValue<T> {
 	boolean isArrayType();
 
 	boolean isRecursive();
+
+	TernaryOperator<T> getOperator();
 
 	default Substitution getCallSiteSubstitution(SSAInvokeInstruction callSite, Method caller, Method callee,
 			int[] params) {

@@ -5,7 +5,9 @@ import sys
 
 import util
 
-ignored = ["testResources/PrintInCall.java"]
+ignored = ["testResources/PrintInCall.java", "testResources/Recursion2.java", "testResources/Array3.java",
+           "testResources/Recursion.java", "testResources/ArrayRecursion.java", "testResources/Fib.java",
+           "testResources/Loop4.java", "testResources/Loop5.java"]
 
 def run_test(args, path):
     cwd = os.getcwd()

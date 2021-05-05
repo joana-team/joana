@@ -1,15 +1,15 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.TernaryOperator;
+import edu.kit.joana.util.Triple;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecursiveReturnValue<T> {
 
@@ -19,6 +19,9 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 	private int[] argValNums;
 	private T returnValVars;
 	private Set<Variable> recVars;
+
+	private final TreeSet<Triple<Integer, Formula, T>> possibleReturns = new TreeSet<>(
+			Comparator.comparing(Triple::getLeft));
 
 	private Map<Integer, Formula[]> primitiveArgsForNextCall = new HashMap<>();
 	private Map<Integer, Formula[][]> arrayArgsForNextCall = new HashMap<>();
@@ -121,6 +124,25 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 			s.addMapping(m.getArray(i).getArrayVars(), arrArgs.get(i));
 		}
 		return s;
+	}
+
+	public void addReturn(Triple<Integer, Formula, T> newReturn) {
+		this.possibleReturns.add(newReturn);
+	}
+
+	@Override
+	public T getReturnValue() {
+		if (this.possibleReturns.size() == 1) {
+			return this.possibleReturns.first().getRight();
+		} else {
+			T last = this.possibleReturns.last().getRight();
+			Iterator<Triple<Integer, Formula, T>> iter = this.possibleReturns.descendingIterator();
+			while(iter.hasNext()) {
+				Triple<Integer, Formula, T> next = iter.next();
+				last = this.getOperator().apply(next.getMiddle(), next.getRight(), last);
+			}
+			return last;
+		}
 	}
 
 	@Override public boolean isRecursiveCall(SSAInvokeInstruction call) {

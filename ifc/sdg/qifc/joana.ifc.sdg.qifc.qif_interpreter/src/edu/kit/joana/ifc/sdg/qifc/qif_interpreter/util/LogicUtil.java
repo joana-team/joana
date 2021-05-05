@@ -336,4 +336,14 @@ public class LogicUtil {
 	public static Formula applySubstitution(Formula f, Substitution s) {
 		return f.substitute(s.toLogicNGSubstitution());
 	}
+
+	public static boolean containsAny(Formula f, Set<Variable> vars) {
+		return vars.stream().anyMatch(f::containsVariable);
+	}
+
+	public static Formula[][] applySubstitution(Formula[][] f, Substitution s) {
+		Formula[][] res = new Formula[f.length][f[0].length];
+		IntStream.range(0, res.length).forEach(i -> res[i] = applySubstitution(f[i], s));
+		return res;
+	}
 }

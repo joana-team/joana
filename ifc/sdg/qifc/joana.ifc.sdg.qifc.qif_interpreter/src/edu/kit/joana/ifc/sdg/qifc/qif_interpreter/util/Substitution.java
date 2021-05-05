@@ -44,4 +44,10 @@ public class Substitution {
 		this.subst.forEach(s::addMapping);
 		return s;
 	}
+
+	public void addMapping(Formula[][] vars, Formula[][] formulas) {
+		for (int i = 0; i < vars.length; i++) {
+			this.addMapping(vars[i], formulas[i]);
+		}
+	}
 }

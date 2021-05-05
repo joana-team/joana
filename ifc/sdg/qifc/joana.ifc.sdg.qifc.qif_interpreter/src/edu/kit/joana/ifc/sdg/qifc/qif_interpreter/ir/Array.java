@@ -3,20 +3,20 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ssa.SSANewInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
-import edu.kit.joana.util.Triple;
 import org.logicng.formulas.Formula;
+import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
-import java.util.Stack;
 import java.util.stream.IntStream;
 
 public class Array<T extends Value> extends Value {
 
-	private static final int LENGTH = Type.INTEGER.bitwidth();
+	public static final int LENGTH = Type.INTEGER.bitwidth();
 
 	private Type elementType;
 	private T[] arr;
 	private Formula[][] valueDependencies;
+	private Variable[][] vars;
 
 	public Array(int valNum) {
 		super(valNum);
@@ -24,7 +24,8 @@ public class Array<T extends Value> extends Value {
 		this.setWidth(Type.ARRAY.bitwidth());
 	}
 
-	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars) throws UnexpectedTypeException {
+	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars)
+			throws UnexpectedTypeException {
 		if (t == Type.INTEGER) {
 			Array<Int> array = new Array<>(valNum);
 			array.arr = new Int[LENGTH];
@@ -37,6 +38,19 @@ public class Array<T extends Value> extends Value {
 		throw new UnexpectedTypeException(t);
 	}
 
+	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars, String ident)
+			throws UnexpectedTypeException {
+		if (t == Type.INTEGER) {
+			Array<Int> array = new Array<>(valNum);
+			array.arr = new Int[LENGTH];
+			array.elementType = t;
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i] = new Int(i));
+			IntStream.range(0, LENGTH).forEach(i -> array.arr[i].setVal(0, -1));
+			array.valueDependencies = (initWithVars) ? array.initVars(LENGTH, ident) : array.initZeros(LENGTH);
+			return array;
+		}
+		throw new UnexpectedTypeException(t);
+	}
 
 	public static Array<? extends Value> newArray(int valNum, Object[] val) throws UnexpectedTypeException {
 		if (val[0] instanceof Integer) {
@@ -52,12 +66,30 @@ public class Array<T extends Value> extends Value {
 	}
 
 	private Formula[][] initVars(int length) {
-		Formula[][] initialValues = new Formula[length][this.elementType.bitwidth()];
+		Variable[][] initialValues = new Variable[length][this.elementType.bitwidth()];
 		for (int i = 0; i < length; i++) {
-			Formula[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a"+ i);
+			Variable[] initValue = LogicUtil.createVars(this.getValNum(), this.elementType.bitwidth(), "a" + i);
 			initialValues[i] = initValue;
 		}
-		return initialValues;
+		this.vars = initialValues;
+		Formula[][] asFormulaArray = new Formula[initialValues.length][initialValues[0].length];
+		IntStream.range(0, asFormulaArray.length)
+				.forEach(i -> asFormulaArray[i] = Arrays.copyOfRange(initialValues[i], 0, initialValues[i].length));
+		return asFormulaArray;
+	}
+
+	private Formula[][] initVars(int length, String ident) {
+		Variable[][] initialValues = new Variable[length][this.elementType.bitwidth()];
+		for (int i = 0; i < length; i++) {
+			Variable[] initValue = LogicUtil
+					.createVars(this.getValNum(), this.elementType.bitwidth(), "a" + i + "_" + ident);
+			initialValues[i] = initValue;
+		}
+		Formula[][] asFormulaArray = new Formula[initialValues.length][initialValues[0].length];
+		IntStream.range(0, asFormulaArray.length)
+				.forEach(i -> asFormulaArray[i] = Arrays.copyOfRange(initialValues[i], 0, initialValues[i].length));
+		this.vars = initialValues;
+		return asFormulaArray;
 	}
 
 	private Formula[][] initZeros(int length) {
@@ -66,7 +98,8 @@ public class Array<T extends Value> extends Value {
 		return initialValues;
 	}
 
-	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m, boolean initWithVars) throws UnexpectedTypeException {
+	public static Array<? extends Value> newArray(SSANewInstruction instruction, Method m, boolean initWithVars)
+			throws UnexpectedTypeException {
 		Value length = m.getValue(instruction.getUse(0));
 		Type content = Type.from(instruction.getConcreteType().getArrayElementType());
 		assert (length.isConstant() & length instanceof Int);
@@ -105,7 +138,9 @@ public class Array<T extends Value> extends Value {
 	}
 
 	public void addAssignment(Formula implicitIF, int idx, Formula assignmentCond, Formula[] assignedValue) {
-		this.valueDependencies[idx] = LogicUtil.ternaryOp(LogicUtil.ff.and(implicitIF, assignmentCond), assignedValue, this.valueDependencies[idx]);
+		Formula[] assignment = LogicUtil
+				.ternaryOp(LogicUtil.ff.and(implicitIF, assignmentCond), assignedValue, this.valueDependencies[idx]);
+		this.valueDependencies[idx] = assignment;
 	}
 
 	public Formula[] currentlyAssigned(int idx) {
@@ -114,6 +149,10 @@ public class Array<T extends Value> extends Value {
 
 	public Formula[][] getValueDependencies() {
 		return valueDependencies;
+	}
+
+	public Variable[][] getArrayVars() {
+		return vars;
 	}
 
 	public void setValueDependencies(Formula[][] deps) {

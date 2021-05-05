@@ -10,6 +10,7 @@ import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecursiveReturnValue<T> {
 
@@ -132,11 +133,19 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 
 	@Override
 	public T getReturnValue() {
-		if (this.possibleReturns.size() == 1) {
-			return this.possibleReturns.first().getRight();
+		return computeReturnValue(this.possibleReturns);
+	}
+
+	@Override public T getReturnValueNoRecursion() {
+		return computeReturnValue(this.possibleReturns.stream().filter(t -> !containsRecursionVar(t.getRight())).collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Triple::getLeft)))));
+	}
+
+	private T computeReturnValue(TreeSet<Triple<Integer, Formula, T>> possibleReturns) {
+		if (possibleReturns.size() == 1) {
+			return possibleReturns.first().getRight();
 		} else {
-			T last = this.possibleReturns.last().getRight();
-			Iterator<Triple<Integer, Formula, T>> iter = this.possibleReturns.descendingIterator();
+			T last = possibleReturns.last().getRight();
+			Iterator<Triple<Integer, Formula, T>> iter = possibleReturns.descendingIterator();
 			while(iter.hasNext()) {
 				Triple<Integer, Formula, T> next = iter.next();
 				last = this.getOperator().apply(next.getMiddle(), next.getRight(), last);

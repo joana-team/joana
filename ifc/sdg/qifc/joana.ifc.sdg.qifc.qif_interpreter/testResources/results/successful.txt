@@ -46,3 +46,10 @@ testResources/CallTwice.java
 testResources/MultipleReturns.java
 testResources/CallInCall.java
 testResources/MultipleReturns2.java
+testResources/Recursion.java
+testResources/Recursion2.java
+testResources/Recursion4.java
+testResources/ArrayRecursion.java
+testResources/Recursion3.java
+testResources/Recursion3.java
+testResources/Fib.java

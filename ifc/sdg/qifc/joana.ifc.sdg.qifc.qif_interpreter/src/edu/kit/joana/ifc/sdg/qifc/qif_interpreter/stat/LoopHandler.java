@@ -30,6 +30,7 @@ public class LoopHandler {
 
 		assert (head.isLoopHeader());
 		LoopBody loop = new LoopBody(m, head);
+		extractDeps(m, head, loop);
 
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
@@ -90,8 +91,7 @@ public class LoopHandler {
 					.filter(succ -> !succ.equals(afterLoop)).filter(succ -> !breakSuccessors.contains(succ))
 					.forEach(breakSuccessors::add);
 		}
-
-		extractDeps(m, head, loop);
+		extractOutDeps(m, head, loop);
 		computeRuns(loop, m, loopUnrollingMax);
 
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
@@ -168,8 +168,32 @@ public class LoopHandler {
 		// copy deps to loop
 		for (SSAInstruction i : head.instructions()) {
 			if (i instanceof SSAPhiInstruction) {
-				loop.addOutDeps(i.getDef(), i.getUse(argNum));
+				loop.addInDeps(i.getDef(), m.getVarsForValue(i.getDef()));
+				// loop.addOutDeps(i.getDef(), i.getUse(argNum));
+				loop.addResultMapping(i.getDef(), i.getUse(argNum));
 				loop.addBeforeLoopDeps(i.getDef(), m.getDepsForValue(i.getUse(1 - argNum)));
+			}
+		}
+		loop.generateInitialValueSubstitution();
+	}
+
+	private static void extractOutDeps(Method m, BBlock head, LoopBody loop) {
+		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG().getPredNodes(head.getWalaBasicBlock());
+
+		// find position i of the phi-use value that belongs to the head's in-loop predecessor
+		int argNum = 0;
+		while (orderedPredsIter.hasNext()) {
+			int blockNum = orderedPredsIter.next().getNumber();
+			if (loop.getBlocks().stream().anyMatch(b -> b.idx() == blockNum)) {
+				break;
+			}
+			argNum++;
+		}
+
+		// copy deps to loop
+		for (SSAInstruction i : head.instructions()) {
+			if (i instanceof SSAPhiInstruction) {
+				loop.addOutDeps(i.getDef(), i.getUse(argNum));
 			}
 		}
 		loop.generateInitialValueSubstitution();

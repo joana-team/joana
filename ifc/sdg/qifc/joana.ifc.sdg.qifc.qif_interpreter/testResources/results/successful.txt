@@ -57,3 +57,6 @@ testResources/Array5.java
 testResources/Comparison4.java
 testResources/Array6.java
 testResources/Array3.java
+testResources/Array3.java
+testResources/Loop4.java
+testResources/Loop5.java

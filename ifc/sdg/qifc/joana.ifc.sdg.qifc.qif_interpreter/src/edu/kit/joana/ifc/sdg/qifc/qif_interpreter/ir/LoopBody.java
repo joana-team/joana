@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAPhiInstruction;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -17,6 +17,7 @@ public class LoopBody {
 	private final Map<Integer, Formula[]> in;
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
+	private final BiMap<Integer, Integer> resultMapping;
 	private DecisionTree<Map<Integer, Formula[]>> outDT;
 	private final Map<Integer, Array<? extends Value>> placeholderArrays;
 	private final Map<Integer, Formula[][]> placeholderArrayVars;
@@ -32,6 +33,7 @@ public class LoopBody {
 		this.owner = owner;
 		this.in = new HashMap<>();
 		this.out = new HashMap<>();
+		this.resultMapping = HashBiMap.create();
 		this.runs = new HashMap<>();
 		this.beforeLoop = new HashMap<>();
 		this.head = head;
@@ -44,11 +46,6 @@ public class LoopBody {
 		boolean evalTo = head.getTrueTarget() == insideLoopSuccessor.idx();
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
 
-		for (SSAInstruction i : head.instructions()) {
-			if (i instanceof SSAPhiInstruction) {
-				this.addInDeps(i.getDef(), owner.getVarsForValue(i.getDef()));
-			}
-		}
 	}
 
 	private List<BBlock> findBreaks() {
@@ -121,7 +118,7 @@ public class LoopBody {
 
 		// primitive values
 		for (int i: this.in.keySet()) {
-			res.addPrimitiveVal(i, LogicUtil.applySubstitution(this.out.get(i), substituteInputs));
+			res.addPrimitiveVal(i, LogicUtil.applySubstitution(getOut(i), substituteInputs));
 		}
 
 		// array values
@@ -138,6 +135,20 @@ public class LoopBody {
 		res.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(this.jumpOut, substituteOutputs));
 
 		return res;
+	}
+
+	private Formula[] getOut(int valnum) {
+		Formula[] mappedTo = this.out.get(valnum);
+
+		Formula wasCalculated;
+		if (!owner.isConstant(valnum)) {
+			BBlock definedIn = this.blocks.stream().filter(b -> b.ownsValue(resultMapping.get(valnum))).findFirst().get();
+			wasCalculated = definedIn.generateImplicitFlowFormula();
+		} else {
+			wasCalculated = LogicUtil.ff.constant(true);
+		}
+		mappedTo = LogicUtil.ternaryOp(wasCalculated, mappedTo, this.in.get(valnum));
+		return mappedTo;
 	}
 
 	public void createPlaceholderArray(int valNum) {
@@ -193,6 +204,10 @@ public class LoopBody {
 		this.beforeLoop.put(in, deps);
 	}
 
+	public void addResultMapping(int in, int out) {
+		this.resultMapping.put(in, out);
+	}
+
 	public boolean producesValNum(int valNum) {
 		return this.in.containsKey(valNum);
 	}
@@ -211,7 +226,7 @@ public class LoopBody {
 
 	public Formula getJumpOut() {
 		BBlock inLoopPred = head.preds().stream().filter(pred -> this.hasBlock(pred.idx())).findFirst().get();
-		return this.jumpOut;
+		return LogicUtil.ff.or(LogicUtil.ff.not(inLoopPred.generateImplicitFlowFormula()),this.jumpOut);
 	}
 
 	public Method getOwner() {

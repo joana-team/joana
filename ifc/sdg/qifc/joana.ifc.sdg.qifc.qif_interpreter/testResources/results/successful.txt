@@ -53,3 +53,7 @@ testResources/ArrayRecursion.java
 testResources/Recursion3.java
 testResources/Recursion3.java
 testResources/Fib.java
+testResources/Array5.java
+testResources/Comparison4.java
+testResources/Array6.java
+testResources/Array3.java

@@ -339,20 +339,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		BBlock predZero = block.preds().get(0);
 
-		BBlock condBlock = m.getCFG().getImmDom(block);
-		assert (condBlock.isCondHeader());
-		// trueTarget will be a "proper" basic block, however we have inserted dummy blocks between the conditional head and the target block.
-		// So instead of the target block we access its only pred --> the dummy block
-		BBlock trueTarget = m.getBlockStartingAt(
-				((SSAConditionalBranchInstruction) condBlock.getWalaBasicBlock().getLastInstruction())
-						.getTarget()).preds().get(0);
-
-		assert (trueTarget.isDummy());
-
-		Formula pathZero = (m.getCFG().isDominatedBy(predZero, trueTarget)) ?
-				condBlock.getCondExpr() :
-				LogicUtil.ff.not(condBlock.getCondExpr());
-
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
 		if (!m.hasValue(instruction.getDef())) {
 			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value

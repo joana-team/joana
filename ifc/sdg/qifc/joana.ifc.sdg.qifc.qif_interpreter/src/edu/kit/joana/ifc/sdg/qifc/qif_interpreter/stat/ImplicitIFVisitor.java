@@ -49,15 +49,14 @@ public class ImplicitIFVisitor implements IBBlockVisitor {
 	}
 
 	@Override public void visitStandardNode(BBlock node) {
-
 		IFTreeNode if_ = node.preds().get(0).getIfTree();
-		if (node.preds().get(0).splitsControlFlow()) {
+		if (node.preds().get(0).isCondHeader()) {
 			if_ = addCFSplit(if_, node.preds().get(0), node);
 		}
 
 		for (int i = 1; i < node.preds().size(); i++) {
 			IFTreeNode predIF = node.preds().get(i).getIfTree();
-			if (node.preds().get(i).splitsControlFlow()) {
+			if (node.preds().get(i).isCondHeader()) {
 				predIF = addCFSplit(predIF, node.preds().get(i), node);
 			}
 			if_ = new IFTreeNode.OrNode(if_, predIF);

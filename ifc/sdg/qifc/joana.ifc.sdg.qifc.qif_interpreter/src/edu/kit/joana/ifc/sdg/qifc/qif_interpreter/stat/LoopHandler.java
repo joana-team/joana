@@ -228,9 +228,8 @@ public class LoopHandler {
 		// we might have multiple breaks in the loop. Here we collect all values that could possibly be our "output" value, i.e. the value that is ultimately assigned to the break-phi,
 		// possibly though multiple phi-instructions in between
 		// The second component of each pair describes the implicit information contained in each value
-		List<Pair<Integer, List<Pair<Integer, Boolean>>>> possibleValues = findBreakValuesRec(l, breakUse, breakBlock,
+		List<Pair<Integer, IFTreeNode>> possibleValues = findBreakValuesRec(l, breakUse, breakBlock,
 				new ArrayList<>());
-		possibleValues.sort((o1, o2) -> new IFComparator().compare(o1.snd, o2.snd));
 
 		int valnum = possibleValues.get(possibleValues.size() - 1).fst;
 		Formula[] value = (l.getIn().containsKey(valnum) ? l.getOwner().getVarsForValue(valnum) : l.getOwner().getDepsForValue(valnum));
@@ -238,16 +237,15 @@ public class LoopHandler {
 		for (int i = 0; i < possibleValues.size() - 1; i++) {
 			valnum = possibleValues.get(i).fst;
 			Formula[] breakValue = l.getIn().containsKey(valnum) ? l.getOwner().getVarsForValue(valnum) : l.getOwner().getDepsForValue(valnum);
-			value = LogicUtil.ternaryOp(BBlock.generateImplicitFlowFormula(possibleValues.get(i).snd, l.getOwner().getCFG()), breakValue, value);
+			value = LogicUtil.ternaryOp(possibleValues.get(i).snd.getImplicitFlowFormula(), breakValue, value);
 		}
 
-		Formula condJumpTaken = possibleValues.stream().map(p -> p.snd).map(list -> BBlock.generateImplicitFlowFormula(list, l.getHead()
-				.getCFG())).reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or);
+		Formula condJumpTaken = possibleValues.stream().map(p -> p.snd).map(IFTreeNode::getImplicitFlowFormula).reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or);
 
 		return Pair.make(condJumpTaken, value);
 	}
 
-	private static List<Pair<Integer, List<Pair<Integer, Boolean>>>> findBreakValuesRec(LoopBody l, int breakUse, BBlock block, List<Pair<Integer, List<Pair<Integer, Boolean>>>> vals) {
+	private static List<Pair<Integer, IFTreeNode>> findBreakValuesRec(LoopBody l, int breakUse, BBlock block, List<Pair<Integer, IFTreeNode>> vals) {
 
 		// skip dummy blocks
 		if (block.isDummy()) {
@@ -267,30 +265,10 @@ public class LoopHandler {
 			// the block might have multiple predecessors --> multiple break locations return the same value
 			// we add all possible break-locations separately bc they represent different control flow information
 			for (BBlock pred: block.preds()) {
-				List<Pair<Integer, Boolean>> loopImplicitFlow = pred.getImplicitFlows().stream()
-						.filter(p -> l.hasBlock(p.fst) && !(l.getHead().idx() == p.fst))
-						.sorted(Comparator.comparingInt(o -> o.fst)).collect(Collectors.toList());
-				vals.add(Pair.make(breakUse, loopImplicitFlow));
+				vals.add(Pair.make(breakUse, pred.getIfTree()));
 			}
 
 			return vals;
-		}
-	}
-
-	private static class IFComparator implements Comparator<List<Pair<Integer, Boolean>>> {
-
-		@Override public int compare(List<Pair<Integer, Boolean>> o1, List<Pair<Integer, Boolean>> o2) {
-			int i = 0;
-			while (i < o1.size() && i < o2.size() && o1.get(i).fst.equals(o2.get(i).fst)) {
-				i++;
-			}
-			if (o1.size() <= i) {
-				return 1;
-			} else if (o2.size() <= i) {
-				return -1;
-			} else {
-				return o1.get(i).fst - o2.get(i).fst;
-			}
 		}
 	}
 }

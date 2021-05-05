@@ -1,13 +1,8 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.cfg.IBasicBlock;
-import com.ibm.wala.ssa.ISSABasicBlock;
-import com.ibm.wala.ssa.SSACFG;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAReturnInstruction;
-import com.ibm.wala.util.collections.Pair;
+import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
 
@@ -22,12 +17,7 @@ public class BBlock implements DotNode {
 	private final SSACFG.BasicBlock walaBBlock;
 	private final CFG g;
 	private final List<SSAInstruction> instructions;
-	/**
-	 * describes which blocks' conditional jumps influence if this block will be executed or not.
-	 * The first element of the pair refers to the block indices, the second element states whether
-	 * the conditional jump condition needs to be true or false for this block to be executed
-	 */
-	private final List<Pair<Integer, Boolean>> implicitFlows;
+	private IFTreeNode ifTree;
 	private final int idx;
 	private final boolean isDummy;
 	private List<BBlock> succs;
@@ -49,7 +39,7 @@ public class BBlock implements DotNode {
 				.collect(Collectors.toList());
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
-		this.implicitFlows = new ArrayList<>();
+		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.isDummy = false;
 		this.idx = walaBBlock.getNumber();
 		g.addRep(walaBBlock, this);
@@ -62,7 +52,7 @@ public class BBlock implements DotNode {
 		this.instructions = new ArrayList<>();
 		this.preds = new ArrayList<>();
 		this.succs = new ArrayList<>();
-		this.implicitFlows = new ArrayList<>();
+		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.idx = idx;
 		this.g = g;
 		dummies.put(this.idx, this);
@@ -130,20 +120,9 @@ public class BBlock implements DotNode {
 		}
 	}
 
-	public static Formula generateImplicitFlowFormula(List<Pair<Integer, Boolean>> flows, CFG g) {
-		Formula iff = LogicUtil.ff.constant(true);
-		for (Pair<Integer, Boolean> p : flows) {
-			Formula x = g.getBlock(p.fst).condExpr;
-			iff = LogicUtil.ff.and(iff, (p.snd) ? x : LogicUtil.ff.not(x));
-		}
-		return iff;
-	}
-
 	public Formula generateImplicitFlowFormula() {
-		return generateImplicitFlowFormula(this.implicitFlows, this.g);
+		return this.ifTree.getImplicitFlowFormula();
 	}
-
-
 
 	public List<SSAInstruction> instructions() {
 		return instructions;
@@ -259,18 +238,6 @@ public class BBlock implements DotNode {
 		}
 	}
 
-	public void addImplicitFlow(int blockIdx, boolean condition) {
-		this.implicitFlows.add(Pair.make(blockIdx, condition));
-	}
-
-	public void copyImplicitFlowsFrom(Method m, int blockIdx) {
-		this.implicitFlows.addAll(BBlock.getBlockForIdx(m, blockIdx).getImplicitFlows());
-	}
-
-	public List<Pair<Integer, Boolean>> getImplicitFlows() {
-		return this.implicitFlows;
-	}
-
 	public Formula getCondExpr() {
 		return condExpr;
 	}
@@ -309,7 +276,7 @@ public class BBlock implements DotNode {
 	}
 
 	public SSAReturnInstruction getReturn() {
-		assert(this.isReturnBlock());
+		assert (this.isReturnBlock());
 		// return is last instruction in block
 		return (SSAReturnInstruction) this.walaBBlock.getLastInstruction();
 	}
@@ -318,12 +285,31 @@ public class BBlock implements DotNode {
 		return instructions.stream().filter(SSAInstruction::hasDef).anyMatch(i -> i.getDef() == valNum);
 	}
 
+	public int getTrueTarget() {
+		assert (this.splitsControlFlow());
+		int instructionIdx = ((SSAConditionalBranchInstruction) this.getWalaBasicBlock().getLastInstruction())
+				.getTarget();
+		int realTarget = this.getCFG().getBlocks().stream()
+				.filter(b -> b.getWalaBasicBlock().getFirstInstructionIndex() == instructionIdx).findFirst().get().idx;
+
+		return BBlock.getBlockForIdx(this.g.getMethod(), realTarget).preds.stream()
+				.filter(pred -> this.succs.contains(pred)).findFirst().get().idx;
+	}
+
+	public IFTreeNode getIfTree() {
+		return (isLoopHeader) ? IFTreeNode.NoIFLeaf.SINGLETON : ifTree;
+	}
+
+	public void setIfTree(IFTreeNode ifTree) {
+		this.ifTree = ifTree;
+	}
+
 	@Override public String getLabel() {
 		if (isDummy) {
 			return "Dummy " + idx;
 		}
 		StringBuilder sb = new StringBuilder(String.valueOf(this.idx()));
-		for (SSAInstruction i: this.instructions) {
+		for (SSAInstruction i : this.instructions) {
 			sb.append("\n").append(i.toString());
 		}
 		return sb.toString();

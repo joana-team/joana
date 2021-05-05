@@ -42,13 +42,6 @@ public class LoopSATVisitor extends SATVisitor {
 
 	@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
 		Array<? extends Value> placeHolder = l.getPlaceholderArray(instruction.getArrayRef());
-
-		List<Pair<Integer, Boolean>> inLoopImplicitFlow = this.getCurrentBlock().getImplicitFlows().stream()
-				.filter(p -> l.hasBlock(p.fst))
-				.filter(p -> !(p.fst == l.getHead().idx()))
-				.collect(Collectors.toList());
-
-		Formula inLoopCF = BBlock.generateImplicitFlowFormula(inLoopImplicitFlow, l.getOwner().getCFG());
-		this.visitArrayStore(instruction, placeHolder, inLoopCF);
+		this.visitArrayStore(instruction, placeHolder, this.getCurrentBlock().generateImplicitFlowFormula());
 	}
 }

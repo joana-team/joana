@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ImplicitIFVisitorTest {
 
+	/*
+
 	@Test void implicitFlowTestNoCF() throws IOException, InterruptedException {
 
 		Program p = TestUtils.build("SimpleArithmetic");
@@ -115,5 +117,7 @@ class ImplicitIFVisitorTest {
 		p.getEntryMethod().getCFG().getBlocks().forEach(b -> System.out.println(b.idx() + " " + b.getImplicitFlows()));
 
 	}
+
+	 */
 
 }

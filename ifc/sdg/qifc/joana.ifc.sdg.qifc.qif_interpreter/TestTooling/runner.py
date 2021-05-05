@@ -5,7 +5,7 @@ import sys
 
 import util
 
-ignored = ["testResources/PrintInCall.java", "testResources/ArrayLoop.java"]
+ignored = ["testResources/PrintInCall.java"]
 
 def run_test(args, path):
     cwd = os.getcwd()

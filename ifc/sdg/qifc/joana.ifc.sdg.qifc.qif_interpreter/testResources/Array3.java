@@ -10,14 +10,14 @@ public class Array3 {
 	}
 
 	public int f(int h) {
-		int[] a = new int[4];
+		int[] a = new int[3];
 		int i = 0;
-		while (i < 4) {
+		while (i < 3) {
 			a[i] = i;
 			i++;
 		}
 
-		if (h >= 0) {
+		if (h >= 0 && h < 3) {
 			i = h;
 		} else {
 			i = 0;

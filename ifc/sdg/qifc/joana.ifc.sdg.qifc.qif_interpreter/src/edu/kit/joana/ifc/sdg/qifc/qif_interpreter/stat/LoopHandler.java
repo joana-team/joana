@@ -34,7 +34,7 @@ public class LoopHandler {
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
 
-		SATVisitor sv = new LoopSATVisitor(sa, loop);
+		LoopSATVisitor sv = new LoopSATVisitor(sa, loop);
 
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
 		List<BBlock> breakSuccessors = new ArrayList<>();
@@ -72,6 +72,7 @@ public class LoopHandler {
 			}
 		}
 
+		loop.setOutDT(sv.getCurrentLeaf().root());
 		// if the loop has a (or more) break statements,
 		// we visit the basic blocks that connect the jump out of the loop with the after-loop successor-block of the loop header
 		BBlock afterLoop = head.succs().stream().filter(succ -> !loop.hasBlock(succ.idx())).findFirst().get().succs()
@@ -167,7 +168,6 @@ public class LoopHandler {
 		// copy deps to loop
 		for (SSAInstruction i : head.instructions()) {
 			if (i instanceof SSAPhiInstruction) {
-				loop.addInDeps(i.getDef(), m.getVarsForValue(i.getDef()));
 				loop.addOutDeps(i.getDef(), i.getUse(argNum));
 				loop.addBeforeLoopDeps(i.getDef(), m.getDepsForValue(i.getUse(1 - argNum)));
 			}

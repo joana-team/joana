@@ -1,6 +1,9 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
@@ -14,6 +17,7 @@ public class LoopBody {
 	private final Map<Integer, Formula[]> in;
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
+	private DecisionTree<Map<Integer, Formula[]>> outDT;
 	private final Map<Integer, Array<? extends Value>> placeholderArrays;
 	private final Map<Integer, Formula[][]> placeholderArrayVars;
 	private final Map<Integer, LoopIteration> runs;
@@ -39,6 +43,12 @@ public class LoopBody {
 		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
 		boolean evalTo = head.getTrueTarget() == insideLoopSuccessor.idx();
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
+
+		for (SSAInstruction i : head.instructions()) {
+			if (i instanceof SSAPhiInstruction) {
+				this.addInDeps(i.getDef(), owner.getVarsForValue(i.getDef()));
+			}
+		}
 	}
 
 	private List<BBlock> findBreaks() {
@@ -55,11 +65,9 @@ public class LoopBody {
 		//
 		// a blocks idx is always greater than that of its predecessors
 		// (exceptions iis the back edge to a loop head, but we are not looking at loop heads here, so it should be ok)
-		Comparator<BBlock> comp = new Comparator<BBlock>() {
-			@Override public int compare(BBlock o1, BBlock o2) {
-				assert(!o1.isDummy() && !o2.isDummy());
-				return o1.idx() - o2.idx();
-			}
+		Comparator<BBlock> comp = (o1, o2) -> {
+			assert(!o1.isDummy() && !o2.isDummy());
+			return o1.idx() - o2.idx();
 		};
 		breaks.sort(comp);
 		return breaks;
@@ -202,6 +210,7 @@ public class LoopBody {
 	}
 
 	public Formula getJumpOut() {
+		BBlock inLoopPred = head.preds().stream().filter(pred -> this.hasBlock(pred.idx())).findFirst().get();
 		return this.jumpOut;
 	}
 
@@ -227,5 +236,9 @@ public class LoopBody {
 
 	public int getSimulatedIterationNum() {
 		return this.runs.size();
+	}
+
+	public void setOutDT(DecisionTree<Map<Integer, Formula[]>> decisionTree) {
+		this.outDT = decisionTree;
 	}
 }

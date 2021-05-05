@@ -133,6 +133,22 @@ public class DecisionTree<T> {
 		return newInner;
 	}
 
+	public DecisionTree<T> replaceLeaf(int idx, Formula pathCondition, DecisionTree<T> trueSubTree, DecisionTree<T> falseSubTree) {
+		assert(this.type == NodeType.LEAF);
+		DecisionTree<T> newInner = new DecisionTree<T>(m, idx, pathCondition);
+		newInner.trueSubTree = trueSubTree;
+		newInner.falseSubTree = falseSubTree;
+		trueSubTree.parent = newInner;
+		falseSubTree.parent = newInner;
+		this.parent.replaceChild(this, newInner);
+		if (this.isRoot()) {
+			newInner.parent = newInner;
+		} else {
+			newInner.parent = this.parent;
+		}
+		return newInner;
+	}
+
 	private DecisionTree<T> copyLeaf(DecisionTree<T> original) {
 		DecisionTree<T> copy = new DecisionTree<T>(original.m, original.nodeIdx, original.leafVal, original.isRoot());
 		copy.parent = original.parent;
@@ -190,6 +206,10 @@ public class DecisionTree<T> {
 			return res;
 		};
 		return mapOperator;
+	}
+
+	public DecisionTree<T> getFalseSubTree() {
+		return this.falseSubTree;
 	}
 
 	private enum NodeType {

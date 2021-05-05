@@ -19,5 +19,4 @@ public class Loop3 {
 		Out.print(k);
 		return l;
 	}
-
 }

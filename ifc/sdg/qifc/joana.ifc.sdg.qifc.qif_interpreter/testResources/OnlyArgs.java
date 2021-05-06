@@ -5,13 +5,12 @@ public class OnlyArgs {
 	public  static void main(String[] args) {
 
 		OnlyArgs a = new OnlyArgs();
-		a.f(1, 0);
+		a.f(1);
 
 	}
 
-	public int f(int h1, int h2) {
+	public int f(int h1) {
 		Out.print(h1); // 2
-		Out.print(h2); // 1
 		return h1;
 	}
 }

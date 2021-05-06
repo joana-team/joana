@@ -141,6 +141,7 @@ public class LoopHandler {
 			}
 		}
 		beforeLoop.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(loop.getJumpOut(), beforeLoop.makeSubstitution(loop.getIn(), loop.getPlaceholderArrayVars())));
+		beforeLoop.setJumpOutOnlyLoopCondition(LogicUtil.applySubstitution(loop.getJumpOutOnlyLoopCondition(), beforeLoop.makeSubstitution(loop.getIn(), loop.getPlaceholderArrayVars())));
 		loop.addIteration(beforeLoop);
 
 		for (int i = 1; i < loopUnrollingMax; i++) {
@@ -221,12 +222,12 @@ public class LoopHandler {
 		Formula[] res;
 
 		// base result when loop is not taken
-		res = LogicUtil.ternaryOp(l.beforeLoop().getJumpOutAfterThisIteration(), beforeLoop, temp);
+		res = LogicUtil.ternaryOp(l.beforeLoop().getJumpOutOnlyLoopCondition(), beforeLoop, temp);
 
 		for (int i = 1; i < l.getSimulatedIterationNum(); i++) {
 			Formula breakThisIteration = breakCondition.substitute(l.getRun(i - 1).makeSubstitution(l.getIn(), l.getPlaceholderArrayVars()).toLogicNGSubstitution());
 			Formula[] breakResult = LogicUtil.applySubstitution(atBreak, l.getRun(i - 1).makeSubstitution(l.getIn(), l.getPlaceholderArrayVars()));
-			exitLoopCondition = l.getRun(i).getJumpOutAfterThisIteration();
+			exitLoopCondition = l.getRun(i).getJumpOutOnlyLoopCondition();
 			Formula[] afterLoop = l.getRun(i).getPrimitive(normalUse);
 
 			Formula[] iterationResult;

@@ -88,7 +88,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Loop4");
+		Program p = TestUtils.build("Loop7");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);
@@ -105,7 +105,7 @@ class AppTest {
 		int[] params = entry.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
+		// System.out.println("Leaked: " + Arrays.toString(leaked.getDeps()));
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, entry);
 		lc.compute(null);
 	}

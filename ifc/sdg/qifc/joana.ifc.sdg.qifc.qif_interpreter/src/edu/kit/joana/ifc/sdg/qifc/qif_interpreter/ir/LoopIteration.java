@@ -15,6 +15,7 @@ public class LoopIteration {
 
 	private final int iteration;
 	private Formula jumpOutAfterThisIteration;
+	private Formula jumpOutOnlyLoopCondition;
 	private final Map<Integer, Formula[]> primitive;
 	private final Map<Integer, Formula[][]> arr;
 
@@ -68,5 +69,13 @@ public class LoopIteration {
 
 	public Map<Integer, Formula[][]> getArr() {
 		return arr;
+	}
+
+	public void setJumpOutOnlyLoopCondition(Formula jumpOutOnlyLoopCondition) {
+		this.jumpOutOnlyLoopCondition = jumpOutOnlyLoopCondition;
+	}
+
+	public Formula getJumpOutOnlyLoopCondition() {
+		return jumpOutOnlyLoopCondition;
 	}
 }

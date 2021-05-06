@@ -79,7 +79,7 @@ if __name__ == "__main__":
     if test_case == "all":
         for filename in os.listdir("testResources/"):
             test_case = "testResources/" + filename
-            if os.path.isdir(test_case):
+            if os.path.isdir(test_case) or test_case in ignored:
                 continue
 
             res = test(test_case)
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
         with open("testResources/results/successful.txt", 'w') as f:
             for case in successful:
-                f.write(case)
+                f.write(test_case)
                 f.write("\n")
 
     if test_case == "failed":
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         with open("testResources/results/successful.txt", 'a') as f:
             for case in successful:
                 f.write("\n")
-                f.write(case)
+                f.write(test_case)
 
     else:
         res = test(test_case)

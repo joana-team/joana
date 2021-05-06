@@ -132,7 +132,8 @@ public class LoopBody {
 
 		// jump out condition
 		Substitution substituteOutputs = res.makeSubstitution(this.in, this.placeholderArrayVars);
-		res.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(this.jumpOut, substituteOutputs));
+		res.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(this.getJumpOut(), substituteOutputs));
+		res.setJumpOutOnlyLoopCondition(LogicUtil.applySubstitution(this.jumpOut, substituteOutputs));
 
 		return res;
 	}
@@ -141,7 +142,7 @@ public class LoopBody {
 		Formula[] mappedTo = this.out.get(valnum);
 
 		Formula wasCalculated;
-		if (!owner.isConstant(valnum)) {
+		if (!owner.isConstant(this.resultMapping.get(valnum))) {
 			BBlock definedIn = this.blocks.stream().filter(b -> b.ownsValue(resultMapping.get(valnum))).findFirst().get();
 			wasCalculated = definedIn.generateImplicitFlowFormula();
 		} else {
@@ -255,5 +256,9 @@ public class LoopBody {
 
 	public void setOutDT(DecisionTree<Map<Integer, Formula[]>> decisionTree) {
 		this.outDT = decisionTree;
+	}
+
+	public Formula getJumpOutOnlyLoopCondition() {
+		return this.jumpOut;
 	}
 }

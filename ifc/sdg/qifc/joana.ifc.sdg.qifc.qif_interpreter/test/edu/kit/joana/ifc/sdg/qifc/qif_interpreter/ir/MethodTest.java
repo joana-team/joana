@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

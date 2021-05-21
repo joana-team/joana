@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
+package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util;
 
 import java.io.IOException;
 import java.util.logging.*;

@@ -1,5 +1,3 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
-
 public class Iterations {
 
 	public static void main(String[] args) {

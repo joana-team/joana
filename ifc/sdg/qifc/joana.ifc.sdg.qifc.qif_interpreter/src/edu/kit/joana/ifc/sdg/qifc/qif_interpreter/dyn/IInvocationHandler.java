@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
+package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import com.ibm.wala.types.MethodReference;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;

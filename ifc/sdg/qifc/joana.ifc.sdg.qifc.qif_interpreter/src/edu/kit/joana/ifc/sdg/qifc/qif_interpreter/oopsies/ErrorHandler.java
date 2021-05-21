@@ -1,6 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies;
 
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.SimpleLogger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
 
 public class ErrorHandler {
 

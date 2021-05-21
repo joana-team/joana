@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 
@@ -88,7 +89,7 @@ public class IRBuilder {
 		this.ana.addAllJavaSourceAnnotations();
 
 		// write Joana output to logFIle
-		SimpleLogger.log("Joana output:\n" + baos.toString(utf8) + "\n");
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Joana output:\n" + baos.toString(utf8) + "\n");
 	}
 
 	public void dumpGraph(String path) {

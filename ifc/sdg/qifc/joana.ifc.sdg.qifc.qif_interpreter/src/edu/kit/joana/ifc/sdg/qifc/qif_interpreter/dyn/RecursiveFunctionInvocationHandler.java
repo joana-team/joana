@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
+package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import com.ibm.wala.types.MethodReference;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
@@ -11,8 +11,8 @@ public class RecursiveFunctionInvocationHandler implements IInvocationHandler {
 		Method callee = new Method(mRef, p);
 		DotGrapher.exportDotGraph(callee.getCFG());
 
-		StaticAnalysis sa = new StaticAnalysis(p);
-		RecursiveFunctionSATVisitor sv = new RecursiveFunctionSATVisitor(sa, callee);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis sa = new StaticAnalysis(p);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.RecursiveFunctionSATVisitor sv = new RecursiveFunctionSATVisitor(sa, callee);
 		sa.computeSATDeps(callee, sv);
 
 		return callee;

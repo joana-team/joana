@@ -11,8 +11,9 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedReader;
@@ -55,7 +56,7 @@ public class App {
 		}
 
 		try {
-			SimpleLogger.initWithFileHandler(Level.ALL, jArgs.outputDirectory);
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.initWithFileHandler(Level.ALL, jArgs.outputDirectory);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -75,7 +76,7 @@ public class App {
 		}
 
 		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
-		SimpleLogger.log("Starting compilation with javac");
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Starting compilation with javac");
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
 				compile(jArgs.outputDirectory, programPath, jarPath);
@@ -86,12 +87,13 @@ public class App {
 		} else {
 			classFilePath = programPath;
 		}
-		SimpleLogger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger
+				.log(String.format("Finished compilation. Generated file: %s", classFilePath));
 		DotGrapher.configureDest(jArgs.outputDirectory);
 
 		// get classname via filename
 		String className = FilenameUtils.getBaseName(programPath);
-		SimpleLogger.log("Classname: " + className);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Classname: " + className);
 
 		// create SDG
 		IRBuilder builder = new IRBuilder(classFilePath, className);

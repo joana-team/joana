@@ -1,4 +1,4 @@
-package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
+package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
@@ -35,7 +35,7 @@ public class LoopHandler {
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
 
-		LoopSATVisitor sv = new LoopSATVisitor(sa, loop);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopSATVisitor sv = new LoopSATVisitor(sa, loop);
 
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
 		List<BBlock> breakSuccessors = new ArrayList<>();

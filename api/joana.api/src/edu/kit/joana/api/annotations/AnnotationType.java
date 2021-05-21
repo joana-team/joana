@@ -9,7 +9,7 @@ package edu.kit.joana.api.annotations;
 
 
 public enum AnnotationType {
-	SOURCE, SINK, DECLASS;
+	SOURCE, SINK, DECLASS, MISC;
 
 	@Override
 	public String toString() {
@@ -18,8 +18,12 @@ public enum AnnotationType {
 			return "SOURCE";
 		case SINK:
 			return "SINK";
-		default:/** case DECLASS: */
+		case DECLASS:
 			return "DECLASS";
+		case MISC:
+			return "MISC";
+		default:
+			return null;
 		}
 	}
 

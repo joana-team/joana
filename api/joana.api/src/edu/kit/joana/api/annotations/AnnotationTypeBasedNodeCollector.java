@@ -171,6 +171,9 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		case SINK:
 			toSelect =  pp2NodeTrans.getSinkNodes(a);
 			break;
+		case MISC:
+			toSelect = pp2NodeTrans.getRootNodes(a);
+			break;
 		default:
 			throw new UnsupportedOperationException("not implemented yet!");
 		}
@@ -187,6 +190,8 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 				return pp2NodeTrans.getSourceNodes(local);
 			case SINK:
 				return pp2NodeTrans.getSinkNodes(local);
+			case MISC:
+				return edu.kit.joana.util.collections.Collections.merge(pp2NodeTrans.getSinkNodes(local), pp2NodeTrans.getSourceNodes(local));
 			default:
 				throw new UnsupportedOperationException("not implemented yet!");
 		}
@@ -224,13 +229,13 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 
 	private static final boolean isActualNodeOfKind(SDGNode node, AnnotationType type) {
-		return ((type == AnnotationType.SINK && node.getKind() == SDGNode.Kind.ACTUAL_IN) || (type == AnnotationType.SOURCE && node
-				.getKind() == SDGNode.Kind.ACTUAL_OUT));
+		return (((type == AnnotationType.SINK || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.ACTUAL_IN)
+				|| ((type == AnnotationType.SOURCE || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.ACTUAL_OUT));
 	}
 
 	private static final boolean isFormalNodeOfKind(SDGNode node, AnnotationType type) {
-		return (type == AnnotationType.SOURCE && node.getKind() == SDGNode.Kind.FORMAL_IN)
-				|| (type == AnnotationType.SINK && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
+		return ((type == AnnotationType.SOURCE || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.FORMAL_IN)
+				|| ((type == AnnotationType.SINK || type == AnnotationType.MISC) && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
 	}
 
 	@SuppressWarnings("unused")

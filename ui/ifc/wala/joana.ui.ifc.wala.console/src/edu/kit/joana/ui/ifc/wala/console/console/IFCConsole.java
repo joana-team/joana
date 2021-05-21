@@ -3243,7 +3243,8 @@ public class IFCConsole {
 			implements ImprovedCLI.ClassPathEnabled, ImprovedCLI.EntryPointEnabled, ImprovedCLI.SinksAndSourcesEnabled,
 			ImprovedCLI.SetValueEnabled, ImprovedCLI.BuildSDGEnabled, ImprovedCLI.RunAnalysisEnabled<AnalysisObject>, ImprovedCLI.ClassSinksEnabled,
 			ImprovedCLI.DeclassificationEnabled, ImprovedCLI.OptimizationEnabled, ImprovedCLI.SDGOptionsEnabled, ImprovedCLI.RunEnabled<AnalysisObject>,
-			ImprovedCLI.ExportSDGEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ViewEnabled, ImprovedCLI.LoadSDGEnabled {
+			ImprovedCLI.LoadSDGEnabled, ImprovedCLI.MiscAnnotationsEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ExportSDGEnabled,
+			ImprovedCLI.ViewEnabled {
 
 		Map<AnnotationType, Set<IFCAnnotation>> annotationsPerType = new HashMap<>();
 		List<SDGClass> sinkClasses = new ArrayList<>();
@@ -3571,6 +3572,15 @@ public class IFCConsole {
 		@Override public boolean loadSDG(Path file) {
 			return IFCConsole.this.loadSDG(file.toString(), IFCConsole.this.getMHPType());
 		}
+
+		@Override public List<Pair<String, String>> getMiscAnnotations(String entityRegexp, String typeRegexp) {
+			buildSDGIfNeeded();
+			return getProgram().getMiscJavaSourceAnnotations().entrySet().stream().filter(e -> e.getKey().toString().matches(entityRegexp)).flatMap(e -> {
+				String entity = e.getKey().toString();
+				return e.getValue().stream().filter(a -> a.getType().getName().toString().matches(typeRegexp)).map(a -> Pair.pair(entity, a.toString()));
+			}).collect(Collectors.toList());
+		}
+
 	}
 
 	public class AnalysisObject {

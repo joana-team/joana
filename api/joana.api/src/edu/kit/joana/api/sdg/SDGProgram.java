@@ -170,7 +170,7 @@ public class SDGProgram {
 	 * Additional annotations, like EntryPoint and other annotations used in the code,
 	 * excludes sink, source and declassification related annotations (stored in the annotations field)
 	 */
-	private final Map<SDGProgramPart, Collection<Annotation>> miscAnnotations = new LinkedHashMap<>();
+	private final Map<SDGProgramPart, Set<Annotation>> miscAnnotations = new LinkedHashMap<>();
 
 	private final IdManager idManager = new IdManager();
 
@@ -355,6 +355,7 @@ public class SDGProgram {
 	}
 
 	public void fillWithAnnotations(IClassHierarchy cha, Iterable<IClass> classes) {
+		collectedAllNodesForMiscAnnotations = false;
 		final Collection<String> sourceOrSinkAnnotationName = 
 				Arrays.asList(new Class<?>[] { 
 					Source.class, Sink.class, Declassification.class,
@@ -598,18 +599,38 @@ public class SDGProgram {
 		return annotations;
 	}
 
-	public Map<SDGProgramPart, Collection<Annotation>> getMiscJavaSourceAnnotations() {
+	public Map<SDGProgramPart, Set<Annotation>> getMiscJavaSourceAnnotations() {
 		return Collections.unmodifiableMap(miscAnnotations);
 	}
 
-	public Collection<Annotation> getMiscJavaSourceAnnotations(SDGProgramPart part) {
-		return Collections.unmodifiableCollection(miscAnnotations.getOrDefault(part, Collections.emptySet()));
+	public Set<Annotation> getMiscJavaSourceAnnotations(SDGProgramPart part) {
+		return Collections.unmodifiableSet(miscAnnotations.getOrDefault(part, Collections.emptySet()));
 	}
 
 	/** Exclude annotations from the edu.kit.joana package */
-	public Collection<Annotation> getMiscJavaSourceAnnotationsWOJoana(SDGProgramPart part) {
+	public Set<Annotation> getMiscJavaSourceAnnotationsWOJoana(SDGProgramPart part) {
 		return miscAnnotations.getOrDefault(part, Collections.emptySet()).stream()
 				.filter(a -> a.getType().getName().getPackage().toString().startsWith("edu.kit.joana.")).collect(Collectors.toSet());
+	}
+
+	private boolean collectedAllNodesForMiscAnnotations = false;
+
+	private void initAnnotationCollectorWithAllMiscAnnotatedNodes() {
+		if (collectedAllNodesForMiscAnnotations) {
+			miscAnnotations.keySet().forEach(p -> coll.collectNodes(p, AnnotationType.MISC));
+			collectedAllNodesForMiscAnnotations = true;
+		}
+	}
+
+	public Set<Annotation> getMiscAnnotations(SDGNode node) {
+		initAnnotationCollectorWithAllMiscAnnotatedNodes();
+		return coll.getCoveringCandidates(node).stream().flatMap(p -> miscAnnotations.getOrDefault(p, Collections.emptySet()).stream()).collect(
+				Collectors.toSet());
+	}
+
+	public Set<Annotation> getMiscAnnotationsWOJoana(SDGNode node) {
+		return getMiscAnnotations(node).stream().filter(a -> a.getType().getName().getPackage().toString().startsWith("edu.kit.joana.")).collect(
+				Collectors.toSet());
 	}
 
 	public Collection<SDGClass> getClasses() {

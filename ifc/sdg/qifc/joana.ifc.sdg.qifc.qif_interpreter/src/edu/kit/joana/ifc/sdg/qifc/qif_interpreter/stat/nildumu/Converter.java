@@ -65,9 +65,10 @@ public class Converter {
 		if (b.isCondHeader()) {
 			BBlock trueTarget = b.getCFG().getBlock(b.getTrueTarget());
 			BBlock falseTarget = b.succs().stream().filter(bb -> bb.idx() != b.getTrueTarget()).findAny().get();
-			List<BBlock> trueBranch = computeConditionalBranch(b, trueTarget, trueTarget, Arrays.asList(trueTarget));
+			List<BBlock> trueBranch = computeConditionalBranch(b, trueTarget, trueTarget,
+					new ArrayList<>(Arrays.asList(trueTarget)));
 			List<BBlock> falseBranch = computeConditionalBranch(b, falseTarget, falseTarget,
-					Arrays.asList(falseTarget));
+					new ArrayList<>(Arrays.asList(falseTarget)));
 			List<Parser.StatementNode> trueStmts = convertStatements(trueBranch, new ArrayList<>(), cVis);
 			List<Parser.StatementNode> falseStmts = convertStatements(falseBranch, new ArrayList<>(), cVis);
 			toConvert.removeAll(trueBranch);
@@ -101,9 +102,9 @@ public class Converter {
 	 * @param branch     list of blocks that we have already identified as being part of the branch. {@code current} is already part of the list!
 	 * @return list of all basic blocks that belong to the branch
 	 */
-	private List<BBlock> computeConditionalBranch(BBlock head, BBlock firstBlock, BBlock current, List<BBlock> branch) {
+	public List<BBlock> computeConditionalBranch(BBlock head, BBlock firstBlock, BBlock current, List<BBlock> branch) {
 		for (BBlock succ : current.succs()) {
-			if (succ.isDummy() || head.getCFG().isDominatedBy(succ, firstBlock)) {
+			if ((succ.isDummy() || head.getCFG().isDominatedBy(succ, firstBlock)) && !branch.contains(succ)) {
 				branch.add(succ);
 				branch = computeConditionalBranch(head, firstBlock, succ, branch);
 			}

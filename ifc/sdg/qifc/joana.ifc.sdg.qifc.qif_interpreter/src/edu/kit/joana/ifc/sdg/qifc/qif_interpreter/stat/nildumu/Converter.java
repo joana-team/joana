@@ -1,6 +1,8 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
+import com.ibm.wala.shrikeBT.IComparisonInstruction;
+import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
@@ -48,10 +50,14 @@ public class Converter {
 		Map<Integer, Parser.ExpressionNode> consts = parseConstantValues(p.getEntryMethod());
 		Parser.ProgramNode programNode = new Parser.ProgramNode(context);
 		inputs.forEach(programNode::addGlobalStatement);
+		consts.entrySet().stream()
+				.map(entry -> new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(entry.getKey()),
+						new Types().INT, entry.getValue())).forEach(programNode::addGlobalStatement);
 
 		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>(), consts);
-		List<Parser.StatementNode> stmts = convertStatements(p.getEntryMethod().getCFG().getBlocks(), new ArrayList<>(),
-				cVis);
+		List<BBlock> allBlocks = new ArrayList<>();
+		allBlocks.addAll(p.getEntryMethod().getCFG().getBlocks());
+		List<Parser.StatementNode> stmts = convertStatements(allBlocks, new ArrayList<>(), cVis);
 		programNode.addGlobalStatements(stmts);
 
 		return programNode;
@@ -84,6 +90,9 @@ public class Converter {
 
 	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, List<Parser.StatementNode> converted,
 			ConversionVisitor cVis) {
+
+		// System.out.println(Arrays.toString(toConvert.stream().map(BBlock::idx).toArray()));
+
 		if (toConvert.isEmpty()) {
 			return converted;
 		}
@@ -97,10 +106,10 @@ public class Converter {
 					new ArrayList<>(Arrays.asList(trueTarget)));
 			List<BBlock> falseBranch = computeConditionalBranch(b, falseTarget, falseTarget,
 					new ArrayList<>(Arrays.asList(falseTarget)));
-			List<Parser.StatementNode> trueStmts = convertStatements(trueBranch, new ArrayList<>(), cVis);
-			List<Parser.StatementNode> falseStmts = convertStatements(falseBranch, new ArrayList<>(), cVis);
 			toConvert.removeAll(trueBranch);
 			toConvert.removeAll(falseBranch);
+			List<Parser.StatementNode> trueStmts = convertStatements(trueBranch, new ArrayList<>(), cVis);
+			List<Parser.StatementNode> falseStmts = convertStatements(falseBranch, new ArrayList<>(), cVis);
 
 			Parser.IfStatementNode if_ = new Parser.IfStatementNode(DUMMY_LOCATION, cVis.blockToExpr(b.idx()),
 					new Parser.BlockNode(DUMMY_LOCATION, trueStmts), new Parser.BlockNode(DUMMY_LOCATION, falseStmts));
@@ -115,6 +124,10 @@ public class Converter {
 			List<Parser.StatementNode> inLoop = convertStatements(new ArrayList<>(loop.getBlocks()), new ArrayList<>(),
 					cVis);
 			toConvert.removeAll(loop.getBlocks());
+		}
+
+		if (converted.isEmpty()) {
+			converted.add(new Parser.EmptyStatementNode(DUMMY_LOCATION));
 		}
 
 		return convertStatements(toConvert, converted, cVis);
@@ -210,6 +223,38 @@ public class Converter {
 				throw new ConversionException(op);
 			}
 		}
+
+		public static Parser.LexerTerminal of(IComparisonInstruction.Operator operator) throws ConversionException {
+			switch (operator) {
+
+			case CMP:
+				return Parser.LexerTerminal.EQUALS;
+			case CMPL:
+				return Parser.LexerTerminal.LOWER;
+			case CMPG:
+				return Parser.LexerTerminal.GREATER;
+			}
+			throw new ConversionException(operator);
+		}
+
+		public static Parser.LexerTerminal of(IConditionalBranchInstruction.Operator operator)
+				throws ConversionException {
+			switch (operator) {
+			case EQ:
+				return Parser.LexerTerminal.EQUALS;
+			case NE:
+				return Parser.LexerTerminal.UNEQUALS;
+			case LT:
+				return Parser.LexerTerminal.LOWER;
+			case GE:
+				return Parser.LexerTerminal.GREATER_EQUALS;
+			case GT:
+				return Parser.LexerTerminal.GREATER;
+			case LE:
+				return Parser.LexerTerminal.LOWER_EQUALS;
+			}
+			throw new ConversionException(operator);
+		}
 	}
 
 	public static class NildumuOperator {
@@ -267,7 +312,6 @@ public class Converter {
 
 		@Override public void visitGoto(SSAGotoInstruction instruction) {
 			// do nothing
-			return;
 		}
 
 		@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
@@ -317,11 +361,25 @@ public class Converter {
 		}
 
 		@Override public void visitComparison(SSAComparisonInstruction instruction) {
-
+			try {
+				Parser.BinaryOperatorNode comp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
+						access(instruction.getUse(1)), LexerTerminal.of(instruction.getOperator()));
+				stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
+						new Types().INT, comp));
+			} catch (ConversionException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
-
+			try {
+				Parser.BinaryOperatorNode expr = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
+						access(instruction.getUse(1)),
+						LexerTerminal.of((IConditionalBranchInstruction.Operator) instruction.getOperator()));
+				this.blockToExpr.put(currentBlock.idx(), expr);
+			} catch (ConversionException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override public void visitSwitch(SSASwitchInstruction instruction) {
@@ -375,7 +433,22 @@ public class Converter {
 		}
 
 		@Override public void visitPhi(SSAPhiInstruction instruction) {
+			// TODO where can i get the correct order of the arguments?
+			// for if-stmts: first one comes from "true"-branch? Is it the same for joana?
 
+			// TODO: handle loop-phis separately
+
+			BBlock condBlock = m.getCFG().getImmDom(currentBlock);
+			BBlock firstPred = currentBlock.preds().get(0);
+			int firstArg = (m.getCFG().isDominatedBy(firstPred, m.getCFG().getBlock(condBlock.getTrueTarget()))) ?
+					0 :
+					1;
+			int sndArg = 1 - firstArg;
+
+			Parser.PhiNode phi = new Parser.PhiNode(DUMMY_LOCATION,
+					Arrays.asList(varName(instruction.getUse(firstArg)), varName(instruction.getUse(sndArg))));
+			stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()), new Types().INT,
+					phi));
 		}
 
 		@Override public void visitPi(SSAPiInstruction instruction) {
@@ -388,15 +461,6 @@ public class Converter {
 
 		@Override public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
 
-		}
-
-		private Parser.ExpressionNode expressionNode(int valNum) {
-			assert (this.valToParam.containsKey(valNum) || this.valToExpr.containsKey(valNum));
-			if (this.valToParam.containsKey(valNum)) {
-				return new Parser.ParameterAccessNode(DUMMY_LOCATION, valToParam.get(valNum).name);
-			} else {
-				return this.valToExpr.get(valNum);
-			}
 		}
 
 		public List<Parser.StatementNode> visitBlock(BBlock b) {

@@ -44,6 +44,17 @@ class ConverterTest {
 				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "h input int v3 = 0buuu;\n"
 						+ "int v6 = (2 + v3);\n" + "int v8 = (v3 + 1);\n" + "int v9 = (v6 - v8);\n"
 						+ "l output int o_v6 = v6;\n" + "l output int o_v8 = v8;\n" + "l output int o_v9 = v9;");
+		prettyPrint.put("If",
+				"use_sec basic;\n" + "bit_width 3;\nh input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
+						+ "if ((v2 <= 0))\n" + "  {\n" + "\n" + "  } \n" + "else\n" + "  {\n"
+						+ "    int v6 = (1 + 0);\n" + "  }\n" + "int v7 = phi(v4, v6);\n" + "l output int o_v7 = v7;");
+		prettyPrint.put("IfinIf",
+				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
+						+ "int v6 = 2;\n" + "if ((v2 <= 0))\n" + "  {\n" + "\n" + "  } \n" + "else\n" + "  {\n"
+						+ "    if ((v2 > 1))\n" + "      {\n" + "        int v7 = (2 + 0);\n" + "      } \n"
+						+ "    else\n" + "      {\n" + "        int v8 = (1 + 0);\n" + "      }\n"
+						+ "    int v9 = phi(v7, v8);\n" + "  }\n" + "int v10 = phi(v4, v9);\n"
+						+ "l output int o_v10 = v10;");
 	}
 
 	@Test void computeConditionalBranch() throws IOException, InterruptedException {
@@ -95,6 +106,14 @@ class ConverterTest {
 		testConversion("SimpleArithmetic", true);
 	}
 
+	@Test void convertIfTest() throws ConversionException, IOException, InterruptedException {
+		testConversion("If", true);
+	}
+
+	@Test void convertIfinIfTest() throws ConversionException, IOException, InterruptedException {
+		testConversion("IfinIf", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws ConversionException, IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {
@@ -105,6 +124,7 @@ class ConverterTest {
 
 	String convertProgram(String testCase) throws IOException, InterruptedException, ConversionException {
 		Program p = TestUtils.build(testCase);
+		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
 		Converter c = new Converter();
 		Parser.ProgramNode res = c.convertProgram(p);
 		return res.toPrettyString();

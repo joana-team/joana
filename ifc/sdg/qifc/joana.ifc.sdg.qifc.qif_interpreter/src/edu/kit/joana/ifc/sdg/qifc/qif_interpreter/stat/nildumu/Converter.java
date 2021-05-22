@@ -6,7 +6,10 @@ import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
+import nildumu.Context;
+import nildumu.Lattices;
 import nildumu.Operator;
 import nildumu.Parser;
 import nildumu.typing.Type;
@@ -16,6 +19,8 @@ import swp.lexer.Location;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.ExecutionVisitor.OUTPUT_FUNCTION;
+
 /**
  * converts a qif program into a nildumu ast
  */
@@ -24,9 +29,32 @@ public class Converter {
 
 	public static final Location DUMMY_LOCATION = new Location(-1, -1);
 	private NildumuOptions options;
+	private Context context;
+
+	public Map<Integer, Parser.InputVariableDeclarationNode> inputs;
+
+	public Converter() {
+		this.options = NildumuOptions.DEFAULT;
+		this.context = new Context(options.secLattice, options.intWidth);
+		this.inputs = new HashMap<>();
+	}
 
 	public static String varName(int valNum) {
-		return String.valueOf(valNum);
+		return "v" + valNum;
+	}
+
+	public Parser.ProgramNode convertProgram(Program p) throws ConversionException {
+		List<Parser.InputVariableDeclarationNode> inputs = convertSecretInputs(p);
+		Map<Integer, Parser.ExpressionNode> consts = parseConstantValues(p.getEntryMethod());
+		Parser.ProgramNode programNode = new Parser.ProgramNode(context);
+		inputs.forEach(programNode::addGlobalStatement);
+
+		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>(), consts);
+		List<Parser.StatementNode> stmts = convertStatements(p.getEntryMethod().getCFG().getBlocks(), new ArrayList<>(),
+				cVis);
+		programNode.addGlobalStatements(stmts);
+
+		return programNode;
 	}
 
 	public Parser.MethodNode convertMethod(Method m) throws ConversionException {
@@ -89,7 +117,23 @@ public class Converter {
 			toConvert.removeAll(loop.getBlocks());
 		}
 
-		return converted;
+		return convertStatements(toConvert, converted, cVis);
+	}
+
+	private List<Parser.InputVariableDeclarationNode> convertSecretInputs(Program p) throws ConversionException {
+		List<Parser.InputVariableDeclarationNode> inputs = new ArrayList<>();
+		Method topLevel = p.getEntryMethod();
+
+		for (int i = 1; i < topLevel.getParamNum(); i++) {
+			int valNum = topLevel.getIr().getParameter(i);
+			Parser.InputVariableDeclarationNode node = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
+					varName(valNum), NildumuType.of(topLevel.getParamType(i)),
+					new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get()
+							.parse("0b" + String.join("", Collections.nCopies(options.intWidth, "u")))), "h");
+			this.inputs.put(valNum, node);
+			inputs.add(node);
+		}
+		return inputs;
 	}
 
 	/**
@@ -195,7 +239,7 @@ public class Converter {
 	public static class ConversionVisitor implements SSAInstruction.IVisitor {
 
 		private final Method m;
-		private final List<Parser.StatementNode> stmts;
+		private List<Parser.StatementNode> stmts;
 		private final Map<Integer, Parser.ParameterNode> valToParam;
 		private final Map<Integer, Parser.ExpressionNode> valToExpr;
 		private final Map<Integer, Parser.ExpressionNode> blockToExpr;
@@ -244,14 +288,14 @@ public class Converter {
 				e.printStackTrace();
 			}
 
-			Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(expressionNode(instruction.getUse(0)),
-					expressionNode(instruction.getUse(1)), terminal);
+			Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
+					access(instruction.getUse(1)), terminal);
 			this.valToExpr.put(instruction.getDef(), binOp);
 
 			// TODO should we use the same Types() obj every time?
 			// TODO compute result type from operation, instead of statically using INT
 			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					new Types().INT, expressionNode(instruction.getDef())));
+					new Types().INT, binOp));
 		}
 
 		// TODO how is unary minus handled?
@@ -259,13 +303,13 @@ public class Converter {
 			IUnaryOpInstruction.Operator op = (IUnaryOpInstruction.Operator) instruction.getOpcode();
 			Parser.UnaryOperatorNode unOp = null;
 			try {
-				unOp = new Parser.UnaryOperatorNode(expressionNode(instruction.getUse(0)), LexerTerminal.of(op));
+				unOp = new Parser.UnaryOperatorNode(access(instruction.getUse(0)), LexerTerminal.of(op));
 			} catch (ConversionException e) {
 				e.printStackTrace();
 			}
 			this.valToExpr.put(instruction.getDef(), unOp);
 			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					new Types().INT, expressionNode(instruction.getDef())));
+					new Types().INT, unOp));
 		}
 
 		@Override public void visitConversion(SSAConversionInstruction instruction) {
@@ -298,6 +342,12 @@ public class Converter {
 
 		@Override public void visitInvoke(SSAInvokeInstruction instruction) {
 
+			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
+				int leaked = instruction.getUse(0);
+				Parser.OutputVariableDeclarationNode node = new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION,
+						"o_" + varName(instruction.getUse(0)), new Types().INT, access(leaked), "l");
+				this.stmts.add(node);
+			}
 		}
 
 		@Override public void visitNew(SSANewInstruction instruction) {
@@ -350,11 +400,27 @@ public class Converter {
 		}
 
 		public List<Parser.StatementNode> visitBlock(BBlock b) {
-			return new ArrayList<>();
+			this.currentBlock = b;
+			this.stmts = new ArrayList<>();
+			b.instructions().forEach(i -> i.visit(this));
+			return stmts;
 		}
 
 		public Parser.ExpressionNode blockToExpr(int idx) {
 			return this.blockToExpr.get(idx);
+		}
+
+		public Parser.PrimaryExpressionNode access(int valNum) {
+			if (this.valToParam.containsKey(valNum)) {
+				return accessParam(valNum);
+			} else if (m.isConstant(valNum)) {
+				return (Parser.PrimaryExpressionNode) valToExpr.get(valNum);
+			}
+			return new Parser.VariableAccessNode(DUMMY_LOCATION, varName(valNum));
+		}
+
+		private Parser.ParameterAccessNode accessParam(int valNum) {
+			return new Parser.ParameterAccessNode(DUMMY_LOCATION, valToParam.get(valNum).name);
 		}
 	}
 }

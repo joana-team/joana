@@ -76,3 +76,8 @@ python testTooling/analyzer NUM_ARGS PATH_TO_TESTCASE
 ````
 
 ``NUM_ARGS`` is the number of input parameters that are expected by the test program
+
+### Questions about Nildumu: AST
+
+- what is "hasAppendvalue" in Variabledeclaration
+- to which expressions refer the controlDeps in a PhiNode

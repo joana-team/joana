@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -26,7 +27,7 @@ public class LoopBody {
 	private final BBlock head;
 	private final Set<BBlock> blocks;
 	private final List<BBlock> breaks;
-	private final Formula jumpOut;
+	private Formula jumpOut;
 
 	public LoopBody(Method owner, BBlock head) {
 		this.level = owner.getCFG().getLevel(head);
@@ -41,11 +42,12 @@ public class LoopBody {
 		this.breaks = findBreaks();
 		this.placeholderArrays = new HashMap<>();
 		this.placeholderArrayVars = new HashMap<>();
+	}
 
+	public void computeLoopCondition() {
 		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
 		boolean evalTo = head.getTrueTarget() == insideLoopSuccessor.idx();
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
-
 	}
 
 	private List<BBlock> findBreaks() {
@@ -181,6 +183,26 @@ public class LoopBody {
 		return this.runs.get(i);
 	}
 
+	public List<Integer> getAllUses() {
+		Set<Integer> usedValues = new HashSet<>();
+		this.blocks.forEach(b -> b.instructions().forEach(i -> {
+			for (int j = 0; j < i.getNumberOfUses(); j++) {
+				usedValues.add(i.getUse(j));
+			}
+		}));
+		return new ArrayList<>(usedValues);
+	}
+
+	public List<Integer> getAllDefs() {
+		Set<Integer> defs = new HashSet<>();
+		this.blocks.forEach(b -> b.instructions().forEach(i -> {
+			if (i.hasDef()) {
+				defs.add(i.getDef());
+			}
+		}));
+		return new ArrayList<>(defs);
+	}
+
 	public Set<BBlock> getBlocks() {
 		return blocks;
 	}
@@ -211,6 +233,34 @@ public class LoopBody {
 
 	public boolean producesValNum(int valNum) {
 		return this.in.containsKey(valNum);
+	}
+
+	public Map<Integer, Integer> phiToInsideLoop() {
+		Map<Integer, Integer> outMap = new HashMap<>();
+		List<Integer> defs = this.getAllDefs();
+
+		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction).forEach(phi -> {
+			if (defs.contains(phi.getUse(0))) {
+				outMap.put(phi.getDef(), phi.getUse(0));
+			} else {
+				outMap.put(phi.getDef(), phi.getUse(1));
+			}
+		});
+		return outMap;
+	}
+
+	public BiMap<Integer, Integer> phiToBeforeLoop() {
+		BiMap<Integer, Integer> inMap = HashBiMap.create();
+		List<Integer> defs = this.getAllDefs();
+
+		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction).forEach(phi -> {
+			if (!defs.contains(phi.getUse(0))) {
+				inMap.put(phi.getDef(), phi.getUse(0));
+			} else {
+				inMap.put(phi.getDef(), phi.getUse(1));
+			}
+		});
+		return inMap;
 	}
 
 	public Formula[] getBeforeLoop(int i) {

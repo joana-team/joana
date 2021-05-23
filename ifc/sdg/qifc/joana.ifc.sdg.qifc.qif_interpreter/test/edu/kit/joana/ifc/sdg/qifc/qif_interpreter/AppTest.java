@@ -1,12 +1,12 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import org.junit.jupiter.api.Test;
 import org.logicng.formulas.Formula;
@@ -88,7 +88,7 @@ class AppTest {
 
 	@Test void fullRunLoop()
 			throws IOException, UnexpectedTypeException, ParameterException, OutOfScopeException, InterruptedException {
-		Program p = TestUtils.build("Loop7");
+		Program p = TestUtils.build("Loop");
 		// execute
 		Interpreter i = new Interpreter(p);
 		StaticAnalysis sa = new StaticAnalysis(p);

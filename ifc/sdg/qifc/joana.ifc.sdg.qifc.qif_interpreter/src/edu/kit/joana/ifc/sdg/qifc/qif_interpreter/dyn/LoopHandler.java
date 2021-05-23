@@ -16,6 +16,12 @@ import java.util.stream.IntStream;
 
 public class LoopHandler {
 
+	public static LoopBody buildSkeleton(Method m, BBlock head) {
+		assert (head.isLoopHeader());
+		LoopBody loop = new LoopBody(m, head);
+		return loop;
+	}
+
 	/**
 	 * analyzes loopbody and computes data and cf dependencies
 	 * sets dependency fields for computed values accordingly
@@ -25,23 +31,21 @@ public class LoopHandler {
 	 * @param sa   StaticAnalysis object that is responsible for analysing the whole program
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
-	public static LoopBody analyze(Method m, BBlock head, StaticAnalysis sa) {
+	public static LoopBody analyze(Method m, BBlock head, StaticAnalysis sa, LoopBody base) {
 		int loopUnrollingMax = m.getProg().getConfig().loopUnrollingMax();
 
-		assert (head.isLoopHeader());
-		LoopBody loop = new LoopBody(m, head);
-		extractDeps(m, head, loop);
-
+		base.computeLoopCondition();
+		extractDeps(m, head, base);
 		List<Integer> visited = new ArrayList<>();
 		Queue<BBlock> toVisit = new ArrayDeque<>();
 
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopSATVisitor sv = new LoopSATVisitor(sa, loop);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopSATVisitor sv = new LoopSATVisitor(sa, base);
 
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
 		List<BBlock> breakSuccessors = new ArrayList<>();
 
 		// no need to visit head again --> add in-loop successor
-		toVisit.add(head.succs().stream().filter(loop.getBlocks()::contains).findFirst().get());
+		toVisit.add(head.succs().stream().filter(base.getBlocks()::contains).findFirst().get());
 		visited.add(head.idx());
 
 		// visit all loop blocks -- treat like separate function, where input variables are the variables assigned to the phi-def-values
@@ -57,15 +61,15 @@ public class LoopHandler {
 			}
 
 			if (b.isLoopHeader() && !b.equals(head)) {
-				LoopBody l = LoopHandler.analyze(m, b, sa);
+				LoopBody l = LoopHandler.analyze(m, b, sa, base);
 				m.addLoop(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));
 			} else {
-				breakSuccessors.addAll(b.succs().stream().filter(succ -> !loop.hasBlock(succ.idx()))
+				breakSuccessors.addAll(b.succs().stream().filter(succ -> !base.hasBlock(succ.idx()))
 						.collect(Collectors.toList()));
 				for (BBlock succ : b.succs()) {
-					if (loop.getBlocks().contains(succ) && !succ.equals(head) && (succ.isLoopHeader() || succ.preds()
+					if (base.getBlocks().contains(succ) && !succ.equals(head) && (succ.isLoopHeader() || succ.preds()
 							.stream().mapToInt(BBlock::idx).allMatch(visited::contains))) {
 						toVisit.add(succ);
 					}
@@ -73,10 +77,10 @@ public class LoopHandler {
 			}
 		}
 
-		loop.setOutDT(sv.getCurrentLeaf().root());
+		base.setOutDT(sv.getCurrentLeaf().root());
 		// if the loop has a (or more) break statements,
 		// we visit the basic blocks that connect the jump out of the loop with the after-loop successor-block of the loop header
-		BBlock afterLoop = head.succs().stream().filter(succ -> !loop.hasBlock(succ.idx())).findFirst().get().succs()
+		BBlock afterLoop = head.succs().stream().filter(succ -> !base.hasBlock(succ.idx())).findFirst().get().succs()
 				.get(0);
 		List<Integer> visitedBreakBlocks = new ArrayList<>();
 		while (!breakSuccessors.isEmpty()) {
@@ -91,33 +95,32 @@ public class LoopHandler {
 					.filter(succ -> !succ.equals(afterLoop)).filter(succ -> !breakSuccessors.contains(succ))
 					.forEach(breakSuccessors::add);
 		}
-		extractOutDeps(m, head, loop);
-		computeRuns(loop, m, loopUnrollingMax);
+		extractOutDeps(m, head, base);
+		computeRuns(base, m, loopUnrollingMax);
 
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
-		loop.lastRun().getPrimitive().keySet().forEach(i -> m.setDepsForvalue(i, loop.lastRun().getPrimitive(i)));
+		base.lastRun().getPrimitive().keySet().forEach(i -> m.setDepsForvalue(i, base.lastRun().getPrimitive(i)));
 		for (int i = loopUnrollingMax - 2; i >= 0; i--) {
-			LoopIteration run = loop.getRun(i);
-			loop.getIn().keySet().forEach(
-					j -> m.setDepsForvalue(j, LogicUtil.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), m.getDepsForValue(j))));
+			LoopIteration run = base.getRun(i);
+			base.getIn().keySet().forEach(j -> m.setDepsForvalue(j, LogicUtil
+					.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), m.getDepsForValue(j))));
 		}
 
 		// same thing, but for arrays
-		for(int i: loop.getPlaceholderArrays().keySet()) {
-			Formula[][] res = loop.lastRun().getArray(i).clone();
-			for (int j = loop.getSimulatedIterationNum() - 1; j >= 0; j--) {
+		for (int i : base.getPlaceholderArrays().keySet()) {
+			Formula[][] res = base.lastRun().getArray(i).clone();
+			for (int j = base.getSimulatedIterationNum() - 1; j >= 0; j--) {
 				int finalJ = j;
-				IntStream.range(0, res.length).forEach(k ->
-						res[k] = LogicUtil.ternaryOp(loop.getRun(finalJ).getJumpOutAfterThisIteration(), loop.getRun(
-								finalJ).getArray(i)[k], res[k])
-						);
+				IntStream.range(0, res.length).forEach(k -> res[k] = LogicUtil
+						.ternaryOp(base.getRun(finalJ).getJumpOutAfterThisIteration(),
+								base.getRun(finalJ).getArray(i)[k], res[k]));
 			}
 			m.getArray(i).setValueDependencies(res);
 		}
 
 		// TODO do the same for arrays
 
-		return loop;
+		return base;
 	}
 
 	/**

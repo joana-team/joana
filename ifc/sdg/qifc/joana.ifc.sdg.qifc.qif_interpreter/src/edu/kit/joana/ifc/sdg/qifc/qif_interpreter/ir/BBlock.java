@@ -297,6 +297,13 @@ public class BBlock implements DotNode {
 		return dummyTarget;
 	}
 
+	/*
+	public boolean hasDef(int valNum) {
+		return this.instructions.stream().filter(i -> i.hasDef()).anyMatch(i -> i.getDef() == valNum);
+	}
+
+	 */
+
 	public IFTreeNode getIfTree() {
 		return ifTree;
 	}

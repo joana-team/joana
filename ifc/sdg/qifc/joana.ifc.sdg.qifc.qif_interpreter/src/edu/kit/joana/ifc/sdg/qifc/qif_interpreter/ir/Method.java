@@ -7,6 +7,7 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -32,7 +33,7 @@ public class Method {
 	private CGNode cg;
 	private CFG cfg;
 	private final Map<Integer, Value> programValues;
-	private final List<LoopBody> loops;
+	private List<LoopBody> loops;
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
 	private int returnValue;
 	private IReturnValue<?> rv;
@@ -49,6 +50,7 @@ public class Method {
 		m.createParamValues();
 		m.initConstants();
 		m.initReturnValue();
+		m.initLoops();
 		return m;
 	}
 
@@ -76,13 +78,13 @@ public class Method {
 		m.createParamValues();
 		m.initConstants();
 		m.initReturnValue();
+		m.initLoops();
 		return m;
 	}
 
 	public Method() {
 		this.programValues = new HashMap<>();
 		this.phiValPossibilities = new HashMap<>();
-		this.loops = new ArrayList<>();
 		this.recursionDepth = -1;
 	}
 
@@ -98,12 +100,18 @@ public class Method {
 		this.createParamValues();
 		this.initConstants();
 		this.initReturnValue();
+		this.initLoops();
 		p.addMethod(this);
+	}
+
+	private void initLoops() {
+		this.loops = this.cfg.getBlocks().stream().filter(b -> b.isLoopHeader())
+				.map(b -> LoopHandler.buildSkeleton(this, b)).collect(Collectors.toList());
 	}
 
 	private void initReturnValue() {
 		Type returnType = this.getReturnType();
-		switch(returnType) {
+		switch (returnType) {
 
 		case INTEGER:
 			this.rv = new ReturnValue(this);

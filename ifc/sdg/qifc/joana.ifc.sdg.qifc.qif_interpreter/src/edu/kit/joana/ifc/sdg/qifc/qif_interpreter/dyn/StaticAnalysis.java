@@ -73,8 +73,8 @@ public class StaticAnalysis {
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
 				}
-				LoopBody l = LoopHandler.analyze(m, b, this);
-				m.addLoop(l);
+				LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().idx() == b.idx()).findFirst().get();
+				LoopHandler.analyze(m, b, this, l);
 
 				// add all after-loop successors, but skip the dummy blocks
 				for (BBlock succ : b.succs().stream().filter(succ -> !l.getBlocks().contains(succ))

@@ -11,7 +11,8 @@ public class Loop {
 
 	public int f(int h) {
 		int l = 0;
-		while(h > l) {
+		l++;
+		while (h > l) {
 			l++;
 		}
 		Out.print(l);

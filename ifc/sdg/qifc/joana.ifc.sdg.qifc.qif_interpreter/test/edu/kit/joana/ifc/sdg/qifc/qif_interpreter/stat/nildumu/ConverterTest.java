@@ -114,6 +114,10 @@ class ConverterTest {
 		testConversion("IfinIf", true);
 	}
 
+	@Test void convertWhileTest() throws ConversionException, IOException, InterruptedException {
+		testConversion("Loop", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws ConversionException, IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {

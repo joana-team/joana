@@ -3,11 +3,10 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
-import org.apache.commons.exec.util.StringUtils;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -17,6 +16,7 @@ public class Interpreter {
 
 	private final Program program;
 	private final PrintStream out;
+	private Environment env;
 
 	public Interpreter(Program p, PrintStream out) {
 		this.program = p;
@@ -26,7 +26,6 @@ public class Interpreter {
 	public Interpreter(Program p) {
 		this(p, System.out);
 	}
-
 
 	public boolean execute(List<String> args) throws ParameterException, OutOfScopeException {
 
@@ -104,5 +103,17 @@ public class Interpreter {
 			}
 		}
 		return true;
+	}
+
+	public void setEnvironment(Environment env) {
+		this.env = env;
+	}
+
+	String outputDirectory() {
+		if (env == null) {
+			return System.getProperty("user.dir");
+		} else {
+			return env.args.outputDirectory;
+		}
 	}
 }

@@ -1,30 +1,19 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
-import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.*;
-import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.graph.GraphIntegrity;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
-import org.apache.commons.io.FilenameUtils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystemException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public class App {
 
@@ -40,7 +29,6 @@ public class App {
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");
-
 		try {
 			jc.parse(args);
 			jArgs.validate();
@@ -56,130 +44,35 @@ public class App {
 		}
 
 		try {
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.initWithFileHandler(Level.ALL, jArgs.outputDirectory);
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger
+					.initWithFileHandler(Level.ALL, jArgs.outputDirectory);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		String classFilePath;
-		String programPath = jArgs.inputFiles.get(0);
-		String jarPath = null;
-		try {
-			jarPath = App.class
-					.getProtectionDomain()
-					.getCodeSource()
-					.getLocation()
-					.toURI()
-					.getPath();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-
-		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Starting compilation with javac");
-		if (programPath.endsWith(JAVA_FILE_EXT)) {
-			try {
-				compile(jArgs.outputDirectory, programPath, jarPath);
-			} catch (IOException | InterruptedException | JavacException e) {
-				ErrorHandler.fatal(e);
-			}
-			classFilePath = jArgs.outputDirectory + "/" + FilenameUtils.getBaseName(programPath) + CLASS_FILE_EXT;
-		} else {
-			classFilePath = programPath;
-		}
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger
-				.log(String.format("Finished compilation. Generated file: %s", classFilePath));
-		DotGrapher.configureDest(jArgs.outputDirectory);
-
-		// get classname via filename
-		String className = FilenameUtils.getBaseName(programPath);
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Classname: " + className);
-
-		// create SDG
-		IRBuilder builder = new IRBuilder(classFilePath, className);
-		builder.createBaseSDGConfig();
-		try {
-			builder.buildAndKeepBuilder();
-		} catch (IOException | CancelException | ClassHierarchyException | GraphIntegrity.UnsoundGraphException e) {
-			e.printStackTrace();
-		}
-
-		Program p = builder.getProgram();
-
-		if (jArgs.dumpGraphs) {
-			builder.dumpGraph(jArgs.outputDirectory);
-			for (Method m : p.getMethods()) {
-				DotGrapher.exportDotGraph(m.getCFG());
-			}
-		}
-
-		// execute
-		Interpreter i = new Interpreter(p);
-
-		if (jArgs.onlyRun) {
-			i.execute(jArgs.args);
-			System.exit(0);
-		}
-
-		StaticAnalysis sa = new StaticAnalysis(p);
-		sa.computeSATDeps();
-		i.execute(jArgs.args);
-
-		Method entry = p.getEntryMethod();
-		Optional<Value> leaked = entry.getProgramValues().values().stream().filter(Value::isLeaked).findFirst();
-
-		if (!leaked.isPresent()) {
-			System.out.println("No information leakage");
-			System.exit(0);
-		}
-
-		int[] params = entry.getIr().getParameterValueNumbers();
-		List<Value> hVals = Arrays.stream(params).mapToObj(entry::getValue).filter(Objects::nonNull)
-				.collect(Collectors.toList());
-		// System.out.println(" Parameters: ");
-		LeakageComputation lc = new LeakageComputation(hVals, leaked.get(), entry);
-		lc.compute(jArgs.outputDirectory);
-	}
-
-	private static void compile(String outputDirectory, String programPath, String jarPath)
-			throws IOException, InterruptedException, JavacException {
-		String cmd = String.format(JAVAC_INVOKE_CMD, outputDirectory, programPath, jarPath);
-		Process compilation = Runtime.getRuntime().exec(cmd);
-
-		InputStreamReader isr = new InputStreamReader(compilation.getErrorStream());
-		BufferedReader rdr = new BufferedReader(isr);
-		String line;
-		StringBuilder sb = new StringBuilder();
-		while ((line = rdr.readLine()) != null) {
-			sb.append(line);
-		}
-
-		int exitCode = compilation.waitFor();
-
-		if (exitCode != 0) {
-			throw new JavacException(sb.toString());
-		}
+		AnalysisPipeline pipeline = new AnalysisPipeline();
+		pipeline.runPipeline(jArgs);
 	}
 
 	public static class Args implements IParameterValidator, IStringConverter<String> {
 
 		private static final String OUTPUT_DIR_NAME = "out_";
-		@Parameter(names = "--o", description = "Specify a path where the output directory should be created (Default is the current working directory)") String outputDirectory = ".";
-		@Parameter(names = "--usage", description = "Print help") private boolean help = false;
-		@Parameter(names = "--static", description = "Perform only static analysis on the input program") private boolean onlyStatic = false;
-		@Parameter(names = "--run", description = "Run the program without performing any analysis") private boolean onlyRun = false;
-		@Parameter(names = "--dump-graphs", description = "Dump graphs created by JOANA") private boolean dumpGraphs = false;
-		@Parameter(description = "A program for the interpreter to execute, plus optionally the result of a previous static analysis", validateWith = Args.class, converter = Args.class) private List<String> inputFiles = new ArrayList<>();
+		@Parameter(names = "--o", description = "Specify a path where the output directory should be created (Default is the current working directory)") public String outputDirectory = ".";
+		@Parameter(names = "--usage", description = "Print help") boolean help = false;
+		@Parameter(names = "--static", description = "Perform only static analysis on the input program") public boolean onlyStatic = false;
+		@Parameter(names = "--run", description = "Run the program without performing any analysis") public boolean onlyRun = false;
+		@Parameter(names = "--dump-graphs", description = "Dump graphs created by JOANA") public boolean dumpGraphs = false;
+		@Parameter(description = "A program for the interpreter to execute, plus optionally the result of a previous static analysis", validateWith = Args.class, converter = Args.class) public List<String> inputFiles = new ArrayList<>();
 
-		@Parameter(names = "--args", description = "Arguments for running the input program", variableArity = true) private List<String> args = new ArrayList<>();
+		@Parameter(names = "--args", description = "Arguments for running the input program", variableArity = true) public List<String> args = new ArrayList<>();
 
-		@Parameter(names = "--workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) private String workingDir = System
+		@Parameter(names = "--workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) public String workingDir = System
 				.getProperty("user.dir");
 
 		/**
 		 * sometimes we don't need to do a static analysis, bc it is already provided via input
 		 */
-		private boolean doStatic = true;
+		public boolean doStatic = true;
 
 		/**
 		 * Validates the given arguments. Expected are:

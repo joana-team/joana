@@ -4,6 +4,7 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.LeakageComputation;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
@@ -12,10 +13,10 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 
+import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ExecutionVisitor implements SSAInstruction.IVisitor {
@@ -266,6 +267,11 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value leakedVal = m.getValue(leaked);
 			leakedVal.leak();
 			out.println(getUses(instruction)[0].getVal());
+			try {
+				measureLeak(leakedVal);
+			} catch (IOException | UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
 		} else {
 			String bcString = instruction.getDeclaredTarget().getSignature();
 			Method target = (m.getProg().hasMethod(bcString)) ?
@@ -361,5 +367,14 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		} catch (MissingValueException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void measureLeak(Value leaked) throws IOException, UnexpectedTypeException {
+		int[] params = m.getIr().getParameterValueNumbers();
+		List<Value> hVals = Arrays.stream(params).mapToObj(m::getValue).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		// System.out.println(" Parameters: ");
+		LeakageComputation lc = new LeakageComputation(hVals, leaked, m);
+		lc.compute(interpreter.outputDirectory());
 	}
 }

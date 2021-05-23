@@ -58,3 +58,4 @@ testResources/And.java
 testResources/And.java
 testResources/And.java
 testResources/And.java
+testResources/MultipleBreaks.java

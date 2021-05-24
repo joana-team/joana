@@ -23,6 +23,7 @@ public class StaticAnalysis {
 	}
 
 	public void computeSATDeps() {
+		this.entry.finishedAnalysis();
 		computeSATDeps(this.entry);
 	}
 

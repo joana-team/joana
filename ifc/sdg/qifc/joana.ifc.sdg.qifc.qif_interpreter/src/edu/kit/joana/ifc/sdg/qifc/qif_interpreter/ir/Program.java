@@ -38,9 +38,8 @@ public class Program {
 		this.builder = builder;
 		this.cg = cg;
 		this.ana = ana;
-		this.entryMethod = Method.getEntryMethodFromProgram(this);
 		this.methods = new HashMap<>();
-		this.methods.put(entryMethod.identifier(), entryMethod);
+		this.entryMethod = Method.getEntryMethodFromProgram(this);
 		this.config = Config.defaultConfig();
 	}
 

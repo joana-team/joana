@@ -171,13 +171,13 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		} else {
 			String calleeId = instruction.getDeclaredTarget().getSignature();
 			IInvocationHandler handler;
-			if (!m.getProg().hasMethod(calleeId)) {
+			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed()) {
 				if (m.getProg().isRecursive(instruction.getDeclaredTarget(), m.getCg())) {
 					handler = new RecursiveFunctionInvocationHandler();
 				} else {
 					handler = new InvocationHandler();
 				}
-				handler.analyze(m.getProg(), instruction.getDeclaredTarget());
+				handler.analyze(m.getProg().getMethod(calleeId));
 			}
 
 			if (instruction.getNumberOfDefs() > 0) {

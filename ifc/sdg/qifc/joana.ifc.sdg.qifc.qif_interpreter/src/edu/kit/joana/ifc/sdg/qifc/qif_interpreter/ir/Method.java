@@ -21,6 +21,7 @@ import java.util.stream.IntStream;
  */
 public class Method {
 
+	private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 	private static final String CONSTRUCTOR = "<init>";
 	private static final String ENTRYPOINT_ANNOTATION_NAME = "Ledu/kit/joana/ifc/sdg/qifc/nildumu/ui/EntryPoint";
 
@@ -36,6 +37,7 @@ public class Method {
 	private int returnValue;
 	private IReturnValue<?> rv;
 	private int recursionDepth;
+	private boolean depsAnalyzed;
 
 	public static Method getEntryMethodFromProgram(Program p) {
 		Method m = new Method();
@@ -50,6 +52,8 @@ public class Method {
 		m.initReturnValue();
 		m.initLoops();
 		m.initValues();
+		p.addMethod(m);
+		m.initCallees();
 		return m;
 	}
 
@@ -57,6 +61,7 @@ public class Method {
 		this.programValues = new HashMap<>();
 		this.phiValPossibilities = new HashMap<>();
 		this.recursionDepth = -1;
+		this.depsAnalyzed = false;
 	}
 
 	public Method(MethodReference ref, Program p) {
@@ -74,10 +79,21 @@ public class Method {
 		this.initLoops();
 		this.initValues();
 		p.addMethod(this);
+		this.initCallees();
+	}
+
+	private void initCallees() {
+		this.cfg.getBlocks().forEach(b -> b.instructions().forEach(i -> {
+			if (i instanceof SSAInvokeInstruction && !((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
+					.equals(OUTPUT_FUNCTION) && !prog
+					.hasMethod(((SSAInvokeInstruction) i).getDeclaredTarget().getSignature())) {
+				new Method(((SSAInvokeInstruction) i).getDeclaredTarget(), prog);
+			}
+		}));
 	}
 
 	private void initLoops() {
-		this.loops = this.cfg.getBlocks().stream().filter(b -> b.isLoopHeader())
+		this.loops = this.cfg.getBlocks().stream().filter(BBlock::isLoopHeader)
 				.map(b -> LoopHandler.buildSkeleton(this, b)).collect(Collectors.toList());
 	}
 
@@ -414,5 +430,13 @@ public class Method {
 
 	public IReturnValue getReturn() {
 		return this.rv;
+	}
+
+	public void finishedAnalysis() {
+		this.depsAnalyzed = true;
+	}
+
+	public boolean isDepsAnalyzed() {
+		return this.depsAnalyzed;
 	}
 }

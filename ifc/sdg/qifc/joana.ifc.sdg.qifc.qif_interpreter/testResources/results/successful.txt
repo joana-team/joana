@@ -36,3 +36,5 @@ testResources/Comparison.java
 testResources/And.java
 testResources/MultipleBreaks.java
 testResources/MultipleIn.java
+testResources/Recursion.java
+testResources/Call.java

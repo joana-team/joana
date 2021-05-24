@@ -7,7 +7,6 @@ import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.LeakageComputation;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -298,30 +297,21 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 				if (returnVal != null) {
 
 					if (returnType == Type.ARRAY) {
-						Array<? extends Value> arr = (m.hasValue(instruction.getDef())) ? m.getArray(instruction.getDef()) : Array.newArray(target.getArray(target.getReturnValue()).elementType(), instruction.getDef(), false);
+						Array<? extends Value> arr = m.getArray(instruction.getDef());
 						arr.setVal((Object[]) returnVal, m.getRecursionDepth());
 						m.addValue(instruction.getDef(), arr);
 					} else {
 						setDefValue(instruction, returnType, returnVal);
 					}
 				}
-			} catch (OutOfScopeException | ParameterException | UnexpectedTypeException e) {
+			} catch (OutOfScopeException | ParameterException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {
-		if (!m.hasValue(instruction.getDef())) {
-			if (instruction.getConcreteType().isArrayType()) {
-				try {
-					Value res = Array.newArray(instruction, m, false);
-					m.addValue(instruction.getDef(), res);
-				} catch (UnexpectedTypeException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		assert (m.hasValue(instruction.getDef()));
 	}
 
 	@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
@@ -358,15 +348,8 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 	}
 
 	private void setDefValue(SSAInstruction i, Type type, Object def) {
-		if (!m.hasValue(i.getDef())) {
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value.createPrimitiveByType(i.getDef(), type);
-			m.addValue(i.getDef(), defVal);
-		}
-		try {
-			m.setValue(i.getDef(), def);
-		} catch (MissingValueException e) {
-			e.printStackTrace();
-		}
+		assert (m.getValue(i.getDef()).getType() == type);
+		m.setValue(i.getDef(), def);
 	}
 
 	private void measureLeak(Value leaked) throws IOException, UnexpectedTypeException {

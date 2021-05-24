@@ -6,7 +6,6 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopHandler;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
@@ -292,10 +291,7 @@ public class Method {
 
 	// TODO: needs overhaul if we add different types
 	// add type as argument and create value objects accordingly
-	public void setValue(int valNum, Object value) throws MissingValueException {
-		if (!hasValue(valNum)) {
-			throw new MissingValueException(valNum);
-		}
+	public void setValue(int valNum, Object value) {
 		programValues.get(valNum).setVal(value, this.recursionDepth);
 	}
 

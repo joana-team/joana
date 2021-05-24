@@ -3,7 +3,6 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
@@ -83,7 +82,8 @@ public class Interpreter {
 			switch(m.getParamType(paramNum)) {
 			case ARRAY:
 				String[] arr = args.get(i).substring(1, args.get(i).length() - 1).split(",");
-				IntStream.range(0, arr.length).forEach(k -> m.getArray(valNum).store(Integer.parseInt(arr[k].replaceAll("\\s+","")), k, 0));
+				IntStream.range(0, arr.length)
+						.forEach(k -> m.getArray(valNum).store(Integer.parseInt(arr[k].replaceAll("\\s+", "")), k, 0));
 				break;
 			case INTEGER:
 				try {
@@ -91,11 +91,7 @@ public class Interpreter {
 				} catch (NumberFormatException e) {
 					return false;
 				}
-				try {
-					m.setValue(valNum, paramVal);
-				} catch (MissingValueException e) {
-					e.printStackTrace();
-				}
+				m.setValue(valNum, paramVal);
 				break;
 			case CUSTOM:
 			default:

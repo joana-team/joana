@@ -65,11 +65,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
 			res = LogicUtil.ternaryOp(assignmentCond, array.currentlyAssigned(i), res);
 		}
-
-		if (!m.hasValue(instruction.getDef())) {
-			Value defVal = Value.createPrimitiveByType(instruction.getDef(), array.elementType());
-			m.addValue(instruction.getDef(), defVal);
-		}
 		m.setDepsForvalue(instruction.getDef(), res);
 	}
 
@@ -200,15 +195,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 					}
 
 				} else {
-					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
-					if (!m.hasValue(instruction.getDef())) {
-						defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-								.createPrimitiveByType(instruction.getDef(), callee.getReturnType());
-						m.addValue(instruction.getDef(), defVal);
-					} else {
-						defVal = m.getValue(instruction.getDef());
-					}
-					assert defVal != null;
 					m.setDepsForvalue(instruction.getDef(), (Formula[]) callee.getReturnValueForCall(instruction, m));
 				}
 
@@ -217,16 +203,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitNew(SSANewInstruction instruction) {
-		if (!m.hasValue(instruction.getDef())) {
-			if (instruction.getConcreteType().isArrayType()) {
-				try {
-					Value res = Array.newArray(instruction, m, false);
-					m.addValue(instruction.getDef(), res);
-				} catch (UnexpectedTypeException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		assert (m.hasValue(instruction.getDef()));
 	}
 
 	@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
@@ -234,13 +211,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				.twosComplement(((Array<? extends Value>) m.getValue(instruction.getArrayRef())).length(),
 						Type.INTEGER.bitwidth()));
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
-		if (!m.hasValue(instruction.getDef())) {
-			defVal = new Int(instruction.getDef());
-			m.addValue(instruction.getDef(), defVal);
-		} else {
-			defVal = m.getValue(instruction.getDef());
-		}
-		assert defVal != null;
 		m.setDepsForvalue(instruction.getDef(), length);
 	}
 
@@ -297,16 +267,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		BBlock gotoBlock = block.preds().stream().filter(pred -> !pred.isDummy()).findFirst().get();
 
 		Formula[] breakDeps = LoopHandler.computeBreakValues(l, instruction.getDef(), normalExitValue, breakExitValue, gotoBlock);
-
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
-		if (!m.hasValue(instruction.getDef())) {
-			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createPrimitiveByType(instruction.getDef(), m.getValue(normalExitValue).getType());
-			m.addValue(instruction.getDef(), defVal);
-		} else {
-			defVal = m.getValue(instruction.getDef());
-		}
-		assert defVal != null;
 		m.setDepsForvalue(instruction.getDef(), breakDeps);
 	}
 
@@ -315,19 +275,8 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	These are used as "input variables" for the in-loop computations and later substituted by the actual value formulas depending on the current iteration
 	 */
 	private void handleLoopPhi(SSAPhiInstruction instruction) {
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
-
 		// find the operator for which there already exists as value object
-		int op = (m.hasValue(instruction.getUse(0))) ? instruction.getUse(0) : instruction.getUse(1);
-
-		if (!m.hasValue(instruction.getDef())) {
-			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createPrimitiveByType(instruction.getDef(), m.getValue(op).getType());
-			m.addValue(instruction.getDef(), defVal);
-		} else {
-			defVal = m.getValue(instruction.getDef());
-		}
-		assert defVal != null;
+		Value defVal = m.getValue(instruction.getDef());
 		Variable[] vars = LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth());
 		m.setDepsForvalue(instruction.getDef(), vars);
 		m.addVarsToValue(instruction.getDef(), vars);
@@ -338,16 +287,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		Formula[] op2 = m.getDepsForValue(instruction.getUse(1));
 
 		BBlock predZero = block.preds().get(0);
-
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal;
-		if (!m.hasValue(instruction.getDef())) {
-			defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createPrimitiveByType(instruction.getDef(), m.getValue(instruction.getUse(0)).getType());
-			m.addValue(instruction.getDef(), defVal);
-		} else {
-			defVal = m.getValue(instruction.getDef());
-		}
-		assert defVal != null;
 		m.setDepsForvalue(instruction.getDef(), LogicUtil.ternaryOp(predZero.generateImplicitFlowFormula(), op1, op2));
 	}
 
@@ -373,14 +312,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		int def = instruction.getDef();
 
 		IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
-
-		// make sure Value object for def exists
-		if (!m.hasValue(def)) {
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value
-					.createPrimitiveByType(def,
-							Type.getResultType(operator, m.type(instruction.getUse(0)), m.type(instruction.getUse(1))));
-			m.addValue(def, defVal);
-		}
 		Formula[] defForm = null;
 		switch (operator) {
 		case SUB:
@@ -429,19 +360,9 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		int def = instruction.getDef();
 		int opValNum = instruction.getUse(0);
 
-		if (!m.hasValue(opValNum)) {
-			staticAnalysis.createConstant(opValNum);
-		}
 		Formula[] op = m.getDepsForValue(opValNum);
 
 		IUnaryOpInstruction.Operator operator = (IUnaryOpInstruction.Operator) instruction.getOpcode();
-
-		// make sure Value object for def exists
-		if (!m.hasValue(def)) {
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value defVal = Value
-					.createPrimitiveByType(def, Type.getResultType(operator, m.type(opValNum)));
-			m.addValue(def, defVal);
-		}
 
 		if (operator == IUnaryOpInstruction.Operator.NEG) {
 			m.setDepsForvalue(def, LogicUtil.neg(op));

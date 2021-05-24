@@ -1,9 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
-import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
@@ -17,6 +15,7 @@ import org.logicng.formulas.Variable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * data class to cluster together some objects pertaining to a method
@@ -51,34 +50,7 @@ public class Method {
 		m.initConstants();
 		m.initReturnValue();
 		m.initLoops();
-		return m;
-	}
-
-	public static Method entrypoint(Program p) {
-		PDG entryPDG = null;
-		for (PDG pdg : p.getBuilder().getAllPDGs()) {
-			if (pdg.getMethod().getAnnotations().stream()
-					.anyMatch(a -> a.getType().getName().toString().equals(ENTRYPOINT_ANNOTATION_NAME))) {
-				entryPDG = pdg;
-			}
-		}
-		assert (entryPDG != null);
-		SDGMethod entrySDG = p.getAna().getProgram().getMethod(entryPDG.getMethod().getSignature());
-		return createEntryPoint(entrySDG, entryPDG, p);
-	}
-
-	private static Method createEntryPoint(SDGMethod sdgMethod, PDG pdg, Program p) {
-		Method m = new Method();
-		m.prog = p;
-		m.pdg = pdg;
-		m.cg = m.pdg.cgNode;
-		m.ir = m.cg.getIR();
-		m.sdgMethod = sdgMethod;
-		m.cfg = CFG.buildCFG(m);
-		m.createParamValues();
-		m.initConstants();
-		m.initReturnValue();
-		m.initLoops();
+		m.initValues();
 		return m;
 	}
 
@@ -101,6 +73,7 @@ public class Method {
 		this.initConstants();
 		this.initReturnValue();
 		this.initLoops();
+		this.initValues();
 		p.addMethod(this);
 	}
 
@@ -157,6 +130,45 @@ public class Method {
 				}
 			}
 		}
+	}
+
+	private void initValues() {
+		for (BBlock b : cfg.getBlocks()) {
+			b.instructions().stream().filter(SSAInstruction::hasDef).forEach(i -> {
+				if (i instanceof SSANewInstruction) {
+					initArrayDef((SSANewInstruction) i);
+				} else {
+					initPrimitiveDef(i);
+				}
+			});
+		}
+	}
+
+	private void initPrimitiveDef(SSAInstruction i) {
+		assert (i.hasDef());
+
+		Type resType;
+		if (i instanceof SSAArrayLoadInstruction) {
+			assert (programValues.containsKey(((SSAArrayLoadInstruction) i).getArrayRef()));
+			resType = ((Array) programValues.get(((SSAArrayLoadInstruction) i).getArrayRef())).elementType();
+		} else {
+			OptionalInt use = IntStream.range(0, i.getNumberOfUses())
+					.filter(j -> this.programValues.containsKey(i.getUse(j))).findFirst();
+			assert (use.isPresent());
+			resType = programValues.get(i.getUse(use.getAsInt())).getType();
+		}
+		programValues.put(i.getDef(), Value.createPrimitiveByType(i.getDef(), resType));
+	}
+
+	private void initArrayDef(SSANewInstruction i) {
+		assert (i.getConcreteType().isArrayType());
+		Value res = null;
+		try {
+			res = Array.newArray(i, this, false);
+		} catch (UnexpectedTypeException e) {
+			e.printStackTrace();
+		}
+		programValues.put(i.getDef(), res);
 	}
 
 	public boolean isCallRecursive(SSAInvokeInstruction i) {

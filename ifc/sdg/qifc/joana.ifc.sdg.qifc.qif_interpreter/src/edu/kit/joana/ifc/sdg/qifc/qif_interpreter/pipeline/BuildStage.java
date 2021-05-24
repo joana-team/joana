@@ -40,6 +40,10 @@ public class BuildStage implements IStage {
 		return env;
 	}
 
+	private void initValues(Method m) {
+
+	}
+
 	@Override public boolean success() {
 		return success;
 	}

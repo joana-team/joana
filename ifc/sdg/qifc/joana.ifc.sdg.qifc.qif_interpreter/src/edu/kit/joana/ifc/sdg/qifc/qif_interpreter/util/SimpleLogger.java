@@ -5,6 +5,7 @@ import java.util.logging.*;
 
 public class SimpleLogger {
 
+	private static long start;
 	private static final Level DEFAULT_LOG_LEVEL = Level.INFO;
 	private static final Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	private static boolean enabled;
@@ -18,10 +19,15 @@ public class SimpleLogger {
 	}
 
 	public static void initWithFileHandler(Level logLevel, String logFilePath) throws IOException {
+		start = System.currentTimeMillis();
 		LOGGER.setUseParentHandlers(false);
 		Handler fileHandler = new FileHandler(logFilePath + "/" + System.currentTimeMillis() + ".log");
 		fileHandler.setLevel(logLevel);
-		fileHandler.setFormatter(new SimpleFormatter());
+		fileHandler.setFormatter(new Formatter() {
+			@Override public String format(LogRecord record) {
+				return String.format("%7d - %s%n", record.getMillis() - start, record.getMessage());
+			}
+		});
 		LOGGER.addHandler(fileHandler);
 		enabled = true;
 	}

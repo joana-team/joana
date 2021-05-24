@@ -1,11 +1,17 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import org.logicng.formulas.Formula;
+
+import java.util.Arrays;
+
 public class Int extends Value {
 
 	public Int(int valNum) {
 		super(valNum);
 		this.setType(Type.INTEGER);
 		this.setWidth(Type.INTEGER.bitwidth());
+		this.setDeps(initDeps());
 	}
 
 	@Override public boolean verifyType(Object val) {
@@ -18,6 +24,12 @@ public class Int extends Value {
 
 	@Override public String getValAsString() {
 		return String.valueOf(this.getVal());
+	}
+
+	private Formula[] initDeps() {
+		Formula[] defaultInit = new Formula[Type.INTEGER.bitwidth()];
+		Arrays.fill(defaultInit, LogicUtil.ff.constant(false));
+		return defaultInit;
 	}
 
 }

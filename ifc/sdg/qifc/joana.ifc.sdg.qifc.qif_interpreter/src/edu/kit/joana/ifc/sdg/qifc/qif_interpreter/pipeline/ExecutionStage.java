@@ -24,7 +24,7 @@ public class ExecutionStage implements IStage {
 		return success;
 	}
 
-	@Override public AnalysisPipeline.Stage identity() {
-		return AnalysisPipeline.Stage.EXECUTION;
+	@Override public Stage identity() {
+		return Stage.EXECUTION;
 	}
 }

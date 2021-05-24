@@ -4,27 +4,27 @@
 	<description>
     qif_interpreter standalone jar
 	</description>
-	
-	<property file="project.properties" />
-	<property name="projectname" value="joana.ifc.sdg.qifc.qif_interpreter" />
-	<!-- set global properties for this build -->
-	<property file="${joana.base.dir}/joana-project-location.properties" />
 
-	<property name="dest.file" value="${joana.dist.dir}/${projectname}.jar" />
-	<property name="dest.dir" value="${joana.dist.dir}/${projectname}" />
-	<property name="dest.dir.classes" location="${dest.dir}/classes" />
-	
-	<target name="fulljar" depends="joana.api, joana.ifc.sdg.qifc.nildumu, interpreter_jar_only">
+	<property file="project.properties"/>
+	<property name="projectname" value="joana.ifc.sdg.qifc.qif_interpreter"/>
+	<!-- set global properties for this build -->
+	<property file="${joana.base.dir}/joana-project-location.properties"/>
+
+	<property name="dest.file" value="${joana.dist.dir}/${projectname}.jar"/>
+	<property name="dest.dir" value="${joana.dist.dir}/${projectname}"/>
+	<property name="dest.dir.classes" location="${dest.dir}/classes"/>
+
+	<target name="fulljar" depends="joana.api, interpreter_jar_only">
 	</target>
-	
-    <target name="interpreter_jar_only" depends="init,compile,spill_out_jars"
-    	    description="builds the qif_interpreter jar assuming that the joana.api.jar is already built">
-        <jar destfile="${dest.file}" filesetmanifest="mergewithoutmain">
-            <manifest>
-                <attribute name="Main-Class" value="edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App"/>
-                <attribute name="Class-Path" value="."/>
-            </manifest>
-            <fileset dir="${dest.dir.classes}"/>
+
+	<target name="interpreter_jar_only" depends="init,compile,spill_out_jars"
+			description="builds the qif_interpreter jar assuming that the joana.api.jar is already built">
+		<jar destfile="${dest.file}" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App"/>
+				<attribute name="Class-Path" value="."/>
+			</manifest>
+			<fileset dir="${dest.dir.classes}"/>
           </jar>
     </target>
 	

@@ -17,7 +17,7 @@ public class SatAnalysisStage implements IStage {
 		return success;
 	}
 
-	@Override public AnalysisPipeline.Stage identity() {
-		return AnalysisPipeline.Stage.SAT_ANALYSIS;
+	@Override public Stage identity() {
+		return Stage.SAT_ANALYSIS;
 	}
 }

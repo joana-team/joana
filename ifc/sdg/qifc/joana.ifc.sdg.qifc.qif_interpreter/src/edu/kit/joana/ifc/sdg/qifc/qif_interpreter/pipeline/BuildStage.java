@@ -14,10 +14,10 @@ public class BuildStage implements IStage {
 	private boolean success = false;
 
 	@Override public Environment execute(Environment env) {
-		assert (env.completedStage(AnalysisPipeline.Stage.INIT));
-		assert (env.lastStage.fromStage().equals(AnalysisPipeline.Stage.INIT));
+		assert (env.completedStage(Stage.INIT));
+		assert (env.lastStage.fromStage().equals(Stage.INIT));
 
-		InitResult data = (InitResult) env.lastStage;
+		InitStage.InitResult data = (InitStage.InitResult) env.lastStage;
 
 		// create SDG
 		IRBuilder builder = new IRBuilder(data.classFilePath, data.className);
@@ -40,15 +40,11 @@ public class BuildStage implements IStage {
 		return env;
 	}
 
-	private void initValues(Method m) {
-
-	}
-
 	@Override public boolean success() {
 		return success;
 	}
 
-	@Override public AnalysisPipeline.Stage identity() {
-		return AnalysisPipeline.Stage.BUILD;
+	@Override public Stage identity() {
+		return Stage.BUILD;
 	}
 }

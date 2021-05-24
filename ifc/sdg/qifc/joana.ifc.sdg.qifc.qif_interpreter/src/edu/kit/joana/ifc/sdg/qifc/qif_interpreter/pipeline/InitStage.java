@@ -83,7 +83,21 @@ public class InitStage implements IStage {
 		}
 	}
 
-	@Override public AnalysisPipeline.Stage identity() {
-		return AnalysisPipeline.Stage.INIT;
+	@Override public Stage identity() {
+		return Stage.INIT;
+	}
+
+	class InitResult implements IResult {
+		String className;
+		String classFilePath;
+
+		@Override public Stage fromStage() {
+			return Stage.INIT;
+		}
+
+		public InitResult(String className, String classFilePath) {
+			this.classFilePath = classFilePath;
+			this.className = className;
+		}
 	}
 }

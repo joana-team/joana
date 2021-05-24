@@ -1,29 +1,64 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public interface IStage {
 
 	Environment execute(Environment env);
 
 	boolean success();
 
-	AnalysisPipeline.Stage identity();
+	Stage identity();
+
+	enum Stage {
+
+		INIT(true, "INIT"), BUILD(true, "BUILD"), STATIC_PREPROCESSING(false, "STATIC_PREPROCESSING"), SAT_ANALYSIS(
+				true, "SAT_ANALYSIS"), EXECUTION(true, "EXECUTION"), PANIC(true, "PANIC");
+
+		boolean failsFatally;
+		String name;
+
+		Stage(boolean failsFatally, String name) {
+			this.failsFatally = failsFatally;
+			this.name = name;
+		}
+
+		@Override public String toString() {
+			return name;
+		}
+
+		static Map<Stage, IStage> objs = new HashMap<>();
+
+		static {
+			objs.put(INIT, new InitStage());
+			objs.put(BUILD, new BuildStage());
+			objs.put(SAT_ANALYSIS, new SatAnalysisStage());
+			objs.put(EXECUTION, new ExecutionStage());
+			objs.put(STATIC_PREPROCESSING, new StaticPreprocessingStage());
+		}
+
+		IStage get() {
+			return objs.getOrDefault(this, new PanicStage());
+		}
+	}
+
+	class PanicStage implements IStage {
+
+		@Override public Environment execute(Environment env) {
+			return env;
+		}
+
+		@Override public boolean success() {
+			return false;
+		}
+
+		@Override public Stage identity() {
+			return Stage.PANIC;
+		}
+	}
 
 	interface IResult {
-		AnalysisPipeline.Stage fromStage();
+		Stage fromStage();
 	}
-
-	class InitResult implements IResult {
-		String className;
-		String classFilePath;
-
-		@Override public AnalysisPipeline.Stage fromStage() {
-			return AnalysisPipeline.Stage.INIT;
-		}
-
-		public InitResult(String className, String classFilePath) {
-			this.classFilePath = classFilePath;
-			this.className = className;
-		}
-	}
-
 }

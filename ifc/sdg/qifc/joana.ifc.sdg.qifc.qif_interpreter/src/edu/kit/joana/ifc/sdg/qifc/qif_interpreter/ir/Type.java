@@ -3,12 +3,16 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.types.TypeReference;
+import nildumu.typing.Types;
+
+import java.util.Collections;
 
 public enum Type {
 
 	INTEGER(3), ARRAY(3), CUSTOM(-1);
 
 	private final int bitWidth;
+	public static final Types nTypes = new Types();
 
 	Type(int bitWidth) {
 		this.bitWidth = bitWidth;
@@ -43,5 +47,17 @@ public enum Type {
 			return true;
 		}
 		return false;
+	}
+
+	public nildumu.typing.Type nildumuType() {
+		switch (this) {
+		case INTEGER:
+			return nTypes.INT;
+		case ARRAY:
+			return nTypes.getOrCreateFixedArrayType(nTypes.INT, Collections.singletonList(INTEGER.bitWidth));
+		case CUSTOM:
+			return nTypes.VAR;
+		}
+		return null;
 	}
 }

@@ -18,7 +18,6 @@ import nildumu.Lattices;
 import nildumu.Operator;
 import nildumu.Parser;
 import nildumu.typing.Type;
-import nildumu.typing.Types;
 import swp.lexer.Location;
 
 import java.util.*;
@@ -68,7 +67,8 @@ public class Converter {
 	}
 
 	public Parser.ParameterNode parameter(String varName) {
-		return new Parser.ParameterNode(DUMMY_LOCATION, NildumuType.types.INT, varName);
+		return new Parser.ParameterNode(DUMMY_LOCATION,
+				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), varName);
 	}
 
 	public Parser.ParametersNode parameters(List<String> varNames) {
@@ -81,7 +81,8 @@ public class Converter {
 	}
 
 	public Parser.VariableDeclarationNode varDecl(String varName) {
-		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName, NildumuType.types.INT);
+		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName,
+				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType());
 	}
 
 	public static String methodName(LoopBody l) {
@@ -95,7 +96,7 @@ public class Converter {
 		inputs.forEach(programNode::addGlobalStatement);
 		consts.entrySet().stream()
 				.map(entry -> new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(entry.getKey()),
-						NildumuType.of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER), entry.getValue()))
+						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), entry.getValue()))
 				.forEach(programNode::addGlobalStatement);
 
 		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>(), consts);
@@ -150,9 +151,10 @@ public class Converter {
 		Parser.ArgumentsNode args = arguments(Arrays.asList(recCallArgs));
 
 		// loop method return type
-		List<Type> elementTypes = Arrays.stream(recCallRes).map(i -> NildumuType.types.INT)
+		List<Type> elementTypes = Arrays.stream(recCallRes)
+				.map(i -> edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType())
 				.collect(Collectors.toList());
-		Type returnType = NildumuType.types.getOrCreateTupleType(elementTypes);
+		Type returnType = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.nTypes.getOrCreateTupleType(elementTypes);
 
 		// recursive call to loop method
 		List<Parser.VariableDeclarationNode> returnVarDecls = Arrays.stream(recCallRes).map(this::varDecl)
@@ -181,7 +183,8 @@ public class Converter {
 		Integer[] returnOrder = new ArrayList<>(inLoop.keySet()).toArray(new Integer[0]);
 		String[] phiArgs = Arrays.stream(returnOrder).map(Converter::varName).toArray(String[]::new);
 		for (int i = 0; i < phiRes.length; i++) {
-			completeBody.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, phiRes[i], NildumuType.types.INT,
+			completeBody.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, phiRes[i],
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
 					new Parser.PhiNode(DUMMY_LOCATION, Arrays.asList(recCallRes[i], phiArgs[i]))));
 		}
 		completeBody.add(new Parser.ReturnStatementNode(DUMMY_LOCATION,
@@ -205,7 +208,7 @@ public class Converter {
 		Map<Integer, Parser.ParameterNode> params = parseParameters(m);
 		Map<Integer, Parser.ExpressionNode> consts = parseConstantValues(m);
 		Parser.BlockNode body = convertMethodBody(m, params, consts);
-		Type returnType = NildumuType.of(m.getReturnType());
+		Type returnType = m.getReturnType().nildumuType();
 		Parser.GlobalVariablesNode globals = new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>());
 		return new Parser.MethodNode(DUMMY_LOCATION, m.getCFG().getName(), returnType,
 				new Parser.ParametersNode(DUMMY_LOCATION,
@@ -280,7 +283,7 @@ public class Converter {
 		for (int i = 1; i < topLevel.getParamNum(); i++) {
 			int valNum = topLevel.getIr().getParameter(i);
 			Parser.InputVariableDeclarationNode node = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
-					varName(valNum), NildumuType.of(topLevel.getParamType(i)),
+					varName(valNum), topLevel.getParamType(i).nildumuType(),
 					new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get()
 							.parse("0b" + String.join("", Collections.nCopies(options.intWidth, "u")))), "h");
 			this.inputs.put(valNum, node);
@@ -314,22 +317,11 @@ public class Converter {
 
 		// start @ 1, bc 0 is 'this'-reference
 		for (int i = 1; i < m.getParamNum(); i++) {
-			Parser.ParameterNode p = new Parser.ParameterNode(DUMMY_LOCATION, NildumuType.of(m.getParamType(i)),
+			Parser.ParameterNode p = new Parser.ParameterNode(DUMMY_LOCATION, m.getParamType(i).nildumuType(),
 					varName(m.getIr().getParameter(i)));
 			params.put(m.getIr().getParameter(i), p);
 		}
 		return params;
-	}
-
-	public static class NildumuType {
-
-		private static final Types types = new Types();
-
-		public static Type of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type type) {
-			if (type == edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER)
-				return types.INT;
-			return null;
-		}
 	}
 
 	public static class LexerTerminal {
@@ -481,7 +473,7 @@ public class Converter {
 			// TODO should we use the same Types() obj every time?
 			// TODO compute result type from operation, instead of statically using INT
 			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					NildumuType.of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER), binOp));
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), binOp));
 		}
 
 		// TODO how is unary minus handled?
@@ -495,7 +487,7 @@ public class Converter {
 			}
 			this.valToExpr.put(instruction.getDef(), unOp);
 			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					NildumuType.of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER), unOp));
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), unOp));
 		}
 
 		@Override public void visitConversion(SSAConversionInstruction instruction) {
@@ -507,7 +499,7 @@ public class Converter {
 				Parser.BinaryOperatorNode comp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
 						access(instruction.getUse(1)), LexerTerminal.of(instruction.getOperator()));
 				stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-						NildumuType.of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER), comp));
+						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), comp));
 			} catch (ConversionException e) {
 				e.printStackTrace();
 			}
@@ -546,8 +538,7 @@ public class Converter {
 				int leaked = instruction.getUse(0);
 				Parser.OutputVariableDeclarationNode node = null;
 				node = new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION, "o_" + varName(instruction.getUse(0)),
-						NildumuType.of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER), access(leaked),
-						"l");
+						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), access(leaked), "l");
 				this.stmts.add(node);
 			}
 		}
@@ -592,7 +583,7 @@ public class Converter {
 			Parser.PhiNode phi = new Parser.PhiNode(DUMMY_LOCATION,
 					Arrays.asList(varName(instruction.getUse(firstArg)), varName(instruction.getUse(sndArg))));
 			stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					NildumuType.of(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER), phi));
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), phi));
 		}
 
 		@Override public void visitPi(SSAPiInstruction instruction) {

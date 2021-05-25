@@ -616,7 +616,7 @@ public class SDGProgram {
 	private boolean collectedAllNodesForMiscAnnotations = false;
 
 	private void initAnnotationCollectorWithAllMiscAnnotatedNodes() {
-		if (collectedAllNodesForMiscAnnotations) {
+		if (!collectedAllNodesForMiscAnnotations) {
 			miscAnnotations.keySet().forEach(p -> coll.collectNodes(p, AnnotationType.MISC));
 			collectedAllNodesForMiscAnnotations = true;
 		}

@@ -15,7 +15,7 @@ public class AnalysisPipeline {
 		execute(IStage.Stage.BUILD.get());
 
 		if (!env.args.onlyRun) {
-			// execute(IStage.Stage.STATIC_PREPROCESSING.get());
+			execute(IStage.Stage.STATIC_PREPROCESSING.get());
 			execute(IStage.Stage.SAT_ANALYSIS.get());
 		}
 		execute(IStage.Stage.EXECUTION.get());

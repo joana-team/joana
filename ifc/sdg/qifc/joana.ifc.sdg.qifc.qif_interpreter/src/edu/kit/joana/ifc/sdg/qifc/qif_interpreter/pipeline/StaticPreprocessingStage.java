@@ -32,7 +32,7 @@ public class StaticPreprocessingStage implements IStage {
 		Map<Integer, Lattices.Value> bits = new HashMap<>();
 		for (int i : env.iProgram.getEntryMethod().getProgramValues().keySet()) {
 			Lattices.Value v = env.nProgram.context.getVariableValue(Converter.varName(i));
-			System.out.println(v.toString());
+			System.out.println(i + " " + v.toString());
 			bits.put(i, v);
 		}
 

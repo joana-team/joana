@@ -353,12 +353,16 @@ public class Method {
 	}
 
 	public Array<? extends Value> getArray(int valNum) {
-		assert(this.programValues.get(valNum) instanceof Array);
+		assert (this.programValues.get(valNum) instanceof Array);
 		return (Array<? extends Value>) this.programValues.get(valNum);
 	}
 
 	public boolean isArrayType(int valNum) {
 		return this.programValues.get(valNum).getType() == Type.ARRAY;
+	}
+
+	public boolean isParam(int valNum) {
+		return Arrays.stream(this.ir.getParameterValueNumbers()).anyMatch(i -> i == valNum);
 	}
 
 	// ----------------------- getters and setters ------------------------------------------

@@ -6,9 +6,11 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.IStage;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.StaticPreprocessingStage;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
-import nildumu.Parser;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -39,28 +41,31 @@ class ConverterTest {
 				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "l output int o_v2 = v2;");
 		prettyPrint.put("And",
 				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "h input int v3 = 0buuu;\n"
-						+ "int v5 = (v2 & v3);\n" + "l output int o_v5 = v5;");
+						+ "int v5;\n" + "v5 = (v2 & v3);\n" + "l output int o_v5 = v5;");
 		prettyPrint.put("SimpleArithmetic",
 				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "h input int v3 = 0buuu;\n"
-						+ "int v5 = 2;\n" + "int v7 = 1;\n" + "int v13 = 0;\n" + "int v6 = (2 + v3);\n"
-						+ "int v8 = (v3 + 1);\n" + "int v9 = (v6 - v8);\n" + "l output int o_v6 = v6;\n"
+						+ "int v5 = 2;\n" + "int v7 = 1;\n" + "int v13 = 0;\n" + "int v8;\n" + "int v9;\n" + "int v6;\n"
+						+ "v6 = (2 + v3);\n" + "v8 = (v3 + 1);\n" + "v9 = (v6 - v8);\n" + "l output int o_v6 = v6;\n"
 						+ "l output int o_v8 = v8;\n" + "l output int o_v9 = v9;");
 		prettyPrint.put("If",
-				"use_sec basic;\n" + "bit_width 3;\nh input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
-						+ "if ((v2 <= 0))\n" + "  {\n" + "\n" + "  } \n" + "else\n" + "  {\n"
-						+ "    int v6 = (1 + 0);\n" + "  }\n" + "int v7 = phi(v4, v6);\n" + "l output int o_v7 = v7;");
+				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
+						+ "int v6;\n" + "int v7;\n" + "if ((v2 <= 0))\n" + "  {\n" + "\n" + "  } \n" + "else\n"
+						+ "  {\n" + "    v6 = (1 + 0);\n" + "  }\n" + "v7 = phi(v4, v6);\n"
+						+ "l output int o_v7 = v7;");
 		prettyPrint.put("IfinIf",
 				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
-						+ "int v6 = 2;\n" + "if ((v2 <= 0))\n" + "  {\n" + "\n" + "  } \n" + "else\n" + "  {\n"
-						+ "    if ((v2 > 1))\n" + "      {\n" + "        int v7 = (2 + 0);\n" + "      } \n"
-						+ "    else\n" + "      {\n" + "        int v8 = (1 + 0);\n" + "      }\n"
-						+ "    int v9 = phi(v7, v8);\n" + "  }\n" + "int v10 = phi(v4, v9);\n"
-						+ "l output int o_v10 = v10;");
-		prettyPrint.put("Loop", "use_sec basic;\n" + "bit_width 3;\n" + "(int) mLoopfII_2(int v2, int v5, int v8){\n"
-				+ "  int x0;\n" + "  if (!(v2 <= v8))\n" + "    {\n" + "      int v7 = (v8 + v5);\n"
-				+ "      x0 = *mLoopfII_2(v2, v5, v7);\n" + "    }\n" + "  int x1 = phi(x0, v8);\n"
-				+ "  return (x1,);\n" + "}\n" + "h input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
-				+ "int v6 = (0 + 1);\n" + "int v8;\n" + "v8 = *mLoopfII_2(v2, v5, v6);\n" + "l output int o_v8 = v8;");
+						+ "int v6 = 2;\n" + "int v8;\n" + "int v9;\n" + "int v10;\n" + "int v7;\n" + "if ((v2 <= 0))\n"
+						+ "  {\n" + "\n" + "  } \n" + "else\n" + "  {\n" + "    if ((v2 > 1))\n" + "      {\n"
+						+ "        v7 = (2 + 0);\n" + "      } \n" + "    else\n" + "      {\n"
+						+ "        v8 = (1 + 0);\n" + "      }\n" + "    v9 = phi(v7, v8);\n" + "  }\n"
+						+ "v10 = phi(v4, v9);\n" + "l output int o_v10 = v10;");
+		prettyPrint.put("Loop",
+				"use_sec basic;\n" + "bit_width 3;\n" + "(int) mLoopfII_2(int v2, int v5, int v8){\n" + "  int x0;\n"
+						+ "  if (!(v2 <= v8))\n" + "    {\n" + "    int v7;\n" + "      v7 = (v8 + v5);\n"
+						+ "      x0 = *mLoopfII_2(v2, v5, v7);\n" + "    }\n" + "  int x1 = phi(x0, v8);\n"
+						+ "  return (x1,);\n" + "}\n" + "h input int v2 = 0buuu;\n" + "int v4 = 0;\n" + "int v5 = 1;\n"
+						+ "int v8;\n" + "int v6;\n" + "v6 = (0 + 1);\n" + "v8 = *mLoopfII_2(v2, v5, v6);\n"
+						+ "l output int o_v8 = v8;");
 		prettyPrint.put("WhileAfterIf", "use_sec basic;\n" + "bit_width 3;\n"
 				+ "(int, int) mWhileAfterIffII_3(int v10, int v4, int v5, int v11, int v8){\n" + "  int x0; int x1;\n"
 				+ "  if (!(v10 <= v4))\n" + "    {\n" + "      int v7 = (v11 + v5);\n" + "      int v9 = (v10 + v8);\n"
@@ -71,14 +76,13 @@ class ConverterTest {
 				+ "v10, v11 = *mWhileAfterIffII_3(v2, v4, v5, v6, v8);\n" + "l output int o_v11 = v11;");
 		prettyPrint.put("LoopInIf", "use_sec basic;\n" + "bit_width 3;\n"
 				+ "(int, int) mLoopInIffIII_2(int v10, int v11, int v6, int v8){\n" + "  int x0; int x1;\n"
-				+ "  if (!(v10 <= 0))\n" + "    {\n" + "      int v7 = (v11 + v6);\n" + "      int v9 = (v10 + v8);\n"
-				+ "      x0, x1 = *mLoopInIffIII_2(v9, v7, v6, v8);\n" + "    }\n" + "  int x2 = phi(x0, v10);\n"
-				+ "  int x3 = phi(x1, v11);\n" + "  return (x2, x3);\n" + "}\n" + "h input int v2 = 0buuu;\n"
-				+ "h input int v3 = 0buuu;\n" + "int v5 = 0;\n" + "int v6 = 1;\n" + "int v8 = -1;\n"
-				+ "if ((v2 <= 0))\n" + "  {\n" + "\n" + "  } \n" + "else\n" + "  {\n" + "    int v10;\n"
-				+ "    int v11;\n" + "    v10, v11 = *mLoopInIffIII_2(v3, v5, v6, v8);\n" + "  }\n"
-				+ "int v14 = phi(v5, v11);\n"
-				+ "l output int o_v14 = v14;");
+				+ "  if (!(v10 <= 0))\n" + "    {\n" + "    int v9; int v7;\n" + "      v7 = (v11 + v6);\n"
+				+ "      v9 = (v10 + v8);\n" + "      x0, x1 = *mLoopInIffIII_2(v9, v7, v6, v8);\n" + "    }\n"
+				+ "  int x2 = phi(x0, v10);\n" + "  int x3 = phi(x1, v11);\n" + "  return (x2, x3);\n" + "}\n"
+				+ "h input int v2 = 0buuu;\n" + "h input int v3 = 0buuu;\n" + "int v5 = 0;\n" + "int v6 = 1;\n"
+				+ "int v8 = -1;\n" + "int v10;\n" + "int v11;\n" + "int v14;\n" + "if ((v2 <= 0))\n" + "  {\n" + "\n"
+				+ "  } \n" + "else\n" + "  {\n" + "    v10, v11 = *mLoopInIffIII_2(v3, v5, v6, v8);\n" + "  }\n"
+				+ "v14 = phi(v5, v11);\n" + "l output int o_v14 = v14;");
 		prettyPrint.put("LoopinLoop", "use_sec basic;\n" + "bit_width 3;\n"
 				+ "(int, int, int) mLoopinLoopfIII_2(int v14, int v15, int v16, int v6, int v8){\n"
 				+ "  int x0; int x1; int x2;\n" + "  if (!(v14 <= 0))\n" + "    {\n" + "      int v10;\n"
@@ -94,11 +98,6 @@ class ConverterTest {
 				+ "h input int v3 = 0buuu;\n" + "int v5 = 0;\n" + "int v6 = 1;\n" + "int v8 = -1;\n" + "int v16;\n"
 				+ "int v14;\n" + "int v15;\n" + "v16, v14, v15 = *mLoopinLoopfIII_2(v2, v3, v5, v6, v8);\n"
 				+ "l output int o_v16 = v16;");
-		prettyPrint.put("Call",
-				"use_sec basic;\n" + "bit_width 3;\n" + "int Call_add_II_I(int v2, int v3){\n" + "  int v5;\n" + "  {\n"
-						+ "    v5 = (v2 + v3);\n" + "    return v5;\n" + "  }\n" + "}\n" + "h input int v2 = 0buuu;\n"
-						+ "int v4 = -1;\n" + "int v8 = 0;\n" + "int v6;\n" + "v6 = Call.add(II)I(v4, v2);\n"
-						+ "l output int o_v6 = v6;\n" + "return 0;");
 		prettyPrint.put("Call",
 				"use_sec basic;\n" + "bit_width 3;\n" + "int CalladdIII(int v2, int v3){\n" + "  int v5 = (v2 + v3);\n"
 						+ "  return v5;\n" + "}\n" + "h input int v2 = 0buuu;\n" + "int v4 = -1;\n" + "int v8 = 0;\n"
@@ -174,6 +173,14 @@ class ConverterTest {
 		testConversion("LoopinLoop", true);
 	}
 
+	@Test void convertDoubleWhile2Test() throws ConversionException, IOException, InterruptedException {
+		testConversion("LoopinLoop2", true);
+	}
+
+	@Test void convertDoubleWhile3Test() throws ConversionException, IOException, InterruptedException {
+		testConversion("LoopinLoop3", true);
+	}
+
 	@Test void convertWhileAfterIfTest() throws ConversionException, IOException, InterruptedException {
 		testConversion("WhileAfterIf", true);
 	}
@@ -194,11 +201,14 @@ class ConverterTest {
 		assertEquals(prettyPrint.get(testCase), res);
 	}
 
-	String convertProgram(String testCase) throws IOException, InterruptedException, ConversionException {
+	String convertProgram(String testCase) throws IOException, InterruptedException {
 		Program p = TestUtils.build(testCase);
 		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
-		Converter c = new Converter();
-		Parser.ProgramNode res = c.convertProgram(p);
-		return res.toPrettyString();
+		Environment env = new Environment(null);
+		env.iProgram = p;
+		env.completedSuccessfully.put(IStage.Stage.BUILD, true);
+		StaticPreprocessingStage prep = new StaticPreprocessingStage();
+		env = prep.execute(env);
+		return env.nProgram.ast.toPrettyString();
 	}
 }

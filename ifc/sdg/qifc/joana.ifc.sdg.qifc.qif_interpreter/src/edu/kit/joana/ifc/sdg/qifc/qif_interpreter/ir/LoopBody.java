@@ -251,13 +251,11 @@ public class LoopBody {
 
 	public BiMap<Integer, Integer> phiToBeforeLoop() {
 		BiMap<Integer, Integer> inMap = HashBiMap.create();
-		List<Integer> defs = this.getAllDefs();
-
 		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction).forEach(phi -> {
-			if (!defs.contains(phi.getUse(0))) {
-				inMap.put(phi.getDef(), phi.getUse(0));
-			} else {
+			if (this.blocks.stream().anyMatch(b -> b.ownsValue(phi.getUse(0)))) {
 				inMap.put(phi.getDef(), phi.getUse(1));
+			} else {
+				inMap.put(phi.getDef(), phi.getUse(0));
 			}
 		});
 		return inMap;

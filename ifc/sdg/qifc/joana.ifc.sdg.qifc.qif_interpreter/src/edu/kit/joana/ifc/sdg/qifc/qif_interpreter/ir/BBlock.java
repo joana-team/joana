@@ -297,6 +297,13 @@ public class BBlock implements DotNode {
 		return dummyTarget;
 	}
 
+	public LoopBody getOwningLoop() {
+		assert (this.isPartOfLoop);
+		return this.getCFG().getMethod().getLoops().stream().filter(l -> l.hasBlock(this.idx)).max((o1, o2) -> Integer
+				.compare(o1.getOwner().getCFG().getLevel(o1.getHead()), o1.getOwner().getCFG().getLevel(o2.getHead())))
+				.get();
+	}
+
 	/*
 	public boolean hasDef(int valNum) {
 		return this.instructions.stream().filter(i -> i.hasDef()).anyMatch(i -> i.getDef() == valNum);

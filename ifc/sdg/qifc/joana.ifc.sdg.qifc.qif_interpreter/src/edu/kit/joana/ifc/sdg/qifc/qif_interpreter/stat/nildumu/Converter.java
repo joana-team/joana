@@ -14,6 +14,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import nildumu.Context;
 import nildumu.Lattices;
 import nildumu.Parser;
@@ -39,89 +40,26 @@ public class Converter {
 	private Context context;
 
 	public Map<Integer, Parser.InputVariableDeclarationNode> inputs;
-	public Map<LoopBody, Parser.MethodNode> loopMethods;
+	public static Map<LoopBody, LoopConversionResult> loopMethods;
 
 	public Converter() {
 		this.options = NildumuOptions.DEFAULT;
 		this.context = new Context(options.secLattice, options.intWidth);
 		this.inputs = new HashMap<>();
-		this.loopMethods = new HashMap<>();
-	}
-
-	public static String varName(int valNum) {
-		return "v" + valNum;
-	}
-
-	public static int valNum(String varName) {
-		assert (varName.startsWith("v"));
-		return Integer.parseInt(varName.substring(1));
-	}
-
-	public static String varName() {
-		return "x" + varNameCounter++;
-	}
-
-	public static Parser.ArgumentsNode arguments(List<String> varNames) {
-		return new Parser.ArgumentsNode(DUMMY_LOCATION,
-				varNames.stream().map(Converter::variableAccess).collect(Collectors.toList()));
-	}
-
-	public Parser.ParameterNode parameter(String varName) {
-		return new Parser.ParameterNode(DUMMY_LOCATION,
-				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), varName);
-	}
-
-	public Parser.ParametersNode parameters(List<String> varNames) {
-		return new Parser.ParametersNode(DUMMY_LOCATION,
-				varNames.stream().map(this::parameter).collect(Collectors.toList()));
-	}
-
-	public static Parser.VariableAccessNode variableAccess(String varName) {
-		return new Parser.VariableAccessNode(DUMMY_LOCATION, varName);
-	}
-
-	public static Parser.VariableAssignmentNode assignment(String var, Parser.ExpressionNode expr) {
-		return new Parser.VariableAssignmentNode(DUMMY_LOCATION, var, expr);
-	}
-
-	public static Parser.VariableDeclarationNode varDecl(String varName, Type type) {
-		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName, type);
-	}
-
-	public static Parser.VariableDeclarationNode varDecl(String varName, Parser.ExpressionNode value) {
-		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName,
-				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), value);
-	}
-
-	public static String methodName(MethodReference mRef) {
-		return methodName(mRef.getSignature());
-	}
-
-	public static String methodName(String signature) {
-		String sig = signature.replaceAll("[\\(\\)$&+.,:;=?@#|]", "");
-		return sig;
-	}
-
-	public static String methodName(LoopBody l) {
-		return "m" + l.getOwner().identifierNoSpecialCharacters() + "_" + l.getHead().idx();
+		loopMethods = new HashMap<>();
 	}
 
 	public Parser.ProgramNode convertProgram(Program p) throws ConversionException {
 		List<Parser.InputVariableDeclarationNode> inputs = convertSecretInputs(p);
-		Map<Integer, Parser.ExpressionNode> consts = parseConstantValues(p.getEntryMethod());
 		Parser.ProgramNode programNode = new Parser.ProgramNode(context);
 		inputs.forEach(programNode::addGlobalStatement);
-		consts.entrySet().stream()
-				.map(entry -> new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(entry.getKey()),
-						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), entry.getValue()))
-				.forEach(programNode::addGlobalStatement);
-
-		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>(), consts);
+		programNode.addGlobalStatements(parseConstantValues(p.getEntryMethod()));
+		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>());
 		List<BBlock> allBlocks = BBlockOrdering
 				.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
-		List<Parser.StatementNode> stmts = convertStatements(allBlocks, new ArrayList<>(), cVis);
+		List<Parser.StatementNode> stmts = convertStatements(allBlocks, cVis);
 		programNode.addGlobalStatements(stmts);
-		this.loopMethods.values().forEach(programNode::addMethod);
+		this.loopMethods.values().forEach(r -> programNode.addMethod(r.method));
 
 		for (Method m : p.getMethods()) {
 			if (m.equals(p.getEntryMethod()))
@@ -138,54 +76,55 @@ public class Converter {
 	 * @param l loopBody object
 	 * @return pair that contains the generated method and a variableDeclarationNode for the loop results
 	 */
-	public Pair<Parser.MethodNode, List<Parser.StatementNode>> convertLoop(LoopBody l) {
+	public LoopConversionResult convertLoop(LoopBody l) {
+		LoopConversionResult result = new LoopConversionResult();
 
 		// get names for all the variables used ready
 		List<Integer> argsParamVals = l.getAllUses();
 		argsParamVals.removeAll(l.getAllDefs());
 		BiMap<Integer, Integer> beforeLoop = l.phiToBeforeLoop().inverse();
+		argsParamVals.removeIf(i -> l.getOwner().isConstant(i) && !beforeLoop.containsKey(i));
 		Map<Integer, Integer> inLoop = l.phiToInsideLoop();
 
-		String[] loopMethodArgs = argsParamVals.stream().map(Converter::varName).toArray(String[]::new);
-		String[] loopMethodParam = argsParamVals.stream().map(i -> beforeLoop.getOrDefault(i, i))
-				.map(Converter::varName).toArray(String[]::new);
-		String[] recCallArgs = Arrays.stream(loopMethodParam).map(i -> inLoop.getOrDefault(valNum(i), valNum(i)))
-				.map(Converter::varName).toArray(String[]::new);
-		String[] recCallRes = IntStream.range(0, inLoop.size()).mapToObj(i -> varName()).toArray(String[]::new);
-		String[] phiRes = IntStream.range(0, inLoop.size()).mapToObj(i -> varName()).toArray(String[]::new);
+		result.callArgs = argsParamVals.stream().mapToInt(i -> i).toArray();
+		result.params = argsParamVals.stream().map(i -> beforeLoop.getOrDefault(i, i)).mapToInt(i -> i).toArray();
+		result.recCallArgs = Arrays.stream(result.params).map(i -> inLoop.getOrDefault(i, i)).toArray();
+		result.recCallReturnVars = IntStream.range(0, inLoop.size()).mapToObj(i -> varName()).toArray(String[]::new);
+		result.phiRes = IntStream.range(0, inLoop.size()).mapToObj(i -> varName()).toArray(String[]::new);
 
 		// parameters for loop method
-		Parser.ParametersNode param = parameters(Arrays.asList(loopMethodParam));
+		Parser.ParametersNode param = parameters(result.params());
 		Map<Integer, Parser.ParameterNode> parameterMap = param.parameterNodes.stream()
 				.collect(Collectors.toMap(p -> valNum(p.name), p -> p));
 
 		// convert loopBody to ast stmts
-		ConversionVisitor cVis = new ConversionVisitor(l.getOwner(), parameterMap, new HashMap<>());
+		ConversionVisitor cVis = new ConversionVisitor(l.getOwner(), parameterMap);
 		List<BBlock> loopBlocks = BBlockOrdering
 				.topological(l.getBlocks().stream().filter(b -> !l.getHead().equals(b)).collect(Collectors.toSet()),
 						l.getHead().succs().stream().filter(b -> l.hasBlock(b.idx())).findFirst().get());
-		Parser.BlockNode body = new Parser.BlockNode(DUMMY_LOCATION,
-				convertStatements(loopBlocks, new ArrayList<>(), cVis));
+
+		Parser.BlockNode body = new Parser.BlockNode(DUMMY_LOCATION, parseConstantValues(l.getOwner()));
+		body.addAll(convertStatements(loopBlocks, cVis));
 
 		// convert loop condition
 		l.getHead().getWalaBasicBlock().getLastInstruction().visit(cVis);
 
 		// args for recursive call
-		Parser.ArgumentsNode args = arguments(Arrays.asList(recCallArgs));
+		Parser.ArgumentsNode args = arguments(result.recCallArgs());
 
 		// loop method return type
-		List<Type> elementTypes = Arrays.stream(recCallRes)
+		List<Type> elementTypes = Arrays.stream(result.recCallReturnVars)
 				.map(i -> edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType())
 				.collect(Collectors.toList());
 		Type returnType = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.nTypes.getOrCreateTupleType(elementTypes);
 
 		// recursive call to loop method
-		List<Parser.VariableDeclarationNode> returnVarDecls = IntStream.range(0, recCallRes.length)
-				.mapToObj(i -> Converter.varDecl(recCallRes[i], returnType.getBracketAccessResult(i)))
+		List<Parser.VariableDeclarationNode> returnVarDecls = IntStream.range(0, result.recCallReturnVars.length)
+				.mapToObj(i -> Converter.varDecl(result.recCallReturnVars[i], returnType.getBracketAccessResult(i)))
 				.collect(Collectors.toList());
 		Parser.MethodInvocationNode recCallExpr = new Parser.MethodInvocationNode(DUMMY_LOCATION, methodName(l), args);
 		Parser.MultipleVariableAssignmentNode recCall = new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
-				recCallRes, new Parser.UnpackOperatorNode(recCallExpr));
+				result.recCallReturnVars, new Parser.UnpackOperatorNode(recCallExpr));
 		body.add(recCall);
 
 		// get condition for if stmt
@@ -206,71 +145,103 @@ public class Converter {
 		// add phi-stmts + return stmt
 		Integer[] returnOrder = new ArrayList<>(inLoop.keySet()).toArray(new Integer[0]);
 		String[] phiArgs = Arrays.stream(returnOrder).map(Converter::varName).toArray(String[]::new);
-		for (int i = 0; i < phiRes.length; i++) {
-			completeBody.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, phiRes[i],
+		for (int i = 0; i < result.phiRes.length; i++) {
+			completeBody.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, result.phiRes[i],
 					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
-					new Parser.PhiNode(DUMMY_LOCATION, Arrays.asList(recCallRes[i], phiArgs[i]))));
+					new Parser.PhiNode(DUMMY_LOCATION, Arrays.asList(result.recCallReturnVars[i], phiArgs[i]))));
 		}
 		completeBody.add(new Parser.ReturnStatementNode(DUMMY_LOCATION,
-				Arrays.stream(phiRes).map(Converter::variableAccess).collect(Collectors.toList())));
+				Arrays.stream(result.phiRes).map(Converter::variableAccess).collect(Collectors.toList())));
 
-		Parser.MethodNode loopMethod = new Parser.MethodNode(DUMMY_LOCATION, methodName(l), returnType, param,
-				completeBody, new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>()));
+		result.method = new Parser.MethodNode(DUMMY_LOCATION, methodName(l), returnType, param, completeBody,
+				new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>()));
 		Parser.MethodInvocationNode callToLoop = new Parser.MethodInvocationNode(DUMMY_LOCATION, methodName(l),
-				arguments(Arrays.asList(loopMethodArgs)));
+				arguments(result.callArgs()));
 
-		List<Parser.StatementNode> defsAndCall = IntStream.range(0, returnOrder.length)
-				.mapToObj(i -> varDecl(varName(returnOrder[i]), returnType.getBracketAccessResult(i)))
-				.collect(Collectors.toList());
-		defsAndCall.add(new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
+		result.call = new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
 				Arrays.stream(returnOrder).map(Converter::varName).toArray(String[]::new),
-				new Parser.UnpackOperatorNode(callToLoop)));
+				new Parser.UnpackOperatorNode(callToLoop));
+		result.returnDefs = new HashMap<>();
+		IntStream.range(0, returnOrder.length).forEach(
+				i -> result.returnDefs.put(i, varDecl(varName(returnOrder[i]), returnType.getBracketAccessResult(i))));
+		return result;
+	}
 
-		return Pair.make(loopMethod, defsAndCall);
+	public static class LoopConversionResult {
+		Parser.MethodNode method;
+		Map<Integer, Parser.VariableDeclarationNode> returnDefs;
+		Parser.MultipleVariableAssignmentNode call;
+		LoopConversionResult parent;
+		int[] callArgs;
+		int[] params;
+		int[] recCallArgs;
+		String[] recCallReturnVars;
+		String[] phiRes;
+
+		List<String> recCallArgs() {
+			return Arrays.stream(recCallArgs).mapToObj(Converter::varName).collect(Collectors.toList());
+		}
+
+		List<String> callArgs() {
+			return Arrays.stream(callArgs).mapToObj(Converter::varName).collect(Collectors.toList());
+		}
+
+		List<String> params() {
+			return Arrays.stream(params).mapToObj(Converter::varName).collect(Collectors.toList());
+		}
 	}
 
 	public Parser.MethodNode convertMethod(Method m) {
 		Map<Integer, Parser.ParameterNode> params = parseParameters(m);
-		Map<Integer, Parser.ExpressionNode> consts = parseConstantValues(m);
-		Parser.BlockNode body = convertMethodBody(m, params, consts);
+		Parser.BlockNode body = convertMethodBody(m, params);
 		Type returnType = m.getReturnType().nildumuType();
 		Parser.GlobalVariablesNode globals = new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>());
 		return new Parser.MethodNode(DUMMY_LOCATION, methodName(m.identifier()), returnType,
 				new Parser.ParametersNode(DUMMY_LOCATION, new ArrayList<>(params.values())), body, globals);
 	}
 
-	private Map<Integer, Parser.ExpressionNode> parseConstantValues(Method m) {
-		Map<Integer, Parser.ExpressionNode> consts = new HashMap<>();
-		m.getProgramValues().entrySet().stream().filter(p -> p.getValue().isConstant())
-				.forEach(p -> consts.put(p.getKey(), Parser.literal((int) m.getValue(p.getKey()).getVal())));
-		return consts;
+	private List<Parser.StatementNode> parseConstantValues(Method m) {
+		return m.getProgramValues().entrySet().stream().filter(p -> p.getValue().isConstant())
+				.map(p -> new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(p.getKey()),
+						p.getValue().getType().nildumuType(), Parser.literal((int) m.getValue(p.getKey()).getVal())))
+				.collect(Collectors.toList());
 	}
 
-	private Parser.BlockNode convertMethodBody(Method m, Map<Integer, Parser.ParameterNode> params,
-			Map<Integer, Parser.ExpressionNode> consts) {
-		ConversionVisitor cVis = new ConversionVisitor(m, params, consts);
+	private Parser.BlockNode convertMethodBody(Method m, Map<Integer, Parser.ParameterNode> params) {
+		ConversionVisitor cVis = new ConversionVisitor(m, params);
 		return cVis.convert();
 	}
 
-	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, List<Parser.StatementNode> converted,
-			ConversionVisitor cVis) {
+	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, ConversionVisitor cVis) {
+		Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> convertedPair = convertStatementsRec(
+				toConvert, new ArrayList<>(), new HashMap<>(), cVis);
+		return Util.prepend(convertedPair.fst, new ArrayList<>(convertedPair.snd.values()));
+
+	}
+
+	private Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> convertStatementsRec(
+			List<BBlock> toConvert, List<Parser.StatementNode> converted,
+			Map<Integer, Parser.VariableDeclarationNode> varDecls, ConversionVisitor cVis) {
 
 		if (toConvert.isEmpty())
-			return converted;
+			return Pair.make(converted, varDecls);
 
 		BBlock b = toConvert.remove(0);
 
 		if (b.isLoopHeader()) {
 			LoopBody loop = b.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().idx() == b.idx())
 					.findFirst().get();
-			Pair<Parser.MethodNode, List<Parser.StatementNode>> convertedMethod = convertLoop(loop);
-			this.loopMethods.put(loop, convertedMethod.fst);
-			converted.addAll(convertedMethod.snd);
+			LoopConversionResult convertedMethod = convertLoop(loop);
+			this.loopMethods.put(loop, convertedMethod);
+			converted.add(convertedMethod.call);
+			varDecls.putAll(convertedMethod.returnDefs);
 			toConvert.removeAll(loop.getBlocks());
-			return convertStatements(toConvert, converted, cVis);
+			return convertStatementsRec(toConvert, converted, varDecls, cVis);
 		}
 
-		converted.addAll(cVis.visitBlock(b));
+		Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> blockStmts = cVis.visitBlock(b);
+		converted.addAll(blockStmts.fst);
+		varDecls.putAll(blockStmts.snd);
 
 		if (b.isCondHeader()) {
 			BBlock trueTarget = b.getCFG().getBlock(b.getTrueTarget());
@@ -281,19 +252,24 @@ public class Converter {
 					new ArrayList<>(Arrays.asList(falseTarget)));
 			toConvert.removeAll(trueBranch);
 			toConvert.removeAll(falseBranch);
-			List<Parser.StatementNode> trueStmts = convertStatements(trueBranch, new ArrayList<>(), cVis);
-			List<Parser.StatementNode> falseStmts = convertStatements(falseBranch, new ArrayList<>(), cVis);
+			Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> trueStmts = convertStatementsRec(
+					trueBranch, new ArrayList<>(), varDecls, cVis);
+			Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> falseStmts = convertStatementsRec(
+					falseBranch, new ArrayList<>(), varDecls, cVis);
 
 			Parser.IfStatementNode if_ = new Parser.IfStatementNode(DUMMY_LOCATION, cVis.blockToExpr(b.idx()),
-					new Parser.BlockNode(DUMMY_LOCATION, trueStmts), new Parser.BlockNode(DUMMY_LOCATION, falseStmts));
+					new Parser.BlockNode(DUMMY_LOCATION, trueStmts.fst),
+					new Parser.BlockNode(DUMMY_LOCATION, falseStmts.fst));
 			converted.add(if_);
+			varDecls.putAll(trueStmts.snd);
+			varDecls.putAll(falseStmts.snd);
 		}
 
 		if (converted.isEmpty()) {
 			converted.add(new Parser.EmptyStatementNode(DUMMY_LOCATION));
 		}
 
-		return convertStatements(toConvert, converted, cVis);
+		return convertStatementsRec(toConvert, converted, varDecls, cVis);
 	}
 
 	private List<Parser.InputVariableDeclarationNode> convertSecretInputs(Program p) {
@@ -417,10 +393,10 @@ public class Converter {
 		private List<Parser.StatementNode> stmts;
 		private final Map<Integer, Parser.ParameterNode> valToParam;
 		private final Map<Integer, Parser.ExpressionNode> blockToExpr;
+		private Map<Integer, Parser.VariableDeclarationNode> varDecls;
 		private BBlock currentBlock;
 
-		public ConversionVisitor(Method m, Map<Integer, Parser.ParameterNode> parameterToNode,
-				Map<Integer, Parser.ExpressionNode> consts) {
+		public ConversionVisitor(Method m, Map<Integer, Parser.ParameterNode> parameterToNode) {
 			this.m = m;
 			this.stmts = new ArrayList<>();
 			this.valToParam = parameterToNode;
@@ -463,9 +439,9 @@ public class Converter {
 			Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
 					access(instruction.getUse(1)), terminal);
 
-			// TODO should we use the same Types() obj every time?
-			// TODO compute result type from operation, instead of statically using INT
-			this.stmts.add(Converter.varDecl(varName(instruction.getDef()), binOp));
+			this.varDecls.put(instruction.getDef(), Converter
+					.varDecl(varName(instruction.getDef()), m.getValue(instruction.getDef()).getType().nildumuType()));
+			this.stmts.add(assignment(varName(instruction.getDef()), binOp));
 		}
 
 		// TODO how is unary minus handled?
@@ -477,7 +453,9 @@ public class Converter {
 			} catch (ConversionException e) {
 				e.printStackTrace();
 			}
-			this.stmts.add(Converter.varDecl(varName(instruction.getDef()), unOp));
+			this.varDecls.put(instruction.getDef(), Converter
+					.varDecl(varName(instruction.getDef()), m.getValue(instruction.getDef()).getType().nildumuType()));
+			this.stmts.add(assignment(varName(instruction.getDef()), unOp));
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
@@ -515,6 +493,8 @@ public class Converter {
 						.mapToObj(i -> varName(instruction.getUse(i))).collect(Collectors.toList()));
 				Parser.MethodInvocationNode invocation = new Parser.MethodInvocationNode(DUMMY_LOCATION,
 						methodName(instruction.getDeclaredTarget()), args);
+				this.varDecls.put(instruction.getDef(), Converter.varDecl(varName(instruction.getDef()),
+						m.getValue(instruction.getDef()).getType().nildumuType()));
 				this.stmts.add(assignment(varName(instruction.getDef()), invocation));
 			}
 		}
@@ -540,15 +520,17 @@ public class Converter {
 
 			Parser.PhiNode phi = new Parser.PhiNode(DUMMY_LOCATION,
 					Arrays.asList(varName(instruction.getUse(firstArg)), varName(instruction.getUse(sndArg))));
-			stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), phi));
+			this.varDecls.put(instruction.getDef(), Converter
+					.varDecl(varName(instruction.getDef()), m.getValue(instruction.getDef()).getType().nildumuType()));
+			stmts.add(new Parser.VariableAssignmentNode(DUMMY_LOCATION, varName(instruction.getDef()), phi));
 		}
 
-		public List<Parser.StatementNode> visitBlock(BBlock b) {
+		public Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> visitBlock(BBlock b) {
 			this.currentBlock = b;
 			this.stmts = new ArrayList<>();
+			this.varDecls = new HashMap<>();
 			b.instructions().forEach(i -> i.visit(this));
-			return stmts;
+			return Pair.make(stmts, varDecls);
 		}
 
 		public Parser.ExpressionNode blockToExpr(int idx) {
@@ -567,5 +549,63 @@ public class Converter {
 		private Parser.ParameterAccessNode accessParam(int valNum) {
 			return new Parser.ParameterAccessNode(DUMMY_LOCATION, valToParam.get(valNum).name);
 		}
+	}
+
+	public static String varName(int valNum) {
+		return "v" + valNum;
+	}
+
+	public static int valNum(String varName) {
+		assert (varName.startsWith("v"));
+		return Integer.parseInt(varName.substring(1));
+	}
+
+	public static String varName() {
+		return "x" + varNameCounter++;
+	}
+
+	public static Parser.ArgumentsNode arguments(List<String> varNames) {
+		return new Parser.ArgumentsNode(DUMMY_LOCATION,
+				varNames.stream().map(Converter::variableAccess).collect(Collectors.toList()));
+	}
+
+	public Parser.ParameterNode parameter(String varName) {
+		return new Parser.ParameterNode(DUMMY_LOCATION,
+				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), varName);
+	}
+
+	public Parser.ParametersNode parameters(List<String> varNames) {
+		return new Parser.ParametersNode(DUMMY_LOCATION,
+				varNames.stream().map(this::parameter).collect(Collectors.toList()));
+	}
+
+	public static Parser.VariableAccessNode variableAccess(String varName) {
+		return new Parser.VariableAccessNode(DUMMY_LOCATION, varName);
+	}
+
+	public static Parser.VariableAssignmentNode assignment(String var, Parser.ExpressionNode expr) {
+		return new Parser.VariableAssignmentNode(DUMMY_LOCATION, var, expr);
+	}
+
+	public static Parser.VariableDeclarationNode varDecl(String varName, Type type) {
+		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName, type);
+	}
+
+	public static Parser.VariableDeclarationNode varDecl(String varName, Parser.ExpressionNode value) {
+		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName,
+				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), value);
+	}
+
+	public static String methodName(MethodReference mRef) {
+		return methodName(mRef.getSignature());
+	}
+
+	public static String methodName(String signature) {
+		String sig = signature.replaceAll("[\\(\\)$&+.,:;=?@#|]", "");
+		return sig;
+	}
+
+	public static String methodName(LoopBody l) {
+		return "m" + l.getOwner().identifierNoSpecialCharacters() + "_" + l.getHead().idx();
 	}
 }

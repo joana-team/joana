@@ -12,9 +12,11 @@ public class NildumuProgram {
 	public Context context;
 	// public Parser.ProgramNode ast;
 	public NildumuOptions options;
+	public Parser.ProgramNode ast;
 
 	public NildumuProgram(Parser.ProgramNode p, NildumuOptions options) {
 		this.options = options;
 		this.context = Processor.process(p.toPrettyString());
+		this.ast = p;
 	}
 }

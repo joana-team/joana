@@ -29,14 +29,16 @@ public class StaticPreprocessingStage implements IStage {
 
 		env.nProgram = new NildumuProgram(p, options);
 
+		/*
 		Map<Integer, Lattices.Value> bits = new HashMap<>();
 		for (int i : env.iProgram.getEntryMethod().getProgramValues().keySet()) {
 			Lattices.Value v = env.nProgram.context.getVariableValue(Converter.varName(i));
-			System.out.println(i + " " + v.toString());
 			bits.put(i, v);
 		}
 
-		env.lastStage = new PreprocessingResult(bits, new HashMap<>());
+		 */
+
+		env.lastStage = new PreprocessingResult(null, new HashMap<>());
 
 		return env;
 	}

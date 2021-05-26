@@ -31,4 +31,11 @@ public class Util {
 		byte[] buffer = sb.toString().getBytes(StandardCharsets.UTF_8);
 		FileUtils.writeByteArrayToFile(targetFile, buffer);
 	}
+
+	public static <T> List<T> prepend(List<T> base, List<? extends T> toPrepend) {
+		for (int i = toPrepend.size() - 1; i >= 0; i--) {
+			base.add(0, toPrepend.get(i));
+		}
+		return base;
+	}
 }

@@ -180,6 +180,12 @@ public class Builder {
 		return this;
 	}
 
+	public Builder configEntryMethod(String bcName) {
+		config.setEntryMethod(bcName);
+		this.className = JavaMethodSignature.fromString(bcName).getDeclaringType().toBCString();
+		return this;
+	}
+
 	public Builder entry(Class<?> clazz) {
 		return entry(clazz.getName());
 	}
@@ -301,5 +307,9 @@ public class Builder {
 	public Builder dontCache() {
 		this.doCache = false;
 		return this;
+	}
+
+	public String classpath() {
+		return config.getClassPath();
 	}
 }

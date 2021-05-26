@@ -1,10 +1,13 @@
 package edu.kit.joana.wala.summary.test;
 
 import com.google.gson.Gson;
+import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import edu.kit.joana.api.sdg.SDGBuildPreparation;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.qifc.nildumu.Builder;
+import edu.kit.joana.util.NullPrintStream;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.summary.parex.*;
 import picocli.CommandLine;
@@ -39,16 +42,17 @@ public class TestCLI implements Callable<Integer> {
   String[] jarsOrClasses;
 
   @Option(names = {"-e", "--use_existing_pdg"},
-      description = "Use the exisiting pdg if the PDG modification date is >= the JAR, ignore for classes")
+      description = "Use the existing pdg if the PDG modification date is >= the JAR, ignore for classes",
+      negatable = true)
   boolean use_existing_pdg = false;
 
   @Option(names = {"-g", "--export_graphs"})
   boolean export_graphs = false;
 
-  @Option(names = {"-s", "--omit_summary"}, description = "Create summary files")
+  @Option(names = {"-s", "--omit_summary"}, description = "Omit the creation of summary files")
   boolean omit_summary = false;
 
-  @Option(names = "--store_pdg", description = "Store the PDG file")
+  @Option(names = "--store_pdg", description = "Store the PDG file", negatable = true)
   boolean store_pdg = true;
 
   @Option(names = "--config", description = "SDGConfig", defaultValue = "DEFAULT")
@@ -85,6 +89,16 @@ public class TestCLI implements Callable<Integer> {
   @Option(names = "--use_pg_for_cpp")
   String use_pg_for_cpp = "";
 
+  enum EntryPointMode {
+    MAIN,
+    RANDOM,
+    RANDOM_MAIN;
+  }
+
+  @Option(names = "--entry_mode", defaultValue = "MAIN",
+      description = "MAIN: use main method, RANDOM_MAIN: use random main method, RANDOM: use random method, the latter two might fail")
+  EntryPointMode entryPointMode;
+
   @Override public Integer call() throws Exception {
     TestCLIUtil util = new TestCLIUtil(config);
     for (String jarOrClass : jarsOrClasses) {
@@ -107,7 +121,7 @@ public class TestCLI implements Callable<Integer> {
             use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
             export_folder, store_pdg, max_sums,
             remove_normal, new HashSet<>(Arrays.asList(remove_nodes)), remove_unreachable, entry.length > 0 ? entry[entry.length - 1] : -1,
-            remove_neighbor_edges, list_nodes, !no_reorder, use_pg_for_cpp);
+            remove_neighbor_edges, list_nodes, !no_reorder, use_pg_for_cpp, entryPointMode);
       }
     }
     return 1;
@@ -180,26 +194,45 @@ public class TestCLI implements Callable<Integer> {
       }
     }
 
-    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg) throws IOException, ClassNotFoundException {
-      return createSDG(classOrFile, pdgFile, useOldPdg, config.instantiate());
+    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, EntryPointMode entryPointMode) throws IOException, ClassNotFoundException {
+      return createSDG(classOrFile, pdgFile, useOldPdg, config.instantiate(), entryPointMode);
     }
 
-    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, SDGConfig config) throws IOException, ClassNotFoundException {
+    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, SDGConfig config, EntryPointMode entryPointMode) throws IOException, ClassNotFoundException {
       if (useOldPdg){
         return SDG.readFromAndUseLessHeap(pdgFile.toString());
       }
       Builder builder = new Builder(config);
       if (isClassName(classOrFile)){
-        builder.entry(Class.forName(classOrFile));
         builder.classpath(".");
       } else {
         builder.classpath(classOrFile);
       }
+      switch (entryPointMode) {
+      case MAIN:
+        if (isClassName(classOrFile)) {
+          builder.entry(Class.forName(classOrFile));
+        }
+        break;
+      case RANDOM:
+      case RANDOM_MAIN:
+        final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
+            builder.classpath(), true, SDGBuilder.FieldPropagation.FLAT);
+        try {
+          List<String> names = SDGBuildPreparation
+              .searchMethods(new NullPrintStream(), cfg, entryPointMode == EntryPointMode.RANDOM_MAIN, ".*");
+          builder.configEntryMethod(names.get(new Random().nextInt(names.size() - 1)));
+        } catch (ClassHierarchyException e) {
+          e.printStackTrace();
+          System.exit(1);
+        }
+      }
       return builder.dontCache().omitSummaryEdges().buildOrDie().analysis.getProgram().getSDG();
     }
 
-    private SDG createAndStoreSDG(String classOrFile, Path pdgFile, boolean useOldPdg, boolean storePDG) throws IOException, ClassNotFoundException {
-      SDG sdg = createSDG(classOrFile, pdgFile, useOldPdg);
+    private SDG createAndStoreSDG(String classOrFile, Path pdgFile, boolean useOldPdg, boolean storePDG,
+        EntryPointMode entryPointMode) throws IOException, ClassNotFoundException {
+      SDG sdg = createSDG(classOrFile, pdgFile, useOldPdg, entryPointMode);
       if (!useOldPdg && storePDG) {
         BufferedOutputStream bOut = new BufferedOutputStream(Files.newOutputStream(pdgFile));
         SDGSerializer.toPDGFormat(sdg, bOut);
@@ -210,10 +243,10 @@ public class TestCLI implements Callable<Integer> {
     private void createBenchFiles(String classOrFile, Path pdgFile, Path pgPath, Optional<Path> summaryFile, boolean useOldPdg,
         Optional<Path> exportedGraphsFolder, boolean storePDG, long max_sums, boolean remove_normal, Set<Integer> remove_nodes,
         boolean remove_unreachable, int entry, String[] remove_neighbor_edges, boolean list_nodes, boolean reorder,
-        String use_pg_for_cpp) {
+        String use_pg_for_cpp, EntryPointMode entryPointMode) {
       Runnable inner = () -> {
         try {
-          writeCPPTestSource(use_pg_for_cpp.equals("") ? Optional.of(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG)) : Optional.empty(), pgPath, summaryFile,
+          writeCPPTestSource(use_pg_for_cpp.equals("") ? Optional.of(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG, entryPointMode)) : Optional.empty(), pgPath, summaryFile,
               exportedGraphsFolder, max_sums, remove_normal, remove_nodes, remove_unreachable, entry, remove_neighbor_edges,
               list_nodes, reorder, use_pg_for_cpp);
         } catch (IOException | ClassNotFoundException e) {
@@ -356,9 +389,9 @@ public class TestCLI implements Callable<Integer> {
       }
     }
 
-    public Graph createPG(String jarOrClass, SDGConfig config) {
+    public Graph createPG(String jarOrClass, SDGConfig config, EntryPointMode entryPointMode) {
       try {
-        SDG sdg = createSDG(jarOrClass, Paths.get("tmp"), false, config);
+        SDG sdg = createSDG(jarOrClass, Paths.get("tmp"), false, config, entryPointMode);
         return new SDGToGraph().convert(sdg, true).reorderNodes();
       } catch (IOException | ClassNotFoundException e) {
         e.printStackTrace();
@@ -367,7 +400,7 @@ public class TestCLI implements Callable<Integer> {
     }
 
     public long calcSumsAndStore(String jarOrClass, SDGConfig config, Path pgPath){
-      Graph g = createPG(jarOrClass, config);
+      Graph g = createPG(jarOrClass, config, EntryPointMode.MAIN);
       new Dumper().dump(g, pgPath.toString());
       return g.calculateMaximumNumberOfSummaryEdges();
     }

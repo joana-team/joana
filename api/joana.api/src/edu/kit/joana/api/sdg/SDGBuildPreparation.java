@@ -86,7 +86,7 @@ public final class SDGBuildPreparation {
 			if (cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
 				for (final IMethod m : cls.getDeclaredMethods()) {
 					if (m.getSignature().toString().matches(regexp) && (!onlyMainMethods || (m.isStatic() && "main([Ljava/lang/String;)V".equals(m.getSelector().toString())))) {
-						out.println("\tfound '" + m.getSignature() + "'");
+						//out.println("\tfound '" + m.getSignature() + "'");
 						result.add(m.getSignature());
 					}
 				}

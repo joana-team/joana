@@ -6,6 +6,7 @@ import com.ibm.wala.shrikeBT.IComparisonInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
@@ -15,7 +16,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import nildumu.Context;
 import nildumu.Lattices;
-import nildumu.Operator;
 import nildumu.Parser;
 import nildumu.typing.Type;
 import swp.lexer.Location;
@@ -61,9 +61,9 @@ public class Converter {
 		return "x" + varNameCounter++;
 	}
 
-	public Parser.ArgumentsNode arguments(List<String> varNames) {
+	public static Parser.ArgumentsNode arguments(List<String> varNames) {
 		return new Parser.ArgumentsNode(DUMMY_LOCATION,
-				varNames.stream().map(this::variableAccess).collect(Collectors.toList()));
+				varNames.stream().map(Converter::variableAccess).collect(Collectors.toList()));
 	}
 
 	public Parser.ParameterNode parameter(String varName) {
@@ -76,13 +76,30 @@ public class Converter {
 				varNames.stream().map(this::parameter).collect(Collectors.toList()));
 	}
 
-	public Parser.VariableAccessNode variableAccess(String varName) {
+	public static Parser.VariableAccessNode variableAccess(String varName) {
 		return new Parser.VariableAccessNode(DUMMY_LOCATION, varName);
 	}
 
-	public Parser.VariableDeclarationNode varDecl(String varName) {
+	public static Parser.VariableAssignmentNode assignment(String var, Parser.ExpressionNode expr) {
+		return new Parser.VariableAssignmentNode(DUMMY_LOCATION, var, expr);
+	}
+
+	public static Parser.VariableDeclarationNode varDecl(String varName, Type type) {
+		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName, type);
+	}
+
+	public static Parser.VariableDeclarationNode varDecl(String varName, Parser.ExpressionNode value) {
 		return new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName,
-				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType());
+				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), value);
+	}
+
+	public static String methodName(MethodReference mRef) {
+		return methodName(mRef.getSignature());
+	}
+
+	public static String methodName(String signature) {
+		String sig = signature.replaceAll("[\\(\\)$&+.,:;=?@#|]", "");
+		return sig;
 	}
 
 	public static String methodName(LoopBody l) {
@@ -100,10 +117,17 @@ public class Converter {
 				.forEach(programNode::addGlobalStatement);
 
 		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>(), consts);
-		List<BBlock> allBlocks = BBlockOrdering.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
+		List<BBlock> allBlocks = BBlockOrdering
+				.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
 		List<Parser.StatementNode> stmts = convertStatements(allBlocks, new ArrayList<>(), cVis);
 		programNode.addGlobalStatements(stmts);
 		this.loopMethods.values().forEach(programNode::addMethod);
+
+		for (Method m : p.getMethods()) {
+			if (m.equals(p.getEntryMethod()))
+				continue;
+			programNode.addMethod(convertMethod(m));
+		}
 
 		return programNode;
 	}
@@ -156,7 +180,8 @@ public class Converter {
 		Type returnType = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.nTypes.getOrCreateTupleType(elementTypes);
 
 		// recursive call to loop method
-		List<Parser.VariableDeclarationNode> returnVarDecls = Arrays.stream(recCallRes).map(this::varDecl)
+		List<Parser.VariableDeclarationNode> returnVarDecls = IntStream.range(0, recCallRes.length)
+				.mapToObj(i -> Converter.varDecl(recCallRes[i], returnType.getBracketAccessResult(i)))
 				.collect(Collectors.toList());
 		Parser.MethodInvocationNode recCallExpr = new Parser.MethodInvocationNode(DUMMY_LOCATION, methodName(l), args);
 		Parser.MultipleVariableAssignmentNode recCall = new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
@@ -187,14 +212,15 @@ public class Converter {
 					new Parser.PhiNode(DUMMY_LOCATION, Arrays.asList(recCallRes[i], phiArgs[i]))));
 		}
 		completeBody.add(new Parser.ReturnStatementNode(DUMMY_LOCATION,
-				Arrays.stream(phiRes).map(this::variableAccess).collect(Collectors.toList())));
+				Arrays.stream(phiRes).map(Converter::variableAccess).collect(Collectors.toList())));
 
 		Parser.MethodNode loopMethod = new Parser.MethodNode(DUMMY_LOCATION, methodName(l), returnType, param,
 				completeBody, new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>()));
 		Parser.MethodInvocationNode callToLoop = new Parser.MethodInvocationNode(DUMMY_LOCATION, methodName(l),
 				arguments(Arrays.asList(loopMethodArgs)));
 
-		List<Parser.StatementNode> defsAndCall = Arrays.stream(returnOrder).map(i -> varDecl(varName(i)))
+		List<Parser.StatementNode> defsAndCall = IntStream.range(0, returnOrder.length)
+				.mapToObj(i -> varDecl(varName(returnOrder[i]), returnType.getBracketAccessResult(i)))
 				.collect(Collectors.toList());
 		defsAndCall.add(new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
 				Arrays.stream(returnOrder).map(Converter::varName).toArray(String[]::new),
@@ -203,16 +229,14 @@ public class Converter {
 		return Pair.make(loopMethod, defsAndCall);
 	}
 
-	public Parser.MethodNode convertMethod(Method m) throws ConversionException {
+	public Parser.MethodNode convertMethod(Method m) {
 		Map<Integer, Parser.ParameterNode> params = parseParameters(m);
 		Map<Integer, Parser.ExpressionNode> consts = parseConstantValues(m);
 		Parser.BlockNode body = convertMethodBody(m, params, consts);
 		Type returnType = m.getReturnType().nildumuType();
 		Parser.GlobalVariablesNode globals = new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>());
-		return new Parser.MethodNode(DUMMY_LOCATION, m.getCFG().getName(), returnType,
-				new Parser.ParametersNode(DUMMY_LOCATION,
-						params.values().stream().map(params::get)
-								.collect(Collectors.toList())), body, globals);
+		return new Parser.MethodNode(DUMMY_LOCATION, methodName(m.identifier()), returnType,
+				new Parser.ParametersNode(DUMMY_LOCATION, new ArrayList<>(params.values())), body, globals);
 	}
 
 	private Map<Integer, Parser.ExpressionNode> parseConstantValues(Method m) {
@@ -231,9 +255,8 @@ public class Converter {
 	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, List<Parser.StatementNode> converted,
 			ConversionVisitor cVis) {
 
-		if (toConvert.isEmpty()) {
+		if (toConvert.isEmpty())
 			return converted;
-		}
 
 		BBlock b = toConvert.remove(0);
 
@@ -309,7 +332,7 @@ public class Converter {
 		return branch;
 	}
 
-	public Map<Integer, Parser.ParameterNode> parseParameters(Method m) throws ConversionException {
+	public Map<Integer, Parser.ParameterNode> parseParameters(Method m) {
 		Map<Integer, Parser.ParameterNode> params = new HashMap<>();
 
 		// start @ 1, bc 0 is 'this'-reference
@@ -388,7 +411,7 @@ public class Converter {
 		}
 	}
 
-	public static class ConversionVisitor implements SSAInstruction.IVisitor {
+	public static class ConversionVisitor extends SSAInstruction.Visitor {
 
 		private final Method m;
 		private List<Parser.StatementNode> stmts;
@@ -442,8 +465,7 @@ public class Converter {
 
 			// TODO should we use the same Types() obj every time?
 			// TODO compute result type from operation, instead of statically using INT
-			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), binOp));
+			this.stmts.add(Converter.varDecl(varName(instruction.getDef()), binOp));
 		}
 
 		// TODO how is unary minus handled?
@@ -455,23 +477,7 @@ public class Converter {
 			} catch (ConversionException e) {
 				e.printStackTrace();
 			}
-			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), unOp));
-		}
-
-		@Override public void visitConversion(SSAConversionInstruction instruction) {
-
-		}
-
-		@Override public void visitComparison(SSAComparisonInstruction instruction) {
-			try {
-				Parser.BinaryOperatorNode comp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
-						access(instruction.getUse(1)), LexerTerminal.of(instruction.getOperator()));
-				stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
-						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), comp));
-			} catch (ConversionException e) {
-				e.printStackTrace();
-			}
+			this.stmts.add(Converter.varDecl(varName(instruction.getDef()), unOp));
 		}
 
 		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
@@ -485,30 +491,31 @@ public class Converter {
 			}
 		}
 
-		@Override public void visitSwitch(SSASwitchInstruction instruction) {
-
-		}
-
 		@Override public void visitReturn(SSAReturnInstruction instruction) {
+			if (currentBlock.getCFG().getMethod().getProg().getEntryMethod().equals(currentBlock.getCFG().getMethod()))
+				return;
 
-		}
-
-		@Override public void visitGet(SSAGetInstruction instruction) {
-
-		}
-
-		@Override public void visitPut(SSAPutInstruction instruction) {
-
+			if (instruction.returnsVoid()) {
+				this.stmts.add(new Parser.ReturnStatementNode(DUMMY_LOCATION));
+			} else {
+				this.stmts.add(new Parser.ReturnStatementNode(DUMMY_LOCATION, access(instruction.getResult())));
+			}
 		}
 
 		@Override public void visitInvoke(SSAInvokeInstruction instruction) {
-
 			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
 				int leaked = instruction.getUse(0);
-				Parser.OutputVariableDeclarationNode node = null;
+				Parser.OutputVariableDeclarationNode node;
 				node = new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION, "o_" + varName(instruction.getUse(0)),
 						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), access(leaked), "l");
 				this.stmts.add(node);
+			} else {
+				assert (instruction.hasDef());
+				Parser.ArgumentsNode args = Converter.arguments(IntStream.range(1, instruction.getNumberOfParameters())
+						.mapToObj(i -> varName(instruction.getUse(i))).collect(Collectors.toList()));
+				Parser.MethodInvocationNode invocation = new Parser.MethodInvocationNode(DUMMY_LOCATION,
+						methodName(instruction.getDeclaredTarget()), args);
+				this.stmts.add(assignment(varName(instruction.getDef()), invocation));
 			}
 		}
 
@@ -517,22 +524,6 @@ public class Converter {
 		}
 
 		@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
-
-		}
-
-		@Override public void visitThrow(SSAThrowInstruction instruction) {
-
-		}
-
-		@Override public void visitMonitor(SSAMonitorInstruction instruction) {
-
-		}
-
-		@Override public void visitCheckCast(SSACheckCastInstruction instruction) {
-
-		}
-
-		@Override public void visitInstanceof(SSAInstanceofInstruction instruction) {
 
 		}
 
@@ -551,18 +542,6 @@ public class Converter {
 					Arrays.asList(varName(instruction.getUse(firstArg)), varName(instruction.getUse(sndArg))));
 			stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
 					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), phi));
-		}
-
-		@Override public void visitPi(SSAPiInstruction instruction) {
-
-		}
-
-		@Override public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instruction) {
-
-		}
-
-		@Override public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
-
 		}
 
 		public List<Parser.StatementNode> visitBlock(BBlock b) {

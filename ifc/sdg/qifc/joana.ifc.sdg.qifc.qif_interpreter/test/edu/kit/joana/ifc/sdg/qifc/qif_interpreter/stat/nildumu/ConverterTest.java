@@ -94,8 +94,21 @@ class ConverterTest {
 				+ "h input int v3 = 0buuu;\n" + "int v5 = 0;\n" + "int v6 = 1;\n" + "int v8 = -1;\n" + "int v16;\n"
 				+ "int v14;\n" + "int v15;\n" + "v16, v14, v15 = *mLoopinLoopfIII_2(v2, v3, v5, v6, v8);\n"
 				+ "l output int o_v16 = v16;");
+		prettyPrint.put("Call",
+				"use_sec basic;\n" + "bit_width 3;\n" + "int Call_add_II_I(int v2, int v3){\n" + "  int v5;\n" + "  {\n"
+						+ "    v5 = (v2 + v3);\n" + "    return v5;\n" + "  }\n" + "}\n" + "h input int v2 = 0buuu;\n"
+						+ "int v4 = -1;\n" + "int v8 = 0;\n" + "int v6;\n" + "v6 = Call.add(II)I(v4, v2);\n"
+						+ "l output int o_v6 = v6;\n" + "return 0;");
+		prettyPrint.put("Call",
+				"use_sec basic;\n" + "bit_width 3;\n" + "int CalladdIII(int v2, int v3){\n" + "  int v5 = (v2 + v3);\n"
+						+ "  return v5;\n" + "}\n" + "h input int v2 = 0buuu;\n" + "int v4 = -1;\n" + "int v8 = 0;\n"
+						+ "v6 = CalladdIII(v4, v2);\n" + "l output int o_v6 = v6;");
 	}
 
+	/*
+	Test fails if all testcases are executed in a single test run.
+	Make sure to only run a single testcase!
+	 */
 	@Test void computeConditionalBranch() throws IOException, InterruptedException {
 		for (Pair<String, Integer> condStmt : branches.keySet()) {
 			computeConditionalBranchTestcase(condStmt.fst, condStmt.snd);
@@ -167,6 +180,10 @@ class ConverterTest {
 
 	@Test void convertLoopInIfTest() throws ConversionException, IOException, InterruptedException {
 		testConversion("LoopInIf", true);
+	}
+
+	@Test void convertCallTest() throws ConversionException, IOException, InterruptedException {
+		testConversion("Call", true);
 	}
 
 	void testConversion(String testCase, boolean print) throws ConversionException, IOException, InterruptedException {

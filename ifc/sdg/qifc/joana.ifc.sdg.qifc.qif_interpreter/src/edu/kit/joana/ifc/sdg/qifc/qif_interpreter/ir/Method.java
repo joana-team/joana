@@ -7,6 +7,7 @@ import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import org.logicng.formulas.Formula;
@@ -148,7 +149,7 @@ public class Method {
 	}
 
 	private void initValues() {
-		for (BBlock b : cfg.getBlocks()) {
+		for (BBlock b : BBlockOrdering.topological(cfg.getBlocks(), cfg.entry())) {
 			b.instructions().stream().filter(SSAInstruction::hasDef).forEach(i -> {
 				if (i instanceof SSANewInstruction) {
 					initArrayDef((SSANewInstruction) i);
@@ -337,6 +338,10 @@ public class Method {
 
 	public String identifier() {
 		return this.sdgMethod.getSignature().toBCString();
+	}
+
+	public String identifierNoSpecialCharacters() {
+		return identifier().replaceAll("[-+.\\(\\)^:,]", "");
 	}
 
 	public int getParamNum() {

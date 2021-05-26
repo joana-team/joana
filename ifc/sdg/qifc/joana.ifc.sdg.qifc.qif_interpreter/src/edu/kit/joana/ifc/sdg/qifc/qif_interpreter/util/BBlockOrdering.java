@@ -10,19 +10,18 @@ import java.util.List;
 public class BBlockOrdering {
 
 	public static List<BBlock> topological(Collection<BBlock> blocks, BBlock start) {
-		return topologicalRec(blocks, start, new ArrayList<>(Collections.singletonList(start)));
+		return topologicalRec(new ArrayList<>(blocks), start, new ArrayList<>(Collections.singletonList(start)));
 	}
 
 	private static List<BBlock> topologicalRec(Collection<BBlock> blocks, BBlock current, List<BBlock> ordered) {
 		if (blocks.isEmpty()) {
 			return ordered;
 		}
-
 		blocks.remove(current);
 		ordered.add(current);
 		for (BBlock b : current.succs()) {
-			List<BBlock> finalOrdered = ordered;
-			if (b.preds().stream().allMatch(pred -> finalOrdered.contains(pred)) || b.isLoopHeader()) {
+
+			if ((ordered.containsAll(b.preds()) || b.isLoopHeader()) && !ordered.contains(b) && blocks.contains(b)) {
 				ordered = topologicalRec(blocks, b, ordered);
 			}
 		}

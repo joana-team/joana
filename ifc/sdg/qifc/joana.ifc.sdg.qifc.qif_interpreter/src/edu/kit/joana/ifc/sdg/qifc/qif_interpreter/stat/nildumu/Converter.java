@@ -63,7 +63,7 @@ public class Converter {
 
 	public Parser.ArgumentsNode arguments(List<String> varNames) {
 		return new Parser.ArgumentsNode(DUMMY_LOCATION,
-				varNames.stream().map(s -> variableAccess(s)).collect(Collectors.toList()));
+				varNames.stream().map(this::variableAccess).collect(Collectors.toList()));
 	}
 
 	public Parser.ParameterNode parameter(String varName) {
@@ -86,7 +86,7 @@ public class Converter {
 	}
 
 	public static String methodName(LoopBody l) {
-		return "m" + l.getHead().idx();
+		return "m" + l.getOwner().identifierNoSpecialCharacters() + "_" + l.getHead().idx();
 	}
 
 	public Parser.ProgramNode convertProgram(Program p) throws ConversionException {
@@ -100,8 +100,7 @@ public class Converter {
 				.forEach(programNode::addGlobalStatement);
 
 		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>(), consts);
-		List<BBlock> allBlocks = new ArrayList<>();
-		allBlocks.addAll(p.getEntryMethod().getCFG().getBlocks());
+		List<BBlock> allBlocks = BBlockOrdering.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
 		List<Parser.StatementNode> stmts = convertStatements(allBlocks, new ArrayList<>(), cVis);
 		programNode.addGlobalStatements(stmts);
 		this.loopMethods.values().forEach(programNode::addMethod);
@@ -139,7 +138,7 @@ public class Converter {
 		// convert loopBody to ast stmts
 		ConversionVisitor cVis = new ConversionVisitor(l.getOwner(), parameterMap, new HashMap<>());
 		List<BBlock> loopBlocks = BBlockOrdering
-				.topological(l.getBlocks().stream().filter(b -> !b.isLoopHeader()).collect(Collectors.toSet()),
+				.topological(l.getBlocks().stream().filter(b -> !l.getHead().equals(b)).collect(Collectors.toSet()),
 						l.getHead().succs().stream().filter(b -> l.hasBlock(b.idx())).findFirst().get());
 		Parser.BlockNode body = new Parser.BlockNode(DUMMY_LOCATION,
 				convertStatements(loopBlocks, new ArrayList<>(), cVis));
@@ -212,7 +211,7 @@ public class Converter {
 		Parser.GlobalVariablesNode globals = new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>());
 		return new Parser.MethodNode(DUMMY_LOCATION, m.getCFG().getName(), returnType,
 				new Parser.ParametersNode(DUMMY_LOCATION,
-						params.values().stream().map(params::get).map(n -> (Parser.ParameterNode) n)
+						params.values().stream().map(params::get)
 								.collect(Collectors.toList())), body, globals);
 	}
 
@@ -231,8 +230,6 @@ public class Converter {
 
 	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, List<Parser.StatementNode> converted,
 			ConversionVisitor cVis) {
-
-		// System.out.println(Arrays.toString(toConvert.stream().map(BBlock::idx).toArray()));
 
 		if (toConvert.isEmpty()) {
 			return converted;
@@ -276,7 +273,7 @@ public class Converter {
 		return convertStatements(toConvert, converted, cVis);
 	}
 
-	private List<Parser.InputVariableDeclarationNode> convertSecretInputs(Program p) throws ConversionException {
+	private List<Parser.InputVariableDeclarationNode> convertSecretInputs(Program p) {
 		List<Parser.InputVariableDeclarationNode> inputs = new ArrayList<>();
 		Method topLevel = p.getEntryMethod();
 
@@ -391,36 +388,11 @@ public class Converter {
 		}
 	}
 
-	public static class NildumuOperator {
-
-		public static Operator of(IBinaryOpInstruction.Operator op) throws ConversionException {
-			switch (op) {
-			case ADD:
-				return Operator.ADD;
-			case MUL:
-				return Operator.MULTIPLY;
-			case DIV:
-				return Operator.DIVIDE;
-			case REM:
-				return Operator.MODULO;
-			case AND:
-				return Operator.AND;
-			case OR:
-				return Operator.OR;
-			case XOR:
-				return Operator.XOR;
-			default:
-				throw new ConversionException(op);
-			}
-		}
-	}
-
 	public static class ConversionVisitor implements SSAInstruction.IVisitor {
 
 		private final Method m;
 		private List<Parser.StatementNode> stmts;
 		private final Map<Integer, Parser.ParameterNode> valToParam;
-		private final Map<Integer, Parser.ExpressionNode> valToExpr;
 		private final Map<Integer, Parser.ExpressionNode> blockToExpr;
 		private BBlock currentBlock;
 
@@ -429,7 +401,6 @@ public class Converter {
 			this.m = m;
 			this.stmts = new ArrayList<>();
 			this.valToParam = parameterToNode;
-			this.valToExpr = consts;
 			this.blockToExpr = new HashMap<>();
 		}
 
@@ -468,7 +439,6 @@ public class Converter {
 
 			Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
 					access(instruction.getUse(1)), terminal);
-			this.valToExpr.put(instruction.getDef(), binOp);
 
 			// TODO should we use the same Types() obj every time?
 			// TODO compute result type from operation, instead of statically using INT
@@ -485,7 +455,6 @@ public class Converter {
 			} catch (ConversionException e) {
 				e.printStackTrace();
 			}
-			this.valToExpr.put(instruction.getDef(), unOp);
 			this.stmts.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(instruction.getDef()),
 					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), unOp));
 		}
@@ -571,8 +540,6 @@ public class Converter {
 			// TODO where can i get the correct order of the arguments?
 			// for if-stmts: first one comes from "true"-branch? Is it the same for joana?
 
-			// TODO: handle loop-phis separately
-
 			BBlock condBlock = m.getCFG().getImmDom(currentBlock);
 			BBlock firstPred = currentBlock.preds().get(0);
 			int firstArg = (m.getCFG().isDominatedBy(firstPred, m.getCFG().getBlock(condBlock.getTrueTarget()))) ?
@@ -613,7 +580,7 @@ public class Converter {
 			if (this.valToParam.containsKey(valNum)) {
 				return accessParam(valNum);
 			} else if (m.isConstant(valNum)) {
-				return (Parser.PrimaryExpressionNode) valToExpr.get(valNum);
+				return Parser.literal((Integer) m.getValue(valNum).getVal());
 			}
 			return new Parser.VariableAccessNode(DUMMY_LOCATION, varName(valNum));
 		}

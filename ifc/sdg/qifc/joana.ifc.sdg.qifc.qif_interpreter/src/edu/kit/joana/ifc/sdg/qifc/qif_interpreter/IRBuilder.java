@@ -17,7 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
 
@@ -89,7 +89,7 @@ public class IRBuilder {
 		this.ana.addAllJavaSourceAnnotations();
 
 		// write Joana output to logFIle
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Joana output:\n" + baos.toString(utf8) + "\n");
+		Logger.log("Joana output:\n" + baos.toString(utf8) + "\n");
 	}
 
 	public void dumpGraph(String path) {
@@ -97,7 +97,7 @@ public class IRBuilder {
 		String fileName = path + "/" + sdg.getName() + SDG_FILE_SUFFIX;
 		try {
 			SDGSerializer.toPDGFormat(sdg, new FileOutputStream(fileName));
-			SimpleLogger.log("Dumping graph to " + fileName);
+			Logger.log("Dumping graph to " + fileName);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

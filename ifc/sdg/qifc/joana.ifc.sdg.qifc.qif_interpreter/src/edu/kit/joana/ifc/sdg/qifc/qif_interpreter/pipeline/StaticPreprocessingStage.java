@@ -27,6 +27,7 @@ public class StaticPreprocessingStage implements IStage {
 			e.printStackTrace();
 		}
 
+		assert p != null;
 		env.nProgram = new NildumuProgram(p, options);
 
 		/*
@@ -37,7 +38,7 @@ public class StaticPreprocessingStage implements IStage {
 		}
 
 		 */
-
+		success = true;
 		env.lastStage = new PreprocessingResult(null, new HashMap<>());
 
 		return env;

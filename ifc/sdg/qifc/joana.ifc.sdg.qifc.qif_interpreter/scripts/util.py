@@ -1,5 +1,6 @@
-import math
 import json
+
+import math
 
 
 def generate_possible_inputs(param_num, param_width):

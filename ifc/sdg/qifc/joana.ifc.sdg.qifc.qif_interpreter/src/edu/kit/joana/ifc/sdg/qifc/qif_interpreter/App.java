@@ -6,7 +6,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.MissingValueException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,8 +44,7 @@ public class App {
 		}
 
 		try {
-			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger
-					.initWithFileHandler(Level.ALL, jArgs.outputDirectory);
+			Logger.initWithFileHandler(Level.ALL, jArgs.outputDirectory, jArgs.inputFiles.get(0));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -107,7 +106,7 @@ public class App {
 					}
 				}
 			}
-			SimpleLogger.log(String.format("Using output directory: %s", outputDirectory));
+			Logger.log(String.format("Using output directory: %s", outputDirectory));
 			// we always need an input program
 			if (inputFiles.size() == 0) {
 				throw new ParameterException("Error: No input file found");

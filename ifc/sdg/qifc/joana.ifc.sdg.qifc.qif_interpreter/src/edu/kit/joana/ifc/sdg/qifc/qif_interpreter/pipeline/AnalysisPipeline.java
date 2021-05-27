@@ -1,9 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger;
-
-import java.util.logging.Level;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 
 public class AnalysisPipeline {
 
@@ -22,14 +20,14 @@ public class AnalysisPipeline {
 	}
 
 	private void execute(IStage stage) {
-		SimpleLogger.log(Level.INFO, "Starting: " + stage.identity().toString());
+		Logger.logEval("Starting: " + stage.identity().toString());
 		this.env = stage.execute(this.env);
 		env.completedSuccessfully.put(stage.identity(), true);
 
 		if (stage.success()) {
-			SimpleLogger.log(Level.INFO, "Finished stage successfully");
+			Logger.logEval("Finished stage successfully");
 		} else {
-			SimpleLogger.log(Level.INFO, "Stage failed");
+			Logger.logEval("Stage failed");
 			if (stage.identity().failsFatally) {
 				System.exit(1);
 			}

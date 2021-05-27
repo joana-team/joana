@@ -4,6 +4,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.JavacException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedReader;
@@ -41,7 +42,7 @@ public class InitStage implements IStage {
 		}
 
 		// check if we got a .java file as input. If yes, we need to compile it to a .class file first
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger.log("Starting compilation with javac");
+		Logger.log("Starting compilation with javac");
 		if (programPath.endsWith(JAVA_FILE_EXT)) {
 			try {
 				compile(env.args.outputDirectory, programPath, jarPath);
@@ -52,8 +53,7 @@ public class InitStage implements IStage {
 		} else {
 			classFilePath = programPath;
 		}
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.SimpleLogger
-				.log(String.format("Finished compilation. Generated file: %s", classFilePath));
+		Logger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
 		DotGrapher.configureDest(env.args.outputDirectory);
 
 		// get classname via filename

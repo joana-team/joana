@@ -555,7 +555,8 @@ public class Converter {
 	}
 
 	public static String varName(int valNum, Method m) {
-		return "v_" + m.identifier() + "_" + valNum;
+		String methodId = m.identifier().replaceAll("[\\.\\(\\)]", "_");
+		return "v_" + methodId + "_" + valNum;
 	}
 
 	public static int valNum(String varName) {

@@ -102,6 +102,20 @@ class ConverterTest {
 				"use_sec basic;\n" + "bit_width 3;\n" + "int CalladdIII(int v2, int v3){\n" + "  int v5 = (v2 + v3);\n"
 						+ "  return v5;\n" + "}\n" + "h input int v2 = 0buuu;\n" + "int v4 = -1;\n" + "int v8 = 0;\n"
 						+ "v6 = CalladdIII(v4, v2);\n" + "l output int o_v6 = v6;");
+		prettyPrint.put("IrrelevantLoop", "use_sec basic;\n" + "bit_width 3;\n"
+				+ "(int) mIrrelevantLoopfII_2(int v_IrrelevantLoop_f_I_I_2, int v_IrrelevantLoop_f_I_I_7){\n"
+				+ "  int x0;\n" + "  if (!(v_IrrelevantLoop_f_I_I_2 <= v_IrrelevantLoop_f_I_I_7))\n" + "    {\n"
+				+ "      int v_IrrelevantLoop_f_I_I_4 = 0;\n" + "      int v_IrrelevantLoop_f_I_I_5 = 1;\n"
+				+ "      int v_IrrelevantLoop_f_I_I_6;\n"
+				+ "      v_IrrelevantLoop_f_I_I_6 = (v_IrrelevantLoop_f_I_I_7 + 1);\n"
+				+ "      x0 = *mIrrelevantLoopfII_2(v_IrrelevantLoop_f_I_I_2, v_IrrelevantLoop_f_I_I_6);\n" + "    }\n"
+				+ "  int x1 = phi(x0, v_IrrelevantLoop_f_I_I_7);\n" + "  return (x1,);\n" + "}\n"
+				+ "h input int v_IrrelevantLoop_f_I_I_2 = 0buuu;\n" + "int v_IrrelevantLoop_f_I_I_4 = 0;\n"
+				+ "int v_IrrelevantLoop_f_I_I_5 = 1;\n" + "int v_IrrelevantLoop_f_I_I_7;\n"
+				+ "int v_IrrelevantLoop_f_I_I_8;\n"
+				+ "v_IrrelevantLoop_f_I_I_7 = *mIrrelevantLoopfII_2(v_IrrelevantLoop_f_I_I_2, v_IrrelevantLoop_f_I_I_4);\n"
+				+ "v_IrrelevantLoop_f_I_I_8 = (v_IrrelevantLoop_f_I_I_2 + 1);\n"
+				+ "l output int o_v_IrrelevantLoop_f_I_I_8 = v_IrrelevantLoop_f_I_I_8;");
 	}
 
 	/*
@@ -191,6 +205,10 @@ class ConverterTest {
 
 	@Test void convertCallTest() throws ConversionException, IOException, InterruptedException {
 		testConversion("Call", true);
+	}
+
+	@Test void convertIrrelevantLoop() throws ConversionException, IOException, InterruptedException {
+		testConversion("IrrelevantLoop", true);
 	}
 
 	void testConversion(String testCase, boolean print) throws ConversionException, IOException, InterruptedException {

@@ -19,6 +19,7 @@ public class StaticPreprocessingStage implements IStage {
 
 		assert (env.completedStage(Stage.BUILD));
 
+		// ---------------------- Nildumu ------------------------
 		Converter c = new Converter();
 		Parser.ProgramNode p = null;
 		try {
@@ -30,16 +31,17 @@ public class StaticPreprocessingStage implements IStage {
 		assert p != null;
 		env.nProgram = new NildumuProgram(p, options);
 
-		/*
 		Map<Integer, Lattices.Value> bits = new HashMap<>();
 		for (int i : env.iProgram.getEntryMethod().getProgramValues().keySet()) {
-			Lattices.Value v = env.nProgram.context.getVariableValue(Converter.varName(i));
+			Lattices.Value v = env.nProgram.context
+					.getVariableValue(Converter.varName(i, env.iProgram.getEntryMethod()));
 			bits.put(i, v);
 		}
 
-		 */
+		// ------------------- Program Slice ----------------------
+
 		success = true;
-		env.lastStage = new PreprocessingResult(null, new HashMap<>());
+		env.lastStage = new PreprocessingResult(bits, new HashMap<>());
 
 		return env;
 	}

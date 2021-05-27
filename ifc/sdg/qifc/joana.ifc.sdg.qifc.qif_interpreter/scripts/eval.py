@@ -18,7 +18,7 @@ class Stage:
         self.start_time = start
 
     def __str__(self):
-        return self.name + " " + str(self.start_time) + " - " + str(self.end_time) + " " + str(self.success)
+        return self.name + " " + str(self.start_time) + " - " + self.end_time + " " + str(self.success)
 
 
 class Evaluation:
@@ -50,7 +50,6 @@ def parseLogfile(output_dir, classname):
 
 
 def get_relevant_lines(output_dir, classname):
-    lines = []
     with open(output_dir + "/" + classname + ".log", "r") as f:
         lines = [line.strip() for line in f.readlines() if "[EVAL]" in line]
     return lines

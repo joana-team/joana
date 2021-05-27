@@ -211,4 +211,15 @@ class ConverterTest {
 		env = prep.execute(env);
 		return env.nProgram.ast.toPrettyString();
 	}
+
+	@Test void varName() throws IOException, InterruptedException {
+		Program p = TestUtils.build("And");
+		String res = Converter.varName(2, p.getEntryMethod());
+		assertEquals("v_And.f(II)I_2", res);
+	}
+
+	@Test void valNum() throws IOException, InterruptedException {
+		int res = Converter.valNum("v_And.f(II)I_2");
+		assertEquals(2, res);
+	}
 }

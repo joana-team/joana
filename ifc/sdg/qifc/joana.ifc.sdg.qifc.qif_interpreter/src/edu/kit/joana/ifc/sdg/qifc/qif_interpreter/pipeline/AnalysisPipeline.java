@@ -25,9 +25,9 @@ public class AnalysisPipeline {
 		env.completedSuccessfully.put(stage.identity(), true);
 
 		if (stage.success()) {
-			Logger.logEval("Finished stage successfully");
+			Logger.logEval("Finished: " + stage.identity().toString());
 		} else {
-			Logger.logEval("Stage failed");
+			Logger.logEval("Failed: " + stage.identity().toString());
 			if (stage.identity().failsFatally) {
 				System.exit(1);
 			}

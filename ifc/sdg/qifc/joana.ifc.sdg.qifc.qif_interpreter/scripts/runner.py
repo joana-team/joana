@@ -1,6 +1,7 @@
-import math
 import os
 import subprocess
+
+import math
 import sys
 
 import util

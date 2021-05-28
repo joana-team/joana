@@ -11,10 +11,10 @@ public class IrrelevantIf {
 
 	public int f(int h) {
 		int l = 0;
+		h = h & 0;
 		if (h > 0) {
 			l = 1 + l;
 		}
-		l = 0;
 		Out.print(l);
 		return l;
 	}

@@ -268,7 +268,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 			out.println(getUses(instruction)[0].getVal());
 			try {
 				measureLeak(leakedVal);
-			} catch (IOException | UnexpectedTypeException e) {
+			} catch (IOException | UnexpectedTypeException | InterruptedException e) {
 				e.printStackTrace();
 			}
 		} else {
@@ -352,11 +352,10 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		m.setValue(i.getDef(), def);
 	}
 
-	private void measureLeak(Value leaked) throws IOException, UnexpectedTypeException {
+	private void measureLeak(Value leaked) throws IOException, UnexpectedTypeException, InterruptedException {
 		int[] params = m.getIr().getParameterValueNumbers();
 		List<Value> hVals = Arrays.stream(params).mapToObj(m::getValue).filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		// System.out.println(" Parameters: ");
 		LeakageComputation lc = new LeakageComputation(hVals, leaked, m);
 		lc.compute(interpreter.outputDirectory());
 	}

@@ -35,17 +35,13 @@ public class AnalysisPipeline {
 	}
 
 	private void execute(IStage stage) {
-		Logger.logEval("Starting: " + stage.identity().toString());
+		Logger.startPipelineStage(stage.identity());
 		this.env = stage.execute(this.env);
 		env.completedSuccessfully.put(stage.identity(), true);
+		Logger.finishPipelineStage(stage.identity(), stage.success());
 
-		if (stage.success()) {
-			Logger.logEval("Finished: " + stage.identity().toString());
-		} else {
-			Logger.logEval("Failed: " + stage.identity().toString());
-			if (stage.identity().failsFatally) {
-				System.exit(1);
-			}
+		if (!stage.success() && stage.identity().failsFatally) {
+			System.exit(1);
 		}
 	}
 }

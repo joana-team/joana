@@ -280,7 +280,7 @@ public class LogicUtil {
 
 		// add sampling set
 		sb.append("c ind ");
-		samplingSet.stream().forEach(v -> sb.append(var2id.get(v)).append(" "));
+		samplingSet.forEach(v -> sb.append(var2id.get(v)).append(" "));
 		sb.append("0").append(System.lineSeparator());
 
 		for (final Formula part : parts) {

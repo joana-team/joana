@@ -10,6 +10,7 @@ public class ExecutionStage implements IStage {
 
 	@Override public Environment execute(Environment env) {
 		Interpreter i = new Interpreter(env.iProgram);
+		i.setEnvironment(env);
 		try {
 			i.execute(env.args.args);
 			success = true;

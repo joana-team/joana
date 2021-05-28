@@ -1,5 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util;
 
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.IStage;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.*;
@@ -52,6 +54,22 @@ public class Logger {
 
 	public static void logEval(String msg) {
 		Logger.log(Eval.EVAL, msg);
+	}
+
+	public static void startPipelineStage(IStage.Stage stage) {
+		logEval("Starting: " + stage.toString());
+	}
+
+	public static void finishPipelineStage(IStage.Stage stage, boolean success) {
+		if (success) {
+			Logger.logEval("Finished: " + stage.toString());
+		} else {
+			Logger.logEval("Failed: " + stage.toString());
+		}
+	}
+
+	public static void invokeMC(long execTime, String dimacsFile) {
+		logEval(String.format("[mc] %d %s", execTime, dimacsFile));
 	}
 
 	public static void disable() {

@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
@@ -16,7 +17,7 @@ import java.util.regex.Pattern;
 public class ApproxMC {
 
 	private static final Pattern resultLine = Pattern.compile("s mc ([0-9]*)");
-	private static final String approcMCPath = "../../../../contrib/lib/approxmc ";
+	private static final String approxMCPath = "../../../../contrib/lib/approxmc ";
 	private static int count = 0;
 	private final String dest;
 
@@ -32,18 +33,22 @@ public class ApproxMC {
 		this.dest = System.getProperty("user.dir");
 	}
 
-	public int estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException {
+	public int estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException, InterruptedException {
 		Formula cnf = f.cnf();
-		// System.out.println(cnf);
+
 		String filename = dest + "/" + "leaked" + count + ".cnf";
 		LogicUtil.writeDimacsFile(filename, cnf, samplingSet, true);
-		return invokeApproxMC(filename, dest + "/" + "approxMC_out" + count++);
+		return invokeApproxMC(filename, dest + "/" + "approxMC_out_" + count++);
 	}
 
-	public int invokeApproxMC(String in, String out) throws IOException {
-		String cmd = approcMCPath + in;
+	public int invokeApproxMC(String in, String out) throws IOException, InterruptedException {
+		String cmd = approxMCPath + in;
 		Runtime run = Runtime.getRuntime();
+
+		long startTime = System.currentTimeMillis();
 		Process pr = run.exec(cmd);
+		pr.waitFor();
+		long endTime = System.currentTimeMillis();
 
 		BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 		String line = "";
@@ -64,6 +69,8 @@ public class ApproxMC {
 		if (out != null) {
 			Util.dumpToFile(out, sb);
 		}
+
+		Logger.invokeMC(endTime - startTime, in);
 		return res;
 	}
 

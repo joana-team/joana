@@ -66,10 +66,8 @@ public class LeakageComputation {
 		return toAdd.stream().reduce(lastAdded, LogicUtil.ff::and);
 	}
 
-	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException {
+	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException, InterruptedException {
 		Formula count = createCountingFormula();
-		// System.out.println("formula: " + count);
-		// FormulaDotFileWriter.write("dot.dot", count, true);
 		int modelCount;
 
 		if (hVars.stream().noneMatch(count::containsVariable)) {

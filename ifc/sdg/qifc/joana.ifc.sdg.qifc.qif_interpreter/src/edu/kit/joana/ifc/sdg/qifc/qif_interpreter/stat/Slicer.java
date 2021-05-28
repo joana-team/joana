@@ -33,7 +33,7 @@ public class Slicer {
 			SDGNode criterion = m.of(m.of(leakedValDef));
 
 			SummarySlicerBackward ssb = new SummarySlicerBackward(sdg);
-			List<PDGNode> slice = ssb.slice(criterion).stream().filter(Objects::nonNull).map(m::of)
+			List<PDGNode> slice = ssb.slice(criterion).stream().map(m::of).filter(Objects::nonNull)
 					.collect(Collectors.toList());
 
 			// printSlice(criterion, slice);

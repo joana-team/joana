@@ -75,6 +75,10 @@ class StaticPreprocessingStageTest {
 		slicingTest("IrrelevantLoop");
 	}
 
+	@Test public void slice_IrrelevantIfTest() {
+		slicingTest("IrrelevantIf");
+	}
+
 	@Test public void slice_IfTest() {
 		slicingTest("If");
 	}
@@ -108,6 +112,8 @@ class StaticPreprocessingStageTest {
 				IntStream.range(0, i.getNumberOfUses()).forEach(j -> needsToBeComputed.add(i.getUse(j)));
 			}
 		}
+
+		System.out.println(needsToBeComputed);
 
 		for (Integer i : needsToBeComputed) {
 			Assertions.assertTrue(computed.contains(i) || constantOrParameter(m.getValue(i)));

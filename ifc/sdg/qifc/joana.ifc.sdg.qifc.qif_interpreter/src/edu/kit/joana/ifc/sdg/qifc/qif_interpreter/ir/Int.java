@@ -7,6 +7,8 @@ import java.util.Arrays;
 
 public class Int extends Value {
 
+	private BitLatticeValue[] constantBits;
+
 	public Int(int valNum) {
 		super(valNum);
 		this.setType(Type.INTEGER);
@@ -24,6 +26,19 @@ public class Int extends Value {
 
 	@Override public String getValAsString() {
 		return String.valueOf(this.getVal());
+	}
+
+	@Override public void setConstantBitMask(BitLatticeValue[] constantBits) {
+		this.constantBits = constantBits;
+	}
+
+	@Override public BitLatticeValue[] getConstantBitMask() {
+		return this.constantBits;
+	}
+
+	@Override public boolean isEffectivelyConstant() {
+		return this.constantBits != null && Arrays.stream(this.constantBits)
+				.allMatch(blv -> blv != BitLatticeValue.UNKNOWN);
 	}
 
 	private Formula[] initDeps() {

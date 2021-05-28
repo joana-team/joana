@@ -11,6 +11,7 @@ class Stage:
     name = None
     start_time = 0
     end_time = 0
+    duration = 0
     success = None
 
     def __init__(self, name, start):
@@ -18,7 +19,8 @@ class Stage:
         self.start_time = start
 
     def __str__(self):
-        return self.name + " " + str(self.start_time) + " - " + self.end_time + " " + str(self.success)
+        return self.name + " " + str(self.start_time) + " - " + self.end_time + " (" + self.duration + ") " + str(
+            self.success)
 
 
 class Evaluation:
@@ -42,9 +44,11 @@ def parseLogfile(output_dir, classname):
             eval.stages[parts[-1]] = Stage(parts[-1], parts[0])
         if "Finished:" in parts:
             eval.stages[parts[-1]].end_time = parts[0]
+            eval.stages[parts[-1]].duration = eval.stages[parts[-1]].end_time - eval.stages[parts[-1]].start_time
             eval.stages[parts[-1]].success = True
         if "Failed:" in parts:
             eval.stages[parts[-1]].end_time = parts[0]
+            eval.stages[parts[-1]].duration = eval.stages[parts[-1]].end_time - eval.stages[parts[-1]].start_time
             eval.stages[parts[-1]].success = False
     return eval
 

@@ -12,6 +12,8 @@ import org.logicng.io.parsers.ParserException;
 import org.logicng.solvers.MiniSat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TestUtils {
@@ -53,6 +55,18 @@ public class TestUtils {
 		}
 
 		models.forEach(System.out::println);
+	}
+
+	public static App.Args getDummyArgs(String testcase) {
+		App.Args args = new App.Args();
+		args.onlyRun = false;
+		args.inputFiles = Collections.singletonList(testFilePath + testcase + ".java");
+		args.outputDirectory = "test_" + testcase + "_" + System.currentTimeMillis();
+		args.doStatic = true;
+		args.args = new ArrayList<>();
+		args.dumpGraphs = true;
+		args.workingDir = System.getProperty("user.dir");
+		return args;
 	}
 
 	@Test void debug() throws ParserException {

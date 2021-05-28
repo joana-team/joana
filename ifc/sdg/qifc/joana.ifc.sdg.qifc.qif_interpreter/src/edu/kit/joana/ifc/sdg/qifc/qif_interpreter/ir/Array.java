@@ -163,20 +163,26 @@ public class Array<T extends Value> extends Value {
 		this.valueDependencies[idx] = deps;
 	}
 
-	@Override
-	public String getValAsString() {
+	@Override public String getValAsString() {
 		String[] currentVal = new String[length()];
 		IntStream.range(0, currentVal.length).forEach(i -> currentVal[i] = this.arr[i].getValAsString());
 		return Arrays.toString(currentVal);
 	}
 
+	@Override public void setConstantBitMask(BitLatticeValue[] constantBits) {
+
+	}
+
+	@Override public BitLatticeValue[] getConstantBitMask() {
+		return new BitLatticeValue[0];
+	}
+
 	public void setVal(Object[] val, int recursionDepth) {
-		assert(val.length == this.length());
+		assert (val.length == this.length());
 		IntStream.range(0, val.length).forEach(i -> this.arr[i].setVal(val[i], recursionDepth));
 	}
 
-	@Override
-	public Object[] getVal() {
+	@Override public Object[] getVal() {
 		Object[] val = new Object[this.length()];
 		IntStream.range(0, length()).forEach(i -> val[i] = this.arr[i].getVal());
 		return val;

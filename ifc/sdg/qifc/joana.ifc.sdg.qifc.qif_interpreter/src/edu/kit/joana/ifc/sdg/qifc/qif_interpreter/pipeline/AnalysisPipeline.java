@@ -3,20 +3,35 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 
+import java.util.Deque;
+
 public class AnalysisPipeline {
 
 	Environment env;
 
 	public void runPipeline(App.Args args) {
-		this.env = new Environment(args);
-		execute(IStage.Stage.INIT.get());
-		execute(IStage.Stage.BUILD.get());
+		runPipelineUntil(args, IStage.Stage.EXECUTION);
+	}
 
-		if (!env.args.onlyRun) {
-			execute(IStage.Stage.STATIC_PREPROCESSING.get());
-			execute(IStage.Stage.SAT_ANALYSIS.get());
+	public void runPipelineUntil(App.Args args, IStage.Stage until) {
+		Deque<IStage.Stage> stages = prepStages(args, until);
+		this.env = new Environment(args);
+		while (!stages.isEmpty()) {
+			IStage.Stage next = stages.pollFirst();
+			execute(next.get());
 		}
-		execute(IStage.Stage.EXECUTION.get());
+	}
+
+	public Deque<IStage.Stage> prepStages(App.Args args, IStage.Stage until) {
+		Deque<IStage.Stage> stages = IStage.Stage.all();
+		while (stages.getLast() != until) {
+			stages.pollLast();
+		}
+		if (args.onlyRun) {
+			stages.remove(IStage.Stage.STATIC_PREPROCESSING);
+			stages.remove(IStage.Stage.SAT_ANALYSIS);
+		}
+		return stages;
 	}
 
 	private void execute(IStage stage) {

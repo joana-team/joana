@@ -1,7 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.util.Triple;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
@@ -22,11 +21,13 @@ public abstract class Value {
 	private Variable[] vars;
 	private boolean leaked;
 	private boolean isConstant;
+	private boolean influencesLeak;
 
 	public Value(int valNum) {
 		this.valNum = valNum;
 		this.leaked = false;
 		this.isConstant = false;
+		this.influencesLeak = true;
 		this.val = new Stack<>();
 	}
 
@@ -171,4 +172,24 @@ public abstract class Value {
 	public abstract boolean isArrayType();
 
 	public abstract String getValAsString();
+
+	public abstract void setConstantBitMask(BitLatticeValue[] constantBits);
+
+	public abstract BitLatticeValue[] getConstantBitMask();
+
+	public boolean influencesLeak() {
+		return this.influencesLeak;
+	}
+
+	public boolean isEffectivelyConstant() {
+		return false;
+	}
+
+	public void setInfluencesLeak(boolean influence) {
+		this.influencesLeak = influence;
+	}
+
+	public enum BitLatticeValue {
+		ZERO, ONE, UNKNOWN
+	}
 }

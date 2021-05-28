@@ -5,11 +5,13 @@ import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
+import edu.kit.joana.wala.core.PDGNode;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
@@ -150,11 +152,14 @@ public class Method {
 
 	private void initValues() {
 		for (BBlock b : BBlockOrdering.topological(cfg.getBlocks(), cfg.entry())) {
-			b.instructions().stream().filter(SSAInstruction::hasDef).forEach(i -> {
-				if (i instanceof SSANewInstruction) {
+			b.instructions().forEach(i -> {
+				if (i.hasDef() && i instanceof SSANewInstruction) {
 					initArrayDef((SSANewInstruction) i);
-				} else {
+				} else if (i.hasDef()) {
 					initPrimitiveDef(i);
+				} else if (i instanceof SSAInvokeInstruction && ((SSAInvokeInstruction) i).getDeclaredTarget()
+						.getSignature().equals(OUTPUT_FUNCTION)) {
+					this.getProgramValues().get(i.getUse(0)).leak();
 				}
 			});
 		}
@@ -187,6 +192,15 @@ public class Method {
 		programValues.put(i.getDef(), res);
 	}
 
+	public SSAInstruction getDef(int valNum) {
+		for (BBlock b : this.cfg.getBlocks()) {
+			if (b.ownsValue(valNum)) {
+				return b.instructions().stream().filter(i -> i.hasDef() && i.getDef() == valNum).findAny().get();
+			}
+		}
+		return null;
+	}
+
 	public boolean isCallRecursive(SSAInvokeInstruction i) {
 		return i.getDeclaredTarget().getSignature().equals(this.identifier());
 	}
@@ -198,14 +212,20 @@ public class Method {
 		return null;
 	}
 
+	public List<Integer> getLeakedValues() {
+		return this.programValues.entrySet().stream().filter(e -> e.getValue().isLeaked()).map(Map.Entry::getKey)
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * Returns the type of the i-th parameter of the function
+	 *
 	 * @param i the index of the parameter. This is **not** the value number of the parameter in the SSA representation!
 	 * @return matchign type, if none is found it is assumed that the type is userdefined and CUSTOM is returned
 	 */
 	public Type getParamType(int i) {
 
-		 if (this.pdg.getParamType(i).isArrayType()) {
+		if (this.pdg.getParamType(i).isArrayType()) {
 			return Type.ARRAY;
 		}
 
@@ -365,7 +385,21 @@ public class Method {
 		return Arrays.stream(this.ir.getParameterValueNumbers()).anyMatch(i -> i == valNum);
 	}
 
-	// ----------------------- getters and setters ------------------------------------------
+	public SDGNode of(PDGNode pdgNode) {
+		return this.getProg().getSdg().getNode(pdgNode.getId());
+	}
+
+	public PDGNode of(SDGNode sdgNode) {
+		return this.pdg.getNodeWithId(sdgNode.getId());
+	}
+
+	public PDGNode of(SSAInstruction i) {
+		return this.pdg.getNode(i);
+	}
+
+	public SSAInstruction instruction(PDGNode pdgNode) {
+		return this.pdg.getInstruction(pdgNode);
+	}
 
 	public IR getIr() {
 		return ir;

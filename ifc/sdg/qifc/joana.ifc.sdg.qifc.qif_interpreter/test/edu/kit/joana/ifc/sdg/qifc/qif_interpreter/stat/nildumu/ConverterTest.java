@@ -5,7 +5,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.IStage;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.StaticPreprocessingStage;
@@ -155,63 +154,63 @@ class ConverterTest {
 		assertEquals(expected.snd, falseSet);
 	}
 
-	@Test void convertEmptyTest() throws IOException, InterruptedException, ConversionException {
+	@Test void convertEmptyTest() throws IOException, InterruptedException {
 		assertEquals(prettyPrint.get("Empty"), convertProgram("Empty"));
 	}
 
-	@Test void convertOnlyArgsTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertOnlyArgsTest() throws IOException, InterruptedException {
 		assertEquals(prettyPrint.get("OnlyArgs"), convertProgram("OnlyArgs"));
 	}
 
-	@Test void convertAndTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertAndTest() throws IOException, InterruptedException {
 		testConversion("And", true);
 	}
 
-	@Test void convertSimpleArithmeticTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertSimpleArithmeticTest() throws IOException, InterruptedException {
 		testConversion("SimpleArithmetic", true);
 	}
 
-	@Test void convertIfTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertIfTest() throws IOException, InterruptedException {
 		testConversion("If", true);
 	}
 
-	@Test void convertIfinIfTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertIfinIfTest() throws IOException, InterruptedException {
 		testConversion("IfinIf", true);
 	}
 
-	@Test void convertWhileTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertWhileTest() throws IOException, InterruptedException {
 		testConversion("Loop", true);
 	}
 
-	@Test void convertDoubleWhileTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertDoubleWhileTest() throws IOException, InterruptedException {
 		testConversion("LoopinLoop", true);
 	}
 
-	@Test void convertDoubleWhile2Test() throws ConversionException, IOException, InterruptedException {
+	@Test void convertDoubleWhile2Test() throws IOException, InterruptedException {
 		testConversion("LoopinLoop2", true);
 	}
 
-	@Test void convertDoubleWhile3Test() throws ConversionException, IOException, InterruptedException {
+	@Test void convertDoubleWhile3Test() throws IOException, InterruptedException {
 		testConversion("LoopinLoop3", true);
 	}
 
-	@Test void convertWhileAfterIfTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertWhileAfterIfTest() throws IOException, InterruptedException {
 		testConversion("WhileAfterIf", true);
 	}
 
-	@Test void convertLoopInIfTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertLoopInIfTest() throws IOException, InterruptedException {
 		testConversion("LoopInIf", true);
 	}
 
-	@Test void convertCallTest() throws ConversionException, IOException, InterruptedException {
+	@Test void convertCallTest() throws IOException, InterruptedException {
 		testConversion("Call", true);
 	}
 
-	@Test void convertIrrelevantLoop() throws ConversionException, IOException, InterruptedException {
+	@Test void convertIrrelevantLoop() throws IOException, InterruptedException {
 		testConversion("IrrelevantLoop", true);
 	}
 
-	void testConversion(String testCase, boolean print) throws ConversionException, IOException, InterruptedException {
+	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {
 			System.out.println(res);

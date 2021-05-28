@@ -1,5 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,6 +42,16 @@ public interface IStage {
 
 		IStage get() {
 			return objs.getOrDefault(this, new PanicStage());
+		}
+
+		static Deque<Stage> all() {
+			Deque<Stage> stages = new ArrayDeque<>();
+			stages.add(INIT);
+			stages.add(BUILD);
+			stages.add(STATIC_PREPROCESSING);
+			stages.add(SAT_ANALYSIS);
+			stages.add(EXECUTION);
+			return stages;
 		}
 	}
 

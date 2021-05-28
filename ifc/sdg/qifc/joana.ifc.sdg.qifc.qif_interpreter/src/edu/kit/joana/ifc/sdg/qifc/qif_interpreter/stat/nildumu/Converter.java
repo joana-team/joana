@@ -211,7 +211,8 @@ public class Converter {
 
 	private Parser.BlockNode convertMethodBody(Method m, Map<Integer, Parser.ParameterNode> params) {
 		ConversionVisitor cVis = new ConversionVisitor(m, params);
-		return cVis.convert();
+		return new Parser.BlockNode(DUMMY_LOCATION,
+				convertStatements(BBlockOrdering.topological(m.getCFG().getBlocks(), m.getCFG().entry()), cVis));
 	}
 
 	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, ConversionVisitor cVis) {
@@ -403,17 +404,6 @@ public class Converter {
 			this.stmts = new ArrayList<>();
 			this.valToParam = parameterToNode;
 			this.blockToExpr = new HashMap<>();
-		}
-
-		public Parser.BlockNode convert() {
-			for (BBlock b : m.getCFG().getBlocks()) {
-				if (b.isDummy()) {
-					continue;
-				}
-				this.currentBlock = b;
-				this.currentBlock.instructions().forEach(i -> i.visit(this));
-			}
-			return new Parser.BlockNode(DUMMY_LOCATION, stmts);
 		}
 
 		@Override public void visitGoto(SSAGotoInstruction instruction) {

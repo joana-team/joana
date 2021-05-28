@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Variable;
 
@@ -23,17 +24,22 @@ public class StaticAnalysis {
 	}
 
 	public void computeSATDeps() {
+		long start_time = System.currentTimeMillis();
+		int visitedInstructions = computeSATDeps(this.entry);
+		long duration = System.currentTimeMillis() - start_time;
+		Logger.satAnalysis(visitedInstructions, duration);
 		this.entry.finishedAnalysis();
-		computeSATDeps(this.entry);
 	}
 
 	public void initParameterDeps(Method m) {
 		// create literals for method parameters
 		int[] params = m.getIr().getParameterValueNumbers();
 		for (int i = 1; i < params.length; i++) {
-			if (m.getParamType(i).equals(Type.ARRAY)) continue; // already initialized
-			m.setDepsForvalue(params[i], LogicUtil.createVars(params[i], m.getParamType(i).bitwidth()));
-			m.addVarsToValue(params[i], (Variable[]) m.getDepsForValue(params[i]));
+			if (m.getParamType(i).equals(Type.ARRAY))
+				continue; // already initialized
+			Variable[] vars = LogicUtil.createVars(params[i], m.getParamType(i).bitwidth());
+			m.setDepsForvalue(params[i], vars);
+			m.addVarsToValue(params[i], vars);
 		}
 	}
 
@@ -48,8 +54,10 @@ public class StaticAnalysis {
 		});
 	}
 
-	public void computeSATDeps(Method m) {
-		computeSATDeps(m, new SATVisitor(this));
+	public int computeSATDeps(Method m) {
+		SATVisitor sv = new SATVisitor(this);
+		computeSATDeps(m, sv);
+		return sv.getVisitedInstructions();
 	}
 
 	public void computeSATDeps(Method m, SATVisitor sv) {
@@ -90,7 +98,8 @@ public class StaticAnalysis {
 					sv.visitBlock(m, b, -1);
 
 					for (BBlock succ: b.succs()) {
-						if (succ.isLoopHeader() || succ.preds().stream().allMatch(pred -> visited.contains(pred.idx()))) {
+						if (succ.isLoopHeader() || succ.preds().stream()
+								.allMatch(pred -> visited.contains(pred.idx()))) {
 							toVisit.add(succ);
 						}
 					}
@@ -100,6 +109,7 @@ public class StaticAnalysis {
 				}
 			}
 		}
+		System.out.println("Visited instructions: " + sv.getVisitedInstructions());
 	}
 
 	public void createConstant(int op1) {

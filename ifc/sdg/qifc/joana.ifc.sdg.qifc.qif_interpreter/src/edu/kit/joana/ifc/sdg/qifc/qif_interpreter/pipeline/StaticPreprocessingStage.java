@@ -23,6 +23,7 @@ public class StaticPreprocessingStage implements IStage {
 
 		assert (env.completedStage(Stage.BUILD));
 		Map<Integer, Boolean> neededDefs = new HashMap<>();
+		Map<Integer, Boolean> neededCF = new HashMap<>();
 
 		// ---------------------- Nildumu ------------------------
 		Converter c = new Converter();
@@ -38,6 +39,9 @@ public class StaticPreprocessingStage implements IStage {
 		for (Map.Entry<Integer, Value> e : env.iProgram.getEntryMethod().getProgramValues().entrySet()) {
 			Value.BitLatticeValue[] bitMask = createBitMask(e.getValue(), env.nProgram.context
 					.getVariableValue(Converter.varName(e.getKey(), env.iProgram.getEntryMethod())));
+
+			// System.out.println(e.getKey() + " " + Arrays.toString(bitMask));
+
 			e.getValue().setConstantBitMask(bitMask);
 		}
 
@@ -46,11 +50,15 @@ public class StaticPreprocessingStage implements IStage {
 		List<Integer> leakedVals = env.iProgram.getEntryMethod().getLeakedValues();
 
 		for (int leaked : leakedVals) {
-			updateNeededDefs(neededDefs, slicer.findNeededDefs(leaked, env.iProgram.getEntryMethod()));
+			slicer.findRelevantSlice(leaked, env.iProgram.getEntryMethod());
+			updateNeededDefs(neededDefs, slicer.neededDefs);
+			updateNeededDefs(neededCF, slicer.neededCF);
 		}
 
 		env.iProgram.getEntryMethod().getProgramValues()
 				.forEach((key, value) -> value.setInfluencesLeak(neededDefs.getOrDefault(key, true)));
+		env.iProgram.getEntryMethod().getCFG().getBlocks()
+				.forEach(b -> b.setHasRelevantCF(neededCF.getOrDefault(b.idx(), true)));
 
 		success = true;
 		return env;

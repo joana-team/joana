@@ -97,10 +97,13 @@ class ConverterTest {
 				+ "h input int v3 = 0buuu;\n" + "int v5 = 0;\n" + "int v6 = 1;\n" + "int v8 = -1;\n" + "int v16;\n"
 				+ "int v14;\n" + "int v15;\n" + "v16, v14, v15 = *mLoopinLoopfIII_2(v2, v3, v5, v6, v8);\n"
 				+ "l output int o_v16 = v16;");
-		prettyPrint.put("Call",
-				"use_sec basic;\n" + "bit_width 3;\n" + "int CalladdIII(int v2, int v3){\n" + "  int v5 = (v2 + v3);\n"
-						+ "  return v5;\n" + "}\n" + "h input int v2 = 0buuu;\n" + "int v4 = -1;\n" + "int v8 = 0;\n"
-						+ "v6 = CalladdIII(v4, v2);\n" + "l output int o_v6 = v6;");
+		prettyPrint.put("Call", "use_sec basic;\n" + "bit_width 3;\n"
+				+ "int CalladdIII(int v_Call_add_II_I_2, int v_Call_add_II_I_3){\n" + "  int v_Call_add_II_I_5;\n"
+				+ "  v_Call_add_II_I_5 = (v_Call_add_II_I_2 + v_Call_add_II_I_3);\n" + "  return v_Call_add_II_I_5;\n"
+				+ "}\n" + "h input int v_Call_f_I_I_2 = 0buuu;\n" + "int v_Call_f_I_I_4 = -1;\n"
+				+ "int v_Call_f_I_I_8 = 0;\n" + "int v_Call_f_I_I_6;\n"
+				+ "v_Call_f_I_I_6 = CalladdIII(v_Call_f_I_I_4, v_Call_f_I_I_2);\n"
+				+ "l output int o_v_Call_f_I_I_6 = v_Call_f_I_I_6;");
 		prettyPrint.put("IrrelevantLoop", "use_sec basic;\n" + "bit_width 3;\n"
 				+ "(int) mIrrelevantLoopfII_2(int v_IrrelevantLoop_f_I_I_2, int v_IrrelevantLoop_f_I_I_7){\n"
 				+ "  int x0;\n" + "  if (!(v_IrrelevantLoop_f_I_I_2 <= v_IrrelevantLoop_f_I_I_7))\n" + "    {\n"

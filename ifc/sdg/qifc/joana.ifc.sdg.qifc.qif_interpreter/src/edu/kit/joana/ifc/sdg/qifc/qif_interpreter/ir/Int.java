@@ -4,6 +4,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class Int extends Value {
 
@@ -14,6 +15,8 @@ public class Int extends Value {
 		this.setType(Type.INTEGER);
 		this.setWidth(Type.INTEGER.bitwidth());
 		this.setDeps(initDeps());
+		this.constantBits = new BitLatticeValue[this.getWidth()];
+		Arrays.fill(this.constantBits, BitLatticeValue.UNKNOWN);
 	}
 
 	@Override public boolean verifyType(Object val) {
@@ -47,4 +50,22 @@ public class Int extends Value {
 		return defaultInit;
 	}
 
+	@Override public Formula getDepForBit(int i) {
+		return (this.constantBits[i] == BitLatticeValue.UNKNOWN) ?
+				super.getDepForBit(i) :
+				this.constantBits[i].asPropFormula();
+	}
+
+	@Override public Formula[] getDeps() {
+		Formula[] deps = new Formula[this.getWidth()];
+		IntStream.range(0, this.getWidth()).forEach(i -> deps[i] = this.getDepForBit(i));
+		return deps;
+	}
+
+	@Override public boolean[] getConstantBits() {
+		boolean[] constantBits = new boolean[this.getWidth()];
+		IntStream.range(0, this.getWidth())
+				.forEach(i -> constantBits[i] = this.constantBits[i] != BitLatticeValue.UNKNOWN);
+		return constantBits;
+	}
 }

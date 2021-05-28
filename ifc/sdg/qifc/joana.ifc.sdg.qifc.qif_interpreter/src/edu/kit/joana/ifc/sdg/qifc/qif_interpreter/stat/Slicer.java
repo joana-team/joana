@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 
+import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
@@ -18,8 +19,12 @@ public class Slicer {
 	public Slicer() {
 	}
 
-	public Map<Integer, Boolean> findNeededDefs(Integer leakedVal, Method m) {
-		Map<Integer, Boolean> neededDefs = m.getProgramValues().keySet().stream()
+	public Map<Integer, Boolean> neededDefs;
+	public Map<Integer, Boolean> neededCF;
+
+	public void findRelevantSlice(Integer leakedVal, Method m) {
+		neededDefs = m.getProgramValues().keySet().stream().collect(Collectors.toMap(i -> i, i -> false));
+		neededCF = m.getCFG().getBlocks().stream().filter(BBlock::splitsControlFlow).map(BBlock::idx)
 				.collect(Collectors.toMap(i -> i, i -> false));
 
 		SDG sdg = removeUnneededEdges(m.getProg().getSdg(), m);
@@ -33,8 +38,8 @@ public class Slicer {
 			SDGNode criterion = m.of(m.of(leakedValDef));
 
 			SummarySlicerBackward ssb = new SummarySlicerBackward(sdg);
-			List<PDGNode> slice = ssb.slice(criterion).stream().map(m::of).filter(Objects::nonNull)
-					.collect(Collectors.toList());
+			Collection<SDGNode> sdgSlice = ssb.slice(criterion);
+			List<PDGNode> slice = sdgSlice.stream().map(m::of).filter(Objects::nonNull).collect(Collectors.toList());
 
 			// printSlice(criterion, slice);
 
@@ -42,10 +47,12 @@ public class Slicer {
 				SSAInstruction instruction = m.instruction(node);
 				if (instruction != null && instruction.hasDef()) {
 					neededDefs.put(instruction.getDef(), true);
+				} else if (instruction instanceof SSAConditionalBranchInstruction) {
+					BBlock b = BBlock.getBBlockForInstruction(instruction, m.getCFG());
+					neededCF.put(b.idx(), true);
 				}
 			}
 		}
-		return neededDefs;
 	}
 
 	private void printSlice(SDGNode criterion, Collection<PDGNode> slice) {
@@ -62,6 +69,7 @@ public class Slicer {
 					continue; // "real" constants don't have their own node
 
 				sdg.removeAllEdges(sdg.getIncomingEdgesOfKind(def, SDGEdge.Kind.DATA_DEP));
+				sdg.removeAllEdges(sdg.getIncomingEdgesOfKind(def, SDGEdge.Kind.CONTROL_DEP_COND));
 			}
 		}
 		return sdg;

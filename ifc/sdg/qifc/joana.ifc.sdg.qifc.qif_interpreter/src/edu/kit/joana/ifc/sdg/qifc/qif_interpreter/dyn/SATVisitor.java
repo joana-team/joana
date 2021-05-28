@@ -22,6 +22,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	private SSAInstruction outOfScopeInstruction;
 	private BBlock block;
 	private Method m;
+	private int visitedInstructions;
 
 	public BBlock getCurrentBlock() {
 		return this.block;
@@ -32,7 +33,11 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		this.m = m;
 
 		for (SSAInstruction i : b.instructions()) {
-			i.visit(this);
+			if (needsVisiting(i, b, m)) {
+				visitedInstructions++;
+				System.out.println(i);
+				i.visit(this);
+			}
 		}
 
 		if (containsOutOfScopeInstruction) {
@@ -40,9 +45,25 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		}
 	}
 
+	private boolean needsVisiting(SSAInstruction i, BBlock b, Method m) {
+		if ((i.hasDef() && !m.getValue(i.getDef()).dynAnalysisNecessary())
+				|| i instanceof SSAConditionalBranchInstruction && !b.hasRelevantCF()
+				|| i instanceof SSAInvokeInstruction && ((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
+				.equals(OUTPUT_FUNCTION) || i instanceof SSAReturnInstruction && m.getProg().getEntryMethod().equals(m)
+				|| i instanceof SSAGotoInstruction) {
+			return false;
+		} else
+			return true;
+	}
+
 	public SATVisitor(StaticAnalysis staticAnalysis) {
 		this.staticAnalysis = staticAnalysis;
 		this.containsOutOfScopeInstruction = false;
+		this.visitedInstructions = 0;
+	}
+
+	public int getVisitedInstructions() {
+		return visitedInstructions;
 	}
 
 	@Override public void visitGoto(SSAGotoInstruction instruction) {
@@ -166,9 +187,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	@Override public void visitInvoke(SSAInvokeInstruction instruction) {
-		if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
-			m.getValue(instruction.getUse(0)).leak();
-		} else {
+		if (!instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
 			String calleeId = instruction.getDeclaredTarget().getSignature();
 			IInvocationHandler handler;
 			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed()) {

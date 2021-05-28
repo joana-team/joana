@@ -80,6 +80,10 @@ public class Logger {
 		enabled = true;
 	}
 
+	public static void satAnalysis(int visitedInstructions, long duration) {
+		logEval(String.format("[se] %d %d", visitedInstructions, duration));
+	}
+
 	public static class Eval extends Level {
 		public static final Level EVAL = new Eval("EVAL");
 

@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
@@ -191,8 +192,20 @@ public abstract class Value {
 		this.influencesLeak = influence;
 	}
 
+	public abstract boolean[] getConstantBits();
+
 	public enum BitLatticeValue {
-		ZERO, ONE, UNKNOWN
+		ZERO(LogicUtil.ff.constant(false)), ONE(LogicUtil.ff.constant(true)), UNKNOWN(null);
+
+		private final Formula asPropFormula;
+
+		BitLatticeValue(Formula propFormula) {
+			this.asPropFormula = propFormula;
+		}
+
+		public Formula asPropFormula() {
+			return this.asPropFormula;
+		}
 	}
 
 	public boolean isParameter() {
@@ -201,5 +214,9 @@ public abstract class Value {
 
 	public void setParameter(boolean parameter) {
 		isParameter = parameter;
+	}
+
+	public boolean dynAnalysisNecessary() {
+		return this.influencesLeak && !this.isEffectivelyConstant();
 	}
 }

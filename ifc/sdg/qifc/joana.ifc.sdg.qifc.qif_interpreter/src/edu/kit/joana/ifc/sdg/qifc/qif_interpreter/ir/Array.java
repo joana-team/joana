@@ -177,6 +177,10 @@ public class Array<T extends Value> extends Value {
 		return new BitLatticeValue[0];
 	}
 
+	@Override public boolean[] getConstantBits() {
+		return new boolean[0];
+	}
+
 	public void setVal(Object[] val, int recursionDepth) {
 		assert (val.length == this.length());
 		IntStream.range(0, val.length).forEach(i -> this.arr[i].setVal(val[i], recursionDepth));

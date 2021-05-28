@@ -32,6 +32,8 @@ public class BBlock implements DotNode {
 	private Formula condExpr;
 	private int replacedPredIdx;
 
+	private boolean hasRelevantCF;
+
 	public BBlock(SSACFG.BasicBlock walaBBlock, CFG g) {
 		this.walaBBlock = walaBBlock;
 		this.g = g;
@@ -42,6 +44,7 @@ public class BBlock implements DotNode {
 		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.isDummy = false;
 		this.idx = walaBBlock.getNumber();
+		this.hasRelevantCF = true;
 		g.addRep(walaBBlock, this);
 	}
 
@@ -55,6 +58,7 @@ public class BBlock implements DotNode {
 		this.ifTree = IFTreeNode.NoIFLeaf.SINGLETON;
 		this.idx = idx;
 		this.g = g;
+		this.hasRelevantCF = true;
 		dummies.put(this.idx, this);
 	}
 
@@ -302,6 +306,14 @@ public class BBlock implements DotNode {
 		return this.getCFG().getMethod().getLoops().stream().filter(l -> l.hasBlock(this.idx)).max((o1, o2) -> Integer
 				.compare(o1.getOwner().getCFG().getLevel(o1.getHead()), o1.getOwner().getCFG().getLevel(o2.getHead())))
 				.get();
+	}
+
+	public boolean hasRelevantCF() {
+		return hasRelevantCF;
+	}
+
+	public void setHasRelevantCF(boolean hasRelevantCF) {
+		this.hasRelevantCF = hasRelevantCF;
 	}
 
 	/*

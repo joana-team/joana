@@ -7,6 +7,12 @@ class MCInvocation:
     num_clauses = 0
 
 
+class SATAnalysis:
+    method_name = None
+    visitedInstructions = 0
+    exec_time = 0
+
+
 class Stage:
     name = None
     start_time = 0
@@ -26,7 +32,7 @@ class Stage:
 class Evaluation:
     testcase = None
     stages = {}
-    computedBySATAna = []
+    sat_analysis = []
     mcInvocs = []
     computedCC = 0
 

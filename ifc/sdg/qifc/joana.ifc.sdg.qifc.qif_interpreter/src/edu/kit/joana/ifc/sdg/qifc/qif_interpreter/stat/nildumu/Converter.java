@@ -406,16 +406,19 @@ public class Converter {
 			this.blockToExpr = new HashMap<>();
 		}
 
-		@Override public void visitGoto(SSAGotoInstruction instruction) {
-			// do nothing
-		}
-
 		@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
-
+			varDecls.put(instruction.getDef(), varDecl(varName(instruction.getDef(), m),
+					m.getValue(instruction.getDef()).getType().nildumuType()));
+			Parser.BracketedAccessOperatorNode arrayAccess = new Parser.BracketedAccessOperatorNode(
+					access(instruction.getArrayRef()), access(instruction.getIndex()));
+			stmts.add(assignment(varName(instruction.getDef(), m), arrayAccess));
 		}
 
 		@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-
+			Parser.ArrayAssignmentNode arrayAssignmentNode = new Parser.ArrayAssignmentNode(DUMMY_LOCATION,
+					varName(instruction.getArrayRef(), m), access(instruction.getIndex()),
+					access(instruction.getValue()));
+			stmts.add(arrayAssignmentNode);
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
@@ -493,7 +496,9 @@ public class Converter {
 		}
 
 		@Override public void visitNew(SSANewInstruction instruction) {
-
+			assert (instruction.getConcreteType().isArrayType());
+			varDecls.put(instruction.getDef(), varDecl(varName(instruction.getDef(), m),
+					m.getValue(instruction.getDef()).getType().nildumuType()));
 		}
 
 		@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
@@ -546,7 +551,7 @@ public class Converter {
 
 	public static String varName(int valNum, Method m) {
 		String methodId = m.identifier().replaceAll("[\\.\\(\\)]", "_");
-		return "v_" + methodId + "_" + valNum;
+		return "v_" /* + methodId + "_" */ + valNum;
 	}
 
 	public static int valNum(String varName) {

@@ -213,6 +213,10 @@ class ConverterTest {
 		testConversion("IrrelevantLoop", true);
 	}
 
+	@Test void convertArray() throws IOException, InterruptedException {
+		testConversion("Array", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {

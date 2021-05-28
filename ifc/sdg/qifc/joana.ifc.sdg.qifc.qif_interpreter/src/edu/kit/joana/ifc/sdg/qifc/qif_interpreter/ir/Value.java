@@ -22,6 +22,7 @@ public abstract class Value {
 	private boolean leaked;
 	private boolean isConstant;
 	private boolean influencesLeak;
+	private boolean isParameter;
 
 	public Value(int valNum) {
 		this.valNum = valNum;
@@ -29,6 +30,7 @@ public abstract class Value {
 		this.isConstant = false;
 		this.influencesLeak = true;
 		this.val = new Stack<>();
+		this.isParameter = false;
 	}
 
 	public void addVars(Variable[] vars) {
@@ -191,5 +193,13 @@ public abstract class Value {
 
 	public enum BitLatticeValue {
 		ZERO, ONE, UNKNOWN
+	}
+
+	public boolean isParameter() {
+		return isParameter;
+	}
+
+	public void setParameter(boolean parameter) {
+		isParameter = parameter;
 	}
 }

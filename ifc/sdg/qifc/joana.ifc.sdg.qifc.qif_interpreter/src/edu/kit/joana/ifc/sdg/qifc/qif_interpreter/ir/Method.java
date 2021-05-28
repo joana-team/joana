@@ -123,16 +123,15 @@ public class Method {
 			if (type == Type.ARRAY) {
 				Type elementType = Type.from(this.pdg.getParamType(i).getArrayElementType());
 				try {
-					Array<? extends Value> array = Array.newArray(elementType, valNum,true);
+					Array<? extends Value> array = Array.newArray(elementType, valNum, true);
 					programValues.put(valNum, array);
 				} catch (UnexpectedTypeException e) {
 					e.printStackTrace();
 				}
-
 			} else {
 				programValues.put(valNum, Value.createPrimitiveByType(valNum, type));
 			}
-
+			programValues.get(valNum).setParameter(true);
 		}
 	}
 
@@ -386,19 +385,19 @@ public class Method {
 	}
 
 	public SDGNode of(PDGNode pdgNode) {
-		return this.getProg().getSdg().getNode(pdgNode.getId());
+		return (pdgNode == null) ? null : this.getProg().getSdg().getNode(pdgNode.getId());
 	}
 
 	public PDGNode of(SDGNode sdgNode) {
-		return this.pdg.getNodeWithId(sdgNode.getId());
+		return (sdgNode == null) ? null : this.pdg.getNodeWithId(sdgNode.getId());
 	}
 
 	public PDGNode of(SSAInstruction i) {
-		return this.pdg.getNode(i);
+		return (i == null) ? null : this.pdg.getNode(i);
 	}
 
 	public SSAInstruction instruction(PDGNode pdgNode) {
-		return this.pdg.getInstruction(pdgNode);
+		return (pdgNode == null) ? null : this.pdg.getInstruction(pdgNode);
 	}
 
 	public IR getIr() {

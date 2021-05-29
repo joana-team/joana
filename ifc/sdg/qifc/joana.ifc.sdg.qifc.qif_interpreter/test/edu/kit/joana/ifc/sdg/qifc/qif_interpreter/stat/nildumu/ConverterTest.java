@@ -118,6 +118,12 @@ class ConverterTest {
 				+ "v_IrrelevantLoop_f_I_I_7 = *mIrrelevantLoopfII_2(v_IrrelevantLoop_f_I_I_2, v_IrrelevantLoop_f_I_I_4);\n"
 				+ "v_IrrelevantLoop_f_I_I_8 = (v_IrrelevantLoop_f_I_I_2 + 1);\n"
 				+ "l output int o_v_IrrelevantLoop_f_I_I_8 = v_IrrelevantLoop_f_I_I_8;");
+		prettyPrint.put("ArrayParam",
+				"use_sec basic;\n" + "bit_width 3;\n" + "int ArrayParam_add__II_I(int[3] v_2, int v_3){\n"
+						+ "  int v_6; int v_7;\n" + "  v_6 = (v_2[0]);\n" + "  v_7 = (v_6 + v_3);\n" + "  return v_7;\n"
+						+ "}\n" + "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n" + "int v_6 = 0;\n" + "int v_8;\n"
+						+ "int[3] v_5;\n" + "v_5[0] = 1;\n" + "v_8 = ArrayParam_add__II_I(v_5, v_2);\n"
+						+ "l output int o_v_8 = v_8;");
 	}
 
 	/*
@@ -215,6 +221,18 @@ class ConverterTest {
 
 	@Test void convertArray() throws IOException, InterruptedException {
 		testConversion("Array", true);
+	}
+
+	@Test void convertArrayReturn() throws IOException, InterruptedException {
+		testConversion("ArrayReturn", true);
+	}
+
+	@Test void convertArrayParam() throws IOException, InterruptedException {
+		testConversion("ArrayParam", true);
+	}
+
+	@Test void convertArrayLoop() throws IOException, InterruptedException {
+		testConversion("ArrayLoop", true);
 	}
 
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {

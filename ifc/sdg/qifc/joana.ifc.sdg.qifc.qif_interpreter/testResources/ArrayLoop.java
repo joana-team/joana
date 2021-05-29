@@ -11,14 +11,12 @@ public class ArrayLoop {
 
 	public int f(int h) {
 		int[] a = new int[1];
-		a[0] = h;
 		int i = 0;
-		while (i <= 3) {
-			a[0] = ~a[0];
+		while (i < 3) {
+			a[i] = 1;
 			i++;
 		}
 		Out.print(a[0]);
 		return h;
 	}
-
 }

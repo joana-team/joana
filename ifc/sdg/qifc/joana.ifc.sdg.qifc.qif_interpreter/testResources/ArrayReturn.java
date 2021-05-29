@@ -25,4 +25,3 @@ public class ArrayReturn {
 		return a;
 	}
 }
-

@@ -188,8 +188,10 @@ public class Converter {
 			return Arrays.stream(callArgs).mapToObj(i -> Converter.varName(i, iMethod)).collect(Collectors.toList());
 		}
 
-		List<String> params() {
-			return Arrays.stream(params).mapToObj(i -> Converter.varName(i, iMethod)).collect(Collectors.toList());
+		List<Pair<String, Type>> params() {
+			return Arrays.stream(params).mapToObj(
+					i -> Pair.make(Converter.varName(i, iMethod), iMethod.getValue(i).getType().nildumuType()))
+					.collect(Collectors.toList());
 		}
 	}
 
@@ -569,14 +571,13 @@ public class Converter {
 				varNames.stream().map(Converter::variableAccess).collect(Collectors.toList()));
 	}
 
-	public Parser.ParameterNode parameter(String varName) {
-		return new Parser.ParameterNode(DUMMY_LOCATION,
-				edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), varName);
+	public Parser.ParameterNode parameter(String varName, Type type) {
+		return new Parser.ParameterNode(DUMMY_LOCATION, type, varName);
 	}
 
-	public Parser.ParametersNode parameters(List<String> varNames) {
+	public Parser.ParametersNode parameters(List<Pair<String, Type>> varNames) {
 		return new Parser.ParametersNode(DUMMY_LOCATION,
-				varNames.stream().map(this::parameter).collect(Collectors.toList()));
+				varNames.stream().map(p -> parameter(p.fst, p.snd)).collect(Collectors.toList()));
 	}
 
 	public static Parser.VariableAccessNode variableAccess(String varName) {
@@ -601,7 +602,7 @@ public class Converter {
 	}
 
 	public static String methodName(String signature) {
-		String sig = signature.replaceAll("[\\(\\)$&+.,:;=?@#|]", "");
+		String sig = signature.replaceAll("[\\(\\)\\[\\]$&+.,:;=?@#|]", "_");
 		return sig;
 	}
 

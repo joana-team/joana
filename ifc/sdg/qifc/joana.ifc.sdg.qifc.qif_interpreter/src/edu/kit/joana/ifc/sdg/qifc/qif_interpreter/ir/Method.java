@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -152,8 +153,9 @@ public class Method {
 	private void initValues() {
 		for (BBlock b : BBlockOrdering.topological(cfg.getBlocks(), cfg.entry())) {
 			b.instructions().forEach(i -> {
-				if (i.hasDef() && i instanceof SSANewInstruction) {
-					initArrayDef((SSANewInstruction) i);
+				if (i.hasDef() && (i instanceof SSANewInstruction || (i instanceof SSAInvokeInstruction
+						&& ((SSAInvokeInstruction) i).getDeclaredResultType().isArrayType()))) {
+					initArrayDef(i);
 				} else if (i.hasDef()) {
 					initPrimitiveDef(i);
 				} else if (i instanceof SSAInvokeInstruction && ((SSAInvokeInstruction) i).getDeclaredTarget()
@@ -171,6 +173,8 @@ public class Method {
 		if (i instanceof SSAArrayLoadInstruction) {
 			assert (programValues.containsKey(((SSAArrayLoadInstruction) i).getArrayRef()));
 			resType = ((Array) programValues.get(((SSAArrayLoadInstruction) i).getArrayRef())).elementType();
+		} else if (i instanceof SSAInvokeInstruction) {
+			resType = Type.from(((SSAInvokeInstruction) i).getDeclaredResultType());
 		} else {
 			OptionalInt use = IntStream.range(0, i.getNumberOfUses())
 					.filter(j -> this.programValues.containsKey(i.getUse(j))).findFirst();
@@ -180,13 +184,24 @@ public class Method {
 		programValues.put(i.getDef(), Value.createPrimitiveByType(i.getDef(), resType));
 	}
 
-	private void initArrayDef(SSANewInstruction i) {
-		assert (i.getConcreteType().isArrayType());
+	private void initArrayDef(SSAInstruction i) {
 		Value res = null;
-		try {
-			res = Array.newArray(i, this, false);
-		} catch (UnexpectedTypeException e) {
-			e.printStackTrace();
+		if (i instanceof SSANewInstruction) {
+			assert (((SSANewInstruction) i).getConcreteType().isArrayType());
+			try {
+				res = Array.newArray((SSANewInstruction) i, this, false);
+			} catch (UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
+		} else {
+			TypeReference typeRef = ((SSAInvokeInstruction) i).getDeclaredResultType();
+			assert (typeRef.isArrayType());
+			Type arrayType = Type.from(typeRef.getArrayElementType());
+			try {
+				res = Array.newArray(arrayType, i.getDef(), false);
+			} catch (UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
 		}
 		programValues.put(i.getDef(), res);
 	}
@@ -360,7 +375,7 @@ public class Method {
 	}
 
 	public String identifierNoSpecialCharacters() {
-		return identifier().replaceAll("[-+.\\(\\)^:,]", "");
+		return identifier().replaceAll("[-+.\\(\\)\\[\\]^:,]", "_");
 	}
 
 	public int getParamNum() {

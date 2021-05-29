@@ -6,6 +6,7 @@ import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.dominators.Dominators;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGraph;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 
 import java.util.*;
@@ -57,6 +58,9 @@ public class CFG implements Graph<BBlock>, DotGraph {
 
 		cfg.addDummyBlocks();
 		cfg.walaDoms = Dominators.make(cfg, cfg.entry);
+
+		DotGrapher.exportDotGraph(cfg);
+
 		return cfg;
 	}
 

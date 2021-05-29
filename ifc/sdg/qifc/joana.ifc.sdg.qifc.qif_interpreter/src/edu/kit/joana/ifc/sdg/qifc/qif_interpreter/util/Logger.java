@@ -57,14 +57,14 @@ public class Logger {
 	}
 
 	public static void startPipelineStage(IStage.Stage stage) {
-		logEval("Starting: " + stage.toString());
+		logEval("[start] " + stage.toString());
 	}
 
 	public static void finishPipelineStage(IStage.Stage stage, boolean success) {
 		if (success) {
-			Logger.logEval("Finished: " + stage.toString());
+			Logger.logEval("[finish] " + stage.toString());
 		} else {
-			Logger.logEval("Failed: " + stage.toString());
+			Logger.logEval("[fail] " + stage.toString());
 		}
 	}
 

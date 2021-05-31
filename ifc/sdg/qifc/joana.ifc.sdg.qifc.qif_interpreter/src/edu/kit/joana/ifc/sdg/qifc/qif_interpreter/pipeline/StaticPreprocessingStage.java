@@ -1,11 +1,14 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.Slicer;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.Converter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuOptions;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuProgram;
+import edu.kit.joana.util.Triple;
 import nildumu.Lattices;
 import nildumu.Parser;
 
@@ -37,12 +40,25 @@ public class StaticPreprocessingStage implements IStage {
 		assert p != null;
 		env.nProgram = new NildumuProgram(p, options);
 		for (Map.Entry<Integer, Value> e : env.iProgram.getEntryMethod().getProgramValues().entrySet()) {
-			Value.BitLatticeValue[] bitMask = createBitMask(e.getValue(), env.nProgram.context
-					.getVariableValue(Converter.varName(e.getKey(), env.iProgram.getEntryMethod())));
 
-			// System.out.println(e.getKey() + " " + Arrays.toString(bitMask));
+			if (e.getValue().isArrayType()) {
+				for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {
+					Triple<String, String, String> varNames = Converter
+							.arrayVarName(i.getKey().getArrayRef(), env.iProgram.getEntryMethod(), i.getValue());
+					int elementWidth = ((Array) e.getValue()).elementType().bitwidth();
+					Value.BitLatticeValue[][] bitMask = {
+							createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getLeft())),
+							createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getMiddle())),
+							createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getRight())) };
+					env.iProgram.getEntryMethod().getArray(i.getKey().getArrayRef())
+							.addConstantBitMask(i.getKey(), bitMask);
+				}
 
-			e.getValue().setConstantBitMask(bitMask);
+			} else {
+				Value.BitLatticeValue[] bitMask = createBitMask(e.getValue().getWidth(), env.nProgram.context
+						.getVariableValue(Converter.varName(e.getKey(), env.iProgram.getEntryMethod())));
+				e.getValue().setConstantBitMask(bitMask);
+			}
 		}
 
 		// ------------------- Program Slice ----------------------
@@ -70,11 +86,10 @@ public class StaticPreprocessingStage implements IStage {
 		}
 	}
 
-	private Value.BitLatticeValue[] createBitMask(Value v, Lattices.Value latticeValue) {
-		if (v.getWidth() != latticeValue.bits.size()) {
+	private Value.BitLatticeValue[] createBitMask(int valueWidth, Lattices.Value latticeValue) {
+		if (valueWidth != latticeValue.bits.size()) {
 			assert (latticeValue.toString().equals("xx"));
-			return Collections.nCopies(v.getWidth(), Value.BitLatticeValue.UNKNOWN)
-					.toArray(new Value.BitLatticeValue[0]);
+			return Collections.nCopies(valueWidth, Value.BitLatticeValue.UNKNOWN).toArray(new Value.BitLatticeValue[0]);
 		}
 
 		Value.BitLatticeValue[] mask = new Value.BitLatticeValue[latticeValue.bits.size()];

@@ -8,17 +8,17 @@ import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
+import edu.kit.joana.util.Triple;
 import nildumu.Context;
 import nildumu.Lattices;
 import nildumu.Parser;
 import nildumu.typing.Type;
+import org.apache.commons.lang3.ArrayUtils;
 import swp.lexer.Location;
 
 import java.util.*;
@@ -41,11 +41,13 @@ public class Converter {
 
 	public Map<Integer, Parser.InputVariableDeclarationNode> inputs;
 	public static Map<LoopBody, LoopConversionResult> loopMethods;
+	public static Map<SSAArrayStoreInstruction, Integer> arrayVarIndices;
 
 	public Converter() {
 		this.options = NildumuOptions.DEFAULT;
 		this.context = new Context(options.secLattice, options.intWidth);
 		this.inputs = new HashMap<>();
+		this.arrayVarIndices = new HashMap<>();
 		loopMethods = new HashMap<>();
 	}
 
@@ -59,7 +61,7 @@ public class Converter {
 				.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
 		List<Parser.StatementNode> stmts = convertStatements(allBlocks, cVis);
 		programNode.addGlobalStatements(stmts);
-		this.loopMethods.values().forEach(r -> programNode.addMethod(r.method));
+		loopMethods.values().forEach(r -> programNode.addMethod(r.method));
 
 		for (Method m : p.getMethods()) {
 			if (m.equals(p.getEntryMethod()))
@@ -83,6 +85,7 @@ public class Converter {
 		// get names for all the variables used ready
 		List<Integer> argsParamVals = l.getAllUses();
 		argsParamVals.removeAll(l.getAllDefs());
+		//argsParamVals.addAll(l.getAllWrittenToArrays());
 		BiMap<Integer, Integer> beforeLoop = l.phiToBeforeLoop().inverse();
 		argsParamVals.removeIf(i -> l.getOwner().isConstant(i) && !beforeLoop.containsKey(i));
 		Map<Integer, Integer> inLoop = l.phiToInsideLoop();
@@ -90,8 +93,8 @@ public class Converter {
 		result.callArgs = argsParamVals.stream().mapToInt(i -> i).toArray();
 		result.params = argsParamVals.stream().map(i -> beforeLoop.getOrDefault(i, i)).mapToInt(i -> i).toArray();
 		result.recCallArgs = Arrays.stream(result.params).map(i -> inLoop.getOrDefault(i, i)).toArray();
-		result.recCallReturnVars = IntStream.range(0, inLoop.size()).mapToObj(i -> varName()).toArray(String[]::new);
-		result.phiRes = IntStream.range(0, inLoop.size()).mapToObj(i -> varName()).toArray(String[]::new);
+		result.returnVars = ArrayUtils.addAll(inLoop.keySet().stream().mapToInt(i -> i).toArray(),
+				l.getAllWrittenToArrays().stream().mapToInt(i -> i).toArray());
 
 		// parameters for loop method
 		Parser.ParametersNode param = parameters(result.params());
@@ -114,18 +117,20 @@ public class Converter {
 		Parser.ArgumentsNode args = arguments(result.recCallArgs());
 
 		// loop method return type
-		List<Type> elementTypes = Arrays.stream(result.recCallReturnVars)
-				.map(i -> edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType())
+		List<Type> elementTypes = IntStream.range(0, inLoop.size())
+				.mapToObj(i -> edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType())
 				.collect(Collectors.toList());
+		l.getAllWrittenToArrays()
+				.forEach(a -> elementTypes.add(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.ARRAY.nildumuType()));
+		// elementTypes.addAll(Collections.nCopies(l.getAllWrittenToArrays().size(),
+		// 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.ARRAY.nildumuType()));
 		Type returnType = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.nTypes.getOrCreateTupleType(elementTypes);
 
 		// recursive call to loop method
-		List<Parser.VariableDeclarationNode> returnVarDecls = IntStream.range(0, result.recCallReturnVars.length)
-				.mapToObj(i -> Converter.varDecl(result.recCallReturnVars[i], returnType.getBracketAccessResult(i)))
-				.collect(Collectors.toList());
 		Parser.MethodInvocationNode recCallExpr = new Parser.MethodInvocationNode(DUMMY_LOCATION, methodName(l), args);
 		Parser.MultipleVariableAssignmentNode recCall = new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
-				result.recCallReturnVars, new Parser.UnpackOperatorNode(recCallExpr));
+				Arrays.stream(result.returnVars).mapToObj(s -> varName(s, l.getOwner())).toArray(String[]::new),
+				new Parser.UnpackOperatorNode(recCallExpr));
 		body.add(recCall);
 
 		// get condition for if stmt
@@ -138,34 +143,25 @@ public class Converter {
 
 		// wrap loopBody in if-stmt
 		Parser.BlockNode completeBody = new Parser.BlockNode(DUMMY_LOCATION, new ArrayList<>());
-		completeBody.statementNodes.addAll(returnVarDecls);
 		// TODO do we need to invert loop condition ???
 		Parser.IfStatementNode if_ = new Parser.IfStatementNode(DUMMY_LOCATION, loopCond, body);
 		completeBody.add(if_);
 
 		// add phi-stmts + return stmt
-		Integer[] returnOrder = new ArrayList<>(inLoop.keySet()).toArray(new Integer[0]);
-		String[] phiArgs = Arrays.stream(returnOrder).map(i -> Converter.varName(i, l.getOwner()))
-				.toArray(String[]::new);
-		for (int i = 0; i < result.phiRes.length; i++) {
-			completeBody.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, result.phiRes[i],
-					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
-					new Parser.PhiNode(DUMMY_LOCATION, Arrays.asList(result.recCallReturnVars[i], phiArgs[i]))));
-		}
-		completeBody.add(new Parser.ReturnStatementNode(DUMMY_LOCATION,
-				Arrays.stream(result.phiRes).map(Converter::variableAccess).collect(Collectors.toList())));
-
 		result.method = new Parser.MethodNode(DUMMY_LOCATION, methodName(l), returnType, param, completeBody,
 				new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>()));
 		Parser.MethodInvocationNode callToLoop = new Parser.MethodInvocationNode(DUMMY_LOCATION, methodName(l),
 				arguments(result.callArgs()));
+		completeBody.add(new Parser.ReturnStatementNode(DUMMY_LOCATION,
+				Arrays.stream(result.returnVars).mapToObj(i -> varName(i, l.getOwner())).map(Converter::variableAccess)
+						.collect(Collectors.toList())));
 
 		result.call = new Parser.MultipleVariableAssignmentNode(DUMMY_LOCATION,
-				Arrays.stream(returnOrder).map(i -> Converter.varName(i, l.getOwner())).toArray(String[]::new),
-				new Parser.UnpackOperatorNode(callToLoop));
+				Arrays.stream(result.returnVars).mapToObj(i -> Converter.varName(i, l.getOwner()))
+						.toArray(String[]::new), new Parser.UnpackOperatorNode(callToLoop));
 		result.returnDefs = new HashMap<>();
-		IntStream.range(0, returnOrder.length).forEach(i -> result.returnDefs
-				.put(i, varDecl(varName(returnOrder[i], l.getOwner()), returnType.getBracketAccessResult(i))));
+		IntStream.range(0, inLoop.keySet().size()).forEach(i -> result.returnDefs
+				.put(i, varDecl(varName(result.returnVars[i], l.getOwner()), returnType.getBracketAccessResult(i))));
 		return result;
 	}
 
@@ -177,8 +173,7 @@ public class Converter {
 		int[] callArgs;
 		int[] params;
 		int[] recCallArgs;
-		String[] recCallReturnVars;
-		String[] phiRes;
+		int[] returnVars;
 
 		List<String> recCallArgs() {
 			return Arrays.stream(recCallArgs).mapToObj(i -> Converter.varName(i, iMethod)).collect(Collectors.toList());
@@ -399,6 +394,7 @@ public class Converter {
 		private final Map<Integer, Parser.ParameterNode> valToParam;
 		private final Map<Integer, Parser.ExpressionNode> blockToExpr;
 		private Map<Integer, Parser.VariableDeclarationNode> varDecls;
+		private Map<Integer, Integer> arrayVarIdxCounter;
 		private BBlock currentBlock;
 
 		public ConversionVisitor(Method m, Map<Integer, Parser.ParameterNode> parameterToNode) {
@@ -406,6 +402,7 @@ public class Converter {
 			this.stmts = new ArrayList<>();
 			this.valToParam = parameterToNode;
 			this.blockToExpr = new HashMap<>();
+			this.arrayVarIdxCounter = new HashMap<>();
 		}
 
 		@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
@@ -421,6 +418,10 @@ public class Converter {
 					varName(instruction.getArrayRef(), m), access(instruction.getIndex()),
 					access(instruction.getValue()));
 			stmts.add(arrayAssignmentNode);
+
+			int arrayVarIdx = arrayVarIdxCounter.getOrDefault(instruction.getArrayRef(), 1);
+			arrayVarIndices.put(instruction, arrayVarIdx);
+			arrayVarIdxCounter.put(instruction.getArrayRef(), arrayVarIdx + 1);
 		}
 
 		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
@@ -501,6 +502,13 @@ public class Converter {
 			assert (instruction.getConcreteType().isArrayType());
 			varDecls.put(instruction.getDef(), varDecl(varName(instruction.getDef(), m),
 					m.getValue(instruction.getDef()).getType().nildumuType()));
+
+			// initialize array w/ zeros
+			int arrayLength = ((Array<? extends Value>) m.getValue(instruction.getDef())).length();
+			Parser.ArrayLiteralNode initVal = new Parser.ArrayLiteralNode(DUMMY_LOCATION,
+					Collections.nCopies(arrayLength, Parser.literal(0)));
+			stmts.add(assignment(varName(instruction.getDef(), m), initVal));
+			arrayVarIdxCounter.put(instruction.getDef(), 1);
 		}
 
 		@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
@@ -564,6 +572,12 @@ public class Converter {
 
 	public static String varName() {
 		return "x" + varNameCounter++;
+	}
+
+	public static Triple<String, String, String> arrayVarName(int valNum, Method method, int idx) {
+		String base = "__bl_" + varName(valNum, method) + "_";
+		String idxStr = (idx == 0) ? "" : String.valueOf(idx);
+		return Triple.triple(base + "0" + idxStr, base + "1" + idxStr, base + "2" + idxStr);
 	}
 
 	public static Parser.ArgumentsNode arguments(List<String> varNames) {

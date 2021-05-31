@@ -2,6 +2,8 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
+import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
@@ -201,6 +203,25 @@ public class LoopBody {
 			}
 		}));
 		return new ArrayList<>(defs);
+	}
+
+	public List<Integer> getAllWrittenToArrays() {
+		Set<Integer> arrs = new HashSet<>();
+		this.blocks.forEach(
+				b -> b.instructions().stream().filter(i -> i instanceof SSAArrayStoreInstruction).forEach(i -> {
+					arrs.add(((SSAArrayStoreInstruction) i).getArrayRef());
+				}));
+		return new ArrayList<>(arrs);
+	}
+
+	public List<Integer> getAllDeclaredArrays() {
+		Set<Integer> arrs = new HashSet<>();
+		this.blocks.forEach(b -> b.instructions().stream()
+				.filter(i -> i instanceof SSANewInstruction && ((SSANewInstruction) i).getConcreteType().isArrayType())
+				.forEach(i -> {
+					arrs.add(i.getDef());
+				}));
+		return new ArrayList<>(arrs);
 	}
 
 	public Set<BBlock> getBlocks() {

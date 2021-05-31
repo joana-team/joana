@@ -13,7 +13,7 @@ public class ArrayLoop {
 		int[] a = new int[1];
 		int i = 0;
 		while (i < 3) {
-			a[i] = 1;
+			a[i] = h;
 			i++;
 		}
 		Out.print(a[0]);

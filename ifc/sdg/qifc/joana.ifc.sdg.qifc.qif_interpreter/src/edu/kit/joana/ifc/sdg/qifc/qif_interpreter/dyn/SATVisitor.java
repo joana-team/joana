@@ -35,7 +35,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		for (SSAInstruction i : b.instructions()) {
 			if (needsVisiting(i, b, m)) {
 				visitedInstructions++;
-				System.out.println(i);
 				i.visit(this);
 			}
 		}
@@ -96,7 +95,19 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	 */
 	@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
 		Array<? extends Value> array = (Array<? extends Value>) m.getValue(instruction.getArrayRef());
-		visitArrayStore(instruction, array, block.generateImplicitFlowFormula());
+
+		if (array.isEffectivelyConstant(
+				instruction)) { // all entries are constant after assignemnt according to pre-analysis
+			IntStream.range(0, array.length()).forEach(i -> array
+					.addAssignmentFromPreProcessing(this.block.generateImplicitFlowFormula(), i, instruction));
+		} else if (m.getValue(instruction.getIndex()).isEffectivelyConstant() && array
+				.isEffectivelyConstant(instruction, LogicUtil.numericValue(m.getDepsForValue(instruction
+						.getIndex())))) { // idx amd assigned array element are constant according to pre-analysis
+			array.addAssignmentFromPreProcessing(this.block.generateImplicitFlowFormula(),
+					LogicUtil.numericValue(m.getDepsForValue(instruction.getIndex())), instruction);
+		} else {
+			visitArrayStore(instruction, array, block.generateImplicitFlowFormula());
+		}
 	}
 
 	public void visitArrayStore(SSAArrayStoreInstruction instruction, Array<? extends Value> array, Formula implicitInfo) {

@@ -41,6 +41,18 @@ class StaticPreprocessingStageTest {
 		constantBitsTest("Arithmetic");
 	}
 
+	@Test void constantBits_Array() {
+		constantBitsTest("Array");
+	}
+
+	@Test void constantBits_ArrayLoop() {
+		constantBitsTest("ArrayLoop");
+	}
+
+	@Test void constantBits_ArrayInIf() {
+		constantBitsTest("ArrayInIf");
+	}
+
 	void constantBitsTest(String testcase) {
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(TestUtils.getDummyArgs(testcase), IStage.Stage.SAT_ANALYSIS);
@@ -89,6 +101,10 @@ class StaticPreprocessingStageTest {
 
 	@Test public void slice_AndTest() {
 		slicingTest("And");
+	}
+
+	@Test public void slice_ArrayInIfTest() {
+		slicingTest("ArrayInIf");
 	}
 
 	@Test void slice_SimpleArithmetic() {

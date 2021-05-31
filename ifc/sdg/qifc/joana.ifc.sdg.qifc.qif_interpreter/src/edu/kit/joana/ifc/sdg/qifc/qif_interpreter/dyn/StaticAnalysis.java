@@ -77,13 +77,15 @@ public class StaticAnalysis {
 			visited.add(b.idx());
 
 			if (b.isLoopHeader()) {
-				try {
-					sv.visitBlock(m, b, -1);
-				} catch (OutOfScopeException e) {
-					e.printStackTrace();
-				}
 				LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().idx() == b.idx()).findFirst().get();
-				LoopHandler.analyze(m, b, this, l);
+				if (b.hasRelevantCF()) {
+					try {
+						sv.visitBlock(m, b, -1);
+					} catch (OutOfScopeException e) {
+						e.printStackTrace();
+					}
+					LoopHandler.analyze(m, b, this, l);
+				}
 
 				// add all after-loop successors, but skip the dummy blocks
 				for (BBlock succ : b.succs().stream().filter(succ -> !l.getBlocks().contains(succ))

@@ -124,6 +124,11 @@ class ConverterTest {
 						+ "}\n" + "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n" + "int v_6 = 0;\n" + "int v_8;\n"
 						+ "int[3] v_5;\n" + "v_5[0] = 1;\n" + "v_8 = ArrayParam_add__II_I(v_5, v_2);\n"
 						+ "l output int o_v_8 = v_8;");
+		prettyPrint.put("ArrayInIf",
+				"use_sec basic;\n" + "bit_width 3;\n" + "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n"
+						+ "int v_6 = 0;\n" + "int[3] v_5;\n" + "int v_7;\n" + "v_5 = {0, 0, 0};\n" + "if ((v_2 < 0))\n"
+						+ "  {\n" + "    v_5[0] = 0;\n" + "  } \n" + "else\n" + "  {\n" + "    v_5[0] = 1;\n" + "  }\n"
+						+ "v_7 = (v_5[0]);\n" + "l output int o_v_7 = v_7;");
 	}
 
 	/*
@@ -233,6 +238,10 @@ class ConverterTest {
 
 	@Test void convertArrayLoop() throws IOException, InterruptedException {
 		testConversion("ArrayLoop", true);
+	}
+
+	@Test void convertArrayInIf() throws IOException, InterruptedException {
+		testConversion("ArrayInIf", true);
 	}
 
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {

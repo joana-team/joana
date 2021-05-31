@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -7,21 +8,32 @@ import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 public class Array<T extends Value> extends Value {
 
 	public static final int LENGTH = Type.INTEGER.bitwidth();
+	private static final BitLatticeValue[][] DEFAULT_UNKNOWN = new BitLatticeValue[LENGTH][LENGTH];
+
+	static {
+		for (int i = 0; i < DEFAULT_UNKNOWN.length; i++) {
+			Arrays.fill(DEFAULT_UNKNOWN[i], BitLatticeValue.UNKNOWN);
+		}
+	}
 
 	private Type elementType;
 	private T[] arr;
 	private Formula[][] valueDependencies;
 	private Variable[][] vars;
+	private Map<SSAArrayStoreInstruction, BitLatticeValue[][]> constantBits;
 
 	public Array(int valNum) {
 		super(valNum);
 		this.setType(Type.ARRAY);
 		this.setWidth(Type.ARRAY.bitwidth());
+		this.constantBits = new HashMap<>();
 	}
 
 	public static Array<? extends Value> newArray(Type t, int valNum, boolean initWithVars)
@@ -143,6 +155,13 @@ public class Array<T extends Value> extends Value {
 		this.valueDependencies[idx] = assignment;
 	}
 
+	public void addAssignmentFromPreProcessing(Formula implicitIF, int idx, SSAArrayStoreInstruction i) {
+		assert (this.constantBits.containsKey(i));
+		Formula[] assignedVal = Arrays.stream(this.constantBits.get(i)[idx]).map(BitLatticeValue::asPropFormula)
+				.toArray(Formula[]::new);
+		this.valueDependencies[idx] = LogicUtil.ternaryOp(implicitIF, assignedVal, this.valueDependencies[idx]);
+	}
+
 	public Formula[] currentlyAssigned(int idx) {
 		return valueDependencies[idx];
 	}
@@ -190,5 +209,21 @@ public class Array<T extends Value> extends Value {
 		Object[] val = new Object[this.length()];
 		IntStream.range(0, length()).forEach(i -> val[i] = this.arr[i].getVal());
 		return val;
+	}
+
+	public void addConstantBitMask(SSAArrayStoreInstruction instruction, BitLatticeValue[][] bits) {
+		this.constantBits.put(instruction, bits);
+	}
+
+	public BitLatticeValue[][] getConstantBitMaskForInstruction(SSAArrayStoreInstruction instruction) {
+		return this.constantBits.getOrDefault(instruction, DEFAULT_UNKNOWN);
+	}
+
+	public boolean isEffectivelyConstant(SSAArrayStoreInstruction i) {
+		return IntStream.range(0, this.length()).allMatch(j -> isEffectivelyConstant(i, j));
+	}
+
+	public boolean isEffectivelyConstant(SSAArrayStoreInstruction i, int idx) {
+		return Arrays.stream(this.constantBits.get(i)[idx]).allMatch(b -> b != BitLatticeValue.UNKNOWN);
 	}
 }

@@ -1,12 +1,15 @@
-import sys
 import json
+import os
 from json import JSONEncoder
+
+import sys
 
 START = "[start]"
 FINISH = "[finish]"
 FAIL = "[fail]"
 MC_INVOKE = "[mc]"
 SYM_EXE = "[se]"
+EVALUATION_DIR = "eval/"
 
 
 class MCInvocation:
@@ -60,10 +63,15 @@ class Evaluation:
 class EvaluationSerializer(JSONEncoder):
 
     def default(self, o):
-        if (isinstance(o, Evaluation)):
+        if isinstance(o, Evaluation):
             sat_analysis_str = json.dumps([ana.__dict__ for ana in o.sat_analysis])
             mc_str = json.dumps([mc.__dict__ for mc in o.mcInvocs])
-            return {"testcase": o.testcase, "stages": json.dumps(o.stages), "sat_analysis": sat_analysis_str, "mc": mc_str, "computedCC": o.computedCC}
+            return {"testcase": o.testcase, "stages": json.dumps(o.stages, cls=EvaluationSerializer),
+                    "sat_analysis": sat_analysis_str, "mc": mc_str, "computedCC": o.computedCC}
+
+        elif isinstance(o, Stage):
+            return {"name": o.name, "duration": o.duration, "success": o.success}
+
         else:
             return JSONEncoder.default(self, o)
 
@@ -75,13 +83,13 @@ def parseLogfile(output_dir, classname):
     for line in lines:
         parts = line.strip().split(" ")
         if START in parts:
-            eval.stages[parts[-1]] = Stage(parts[-1], parts[0])
+            eval.stages[parts[-1]] = Stage(parts[-1], int(parts[0]))
         if FINISH in parts:
-            eval.stages[parts[-1]].end_time = parts[0]
+            eval.stages[parts[-1]].end_time = int(parts[0])
             eval.stages[parts[-1]].duration = eval.stages[parts[-1]].end_time - eval.stages[parts[-1]].start_time
             eval.stages[parts[-1]].success = True
         if FAIL in parts:
-            eval.stages[parts[-1]].end_time = parts[0]
+            eval.stages[parts[-1]].end_time = int(parts[0])
             eval.stages[parts[-1]].duration = eval.stages[parts[-1]].end_time - eval.stages[parts[-1]].start_time
             eval.stages[parts[-1]].success = False
         if MC_INVOKE in parts:
@@ -104,7 +112,17 @@ def parse_dimacs_file(file_path):
     return int(first_line[2]), int(first_line[3])
 
 
-if __name__ == "__main__":
-    evaluation = parseLogfile(sys.argv[1], sys.argv[2])
+def evaluate_testcase(output_dir, classname):
+    evaluation = parseLogfile(output_dir, classname)
     json_str = EvaluationSerializer().encode(evaluation)
-    print(json_str)
+
+    if not os.path.exists(EVALUATION_DIR):
+        os.mkdir(EVALUATION_DIR)
+
+    eval_file = EVALUATION_DIR + classname + ".json"
+    with open(eval_file, 'w+') as f:
+        f.write(json_str)
+
+
+if __name__ == "__main__":
+    evaluate_testcase(sys.argv[1], sys.argv[2])

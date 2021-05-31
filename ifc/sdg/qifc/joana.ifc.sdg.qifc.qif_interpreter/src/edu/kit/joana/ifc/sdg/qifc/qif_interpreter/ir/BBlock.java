@@ -25,6 +25,7 @@ public class BBlock implements DotNode {
 	private boolean isLoopHeader = false;
 	private boolean isPartOfLoop = false;
 	private boolean isCondHeader = false;
+	private boolean isBreak;
 	private boolean inScope = true;
 	/**
 	 * expression used for conditional jump to successor expressed as SAT formula.
@@ -277,6 +278,14 @@ public class BBlock implements DotNode {
 
 	public void setInScope(boolean inScope) {
 		this.inScope = inScope;
+	}
+
+	public boolean isBreak() {
+		return isBreak;
+	}
+
+	public void setBreak(boolean aBreak) {
+		isBreak = aBreak;
 	}
 
 	public SSAReturnInstruction getReturn() {

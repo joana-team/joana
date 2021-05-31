@@ -5,11 +5,13 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IComparisonInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
-import com.ibm.wala.ssa.*;
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
@@ -24,8 +26,6 @@ import swp.lexer.Location;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.ExecutionVisitor.OUTPUT_FUNCTION;
 
 /**
  * converts a qif program into a nildumu ast
@@ -56,7 +56,7 @@ public class Converter {
 		Parser.ProgramNode programNode = new Parser.ProgramNode(context);
 		inputs.forEach(programNode::addGlobalStatement);
 		programNode.addGlobalStatements(parseConstantValues(p.getEntryMethod()));
-		ConversionVisitor cVis = new ConversionVisitor(p.getEntryMethod(), new HashMap<>());
+		ConversionVisitor cVis = new ConversionVisitor(this, p.getEntryMethod(), new HashMap<>());
 		List<BBlock> allBlocks = BBlockOrdering
 				.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
 		List<Parser.StatementNode> stmts = convertStatements(allBlocks, cVis);
@@ -102,7 +102,7 @@ public class Converter {
 				.collect(Collectors.toMap(p -> valNum(p.name), p -> p));
 
 		// convert loopBody to ast stmts
-		ConversionVisitor cVis = new ConversionVisitor(l.getOwner(), parameterMap);
+		ConversionVisitor cVis = new LoopConversionVisitor(this, l.getOwner(), parameterMap, l, result);
 		List<BBlock> loopBlocks = BBlockOrdering
 				.topological(l.getBlocks().stream().filter(b -> !l.getHead().equals(b)).collect(Collectors.toSet()),
 						l.getHead().succs().stream().filter(b -> l.hasBlock(b.idx())).findFirst().get());
@@ -207,12 +207,12 @@ public class Converter {
 	}
 
 	private Parser.BlockNode convertMethodBody(Method m, Map<Integer, Parser.ParameterNode> params) {
-		ConversionVisitor cVis = new ConversionVisitor(m, params);
+		ConversionVisitor cVis = new ConversionVisitor(this, m, params);
 		return new Parser.BlockNode(DUMMY_LOCATION,
 				convertStatements(BBlockOrdering.topological(m.getCFG().getBlocks(), m.getCFG().entry()), cVis));
 	}
 
-	private List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, ConversionVisitor cVis) {
+	public List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, ConversionVisitor cVis) {
 		Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> convertedPair = convertStatementsRec(
 				toConvert, new ArrayList<>(), new HashMap<>(), cVis);
 		return Util.prepend(convertedPair.fst, new ArrayList<>(convertedPair.snd.values()));
@@ -232,10 +232,13 @@ public class Converter {
 			LoopBody loop = b.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().idx() == b.idx())
 					.findFirst().get();
 			LoopConversionResult convertedMethod = convertLoop(loop);
-			this.loopMethods.put(loop, convertedMethod);
+			loopMethods.put(loop, convertedMethod);
 			converted.add(convertedMethod.call);
 			varDecls.putAll(convertedMethod.returnDefs);
 			toConvert.removeAll(loop.getBlocks());
+			for (BBlock bb : loop.getBreaks()) {
+				toConvert.removeAll(loop.breakToPostLoop(bb));
+			}
 			return convertStatementsRec(toConvert, converted, varDecls, cVis);
 		}
 
@@ -243,7 +246,7 @@ public class Converter {
 		converted.addAll(blockStmts.fst);
 		varDecls.putAll(blockStmts.snd);
 
-		if (b.isCondHeader()) {
+		if (b.isCondHeader() && !b.isBreak()) {
 			BBlock trueTarget = b.getCFG().getBlock(b.getTrueTarget());
 			BBlock falseTarget = b.succs().stream().filter(bb -> bb.idx() != b.getTrueTarget()).findAny().get();
 			List<BBlock> trueBranch = computeConditionalBranch(b, trueTarget, trueTarget,
@@ -384,178 +387,6 @@ public class Converter {
 				return Parser.LexerTerminal.LOWER_EQUALS;
 			}
 			throw new ConversionException(operator);
-		}
-	}
-
-	public static class ConversionVisitor extends SSAInstruction.Visitor {
-
-		private final Method m;
-		private List<Parser.StatementNode> stmts;
-		private final Map<Integer, Parser.ParameterNode> valToParam;
-		private final Map<Integer, Parser.ExpressionNode> blockToExpr;
-		private Map<Integer, Parser.VariableDeclarationNode> varDecls;
-		private Map<Integer, Integer> arrayVarIdxCounter;
-		private BBlock currentBlock;
-
-		public ConversionVisitor(Method m, Map<Integer, Parser.ParameterNode> parameterToNode) {
-			this.m = m;
-			this.stmts = new ArrayList<>();
-			this.valToParam = parameterToNode;
-			this.blockToExpr = new HashMap<>();
-			this.arrayVarIdxCounter = new HashMap<>();
-		}
-
-		@Override public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
-			varDecls.put(instruction.getDef(), varDecl(varName(instruction.getDef(), m),
-					m.getValue(instruction.getDef()).getType().nildumuType()));
-			Parser.BracketedAccessOperatorNode arrayAccess = new Parser.BracketedAccessOperatorNode(
-					access(instruction.getArrayRef()), access(instruction.getIndex()));
-			stmts.add(assignment(varName(instruction.getDef(), m), arrayAccess));
-		}
-
-		@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-			Parser.ArrayAssignmentNode arrayAssignmentNode = new Parser.ArrayAssignmentNode(DUMMY_LOCATION,
-					varName(instruction.getArrayRef(), m), access(instruction.getIndex()),
-					access(instruction.getValue()));
-			stmts.add(arrayAssignmentNode);
-
-			int arrayVarIdx = arrayVarIdxCounter.getOrDefault(instruction.getArrayRef(), 1);
-			arrayVarIndices.put(instruction, arrayVarIdx);
-			arrayVarIdxCounter.put(instruction.getArrayRef(), arrayVarIdx + 1);
-		}
-
-		@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			IBinaryOpInstruction.Operator op = (IBinaryOpInstruction.Operator) instruction.getOperator();
-
-			Parser.LexerTerminal terminal = null;
-			try {
-				terminal = LexerTerminal.of(op);
-			} catch (ConversionException e) {
-				e.printStackTrace();
-			}
-
-			Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
-					access(instruction.getUse(1)), terminal);
-
-			this.varDecls.put(instruction.getDef(), Converter.varDecl(varName(instruction.getDef(), m),
-					m.getValue(instruction.getDef()).getType().nildumuType()));
-			this.stmts.add(assignment(varName(instruction.getDef(), m), binOp));
-		}
-
-		// TODO how is unary minus handled?
-		@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
-			IUnaryOpInstruction.Operator op = (IUnaryOpInstruction.Operator) instruction.getOpcode();
-			Parser.UnaryOperatorNode unOp = null;
-			try {
-				unOp = new Parser.UnaryOperatorNode(access(instruction.getUse(0)), LexerTerminal.of(op));
-			} catch (ConversionException e) {
-				e.printStackTrace();
-			}
-			this.varDecls.put(instruction.getDef(), Converter.varDecl(varName(instruction.getDef(), m),
-					m.getValue(instruction.getDef()).getType().nildumuType()));
-			this.stmts.add(assignment(varName(instruction.getDef(), m), unOp));
-		}
-
-		@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
-			try {
-				Parser.BinaryOperatorNode expr = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
-						access(instruction.getUse(1)),
-						LexerTerminal.of((IConditionalBranchInstruction.Operator) instruction.getOperator()));
-				this.blockToExpr.put(currentBlock.idx(), expr);
-			} catch (ConversionException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override public void visitReturn(SSAReturnInstruction instruction) {
-			if (currentBlock.getCFG().getMethod().getProg().getEntryMethod().equals(currentBlock.getCFG().getMethod()))
-				return;
-
-			if (instruction.returnsVoid()) {
-				this.stmts.add(new Parser.ReturnStatementNode(DUMMY_LOCATION));
-			} else {
-				this.stmts.add(new Parser.ReturnStatementNode(DUMMY_LOCATION, access(instruction.getResult())));
-			}
-		}
-
-		@Override public void visitInvoke(SSAInvokeInstruction instruction) {
-			if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
-				int leaked = instruction.getUse(0);
-				Parser.OutputVariableDeclarationNode node;
-				node = new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION,
-						"o_" + varName(instruction.getUse(0), m),
-						edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), access(leaked), "l");
-				this.stmts.add(node);
-			} else {
-				assert (instruction.hasDef());
-				Parser.ArgumentsNode args = Converter.arguments(IntStream.range(1, instruction.getNumberOfParameters())
-						.mapToObj(i -> varName(instruction.getUse(i), m)).collect(Collectors.toList()));
-				Parser.MethodInvocationNode invocation = new Parser.MethodInvocationNode(DUMMY_LOCATION,
-						methodName(instruction.getDeclaredTarget()), args);
-				this.varDecls.put(instruction.getDef(), Converter.varDecl(varName(instruction.getDef(), m),
-						m.getValue(instruction.getDef()).getType().nildumuType()));
-				this.stmts.add(assignment(varName(instruction.getDef(), m), invocation));
-			}
-		}
-
-		@Override public void visitNew(SSANewInstruction instruction) {
-			assert (instruction.getConcreteType().isArrayType());
-			varDecls.put(instruction.getDef(), varDecl(varName(instruction.getDef(), m),
-					m.getValue(instruction.getDef()).getType().nildumuType()));
-
-			// initialize array w/ zeros
-			int arrayLength = ((Array<? extends Value>) m.getValue(instruction.getDef())).length();
-			Parser.ArrayLiteralNode initVal = new Parser.ArrayLiteralNode(DUMMY_LOCATION,
-					Collections.nCopies(arrayLength, Parser.literal(0)));
-			stmts.add(assignment(varName(instruction.getDef(), m), initVal));
-			arrayVarIdxCounter.put(instruction.getDef(), 1);
-		}
-
-		@Override public void visitArrayLength(SSAArrayLengthInstruction instruction) {
-
-		}
-
-		@Override public void visitPhi(SSAPhiInstruction instruction) {
-			// TODO where can i get the correct order of the arguments?
-			// for if-stmts: first one comes from "true"-branch? Is it the same for joana?
-
-			BBlock condBlock = m.getCFG().getImmDom(currentBlock);
-			BBlock firstPred = currentBlock.preds().get(0);
-			int firstArg = (m.getCFG().isDominatedBy(firstPred, m.getCFG().getBlock(condBlock.getTrueTarget()))) ?
-					0 :
-					1;
-			int sndArg = 1 - firstArg;
-
-			Parser.PhiNode phi = new Parser.PhiNode(DUMMY_LOCATION,
-					Arrays.asList(varName(instruction.getUse(firstArg), m), varName(instruction.getUse(sndArg), m)));
-			this.varDecls.put(instruction.getDef(), Converter.varDecl(varName(instruction.getDef(), m),
-					m.getValue(instruction.getDef()).getType().nildumuType()));
-			stmts.add(new Parser.VariableAssignmentNode(DUMMY_LOCATION, varName(instruction.getDef(), m), phi));
-		}
-
-		public Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> visitBlock(BBlock b) {
-			this.currentBlock = b;
-			this.stmts = new ArrayList<>();
-			this.varDecls = new HashMap<>();
-			b.instructions().forEach(i -> i.visit(this));
-			return Pair.make(stmts, varDecls);
-		}
-
-		public Parser.ExpressionNode blockToExpr(int idx) {
-			return this.blockToExpr.get(idx);
-		}
-
-		public Parser.PrimaryExpressionNode access(int valNum) {
-			if (this.valToParam.containsKey(valNum)) {
-				return accessParam(valNum);
-			} else if (m.isConstant(valNum)) {
-				return Parser.literal((Integer) m.getValue(valNum).getVal());
-			}
-			return new Parser.VariableAccessNode(DUMMY_LOCATION, varName(valNum, m));
-		}
-
-		private Parser.ParameterAccessNode accessParam(int valNum) {
-			return new Parser.ParameterAccessNode(DUMMY_LOCATION, valToParam.get(valNum).name);
 		}
 	}
 

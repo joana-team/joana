@@ -8,3 +8,4 @@ out_*
 *.pyc
 *.dot
 approxMC_*
+eval/

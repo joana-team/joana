@@ -6,6 +6,7 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
@@ -58,6 +59,7 @@ public class LoopBody {
 			if (b.isCondHeader() && b.succs().stream()
 					.anyMatch(succ -> owner.getCFG().getLevel(succ) < owner.getCFG().getLevel(head))) {
 				breaks.add(b);
+				b.setBreak(true);
 			}
 		}
 
@@ -258,28 +260,40 @@ public class LoopBody {
 
 	public Map<Integer, Integer> phiToInsideLoop() {
 		Map<Integer, Integer> outMap = new HashMap<>();
-		List<Integer> defs = this.getAllDefs();
 
-		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction).forEach(phi -> {
-			if (defs.contains(phi.getUse(0))) {
-				outMap.put(phi.getDef(), phi.getUse(0));
-			} else {
-				outMap.put(phi.getDef(), phi.getUse(1));
-			}
-		});
+		int predNum = (this.hasBlock(this.getHead().preds().get(0).idx())) ? 0 : 1;
+
+		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction)
+				.forEach(phi -> outMap.put(phi.getDef(), phi.getUse(predNum)));
 		return outMap;
 	}
 
 	public BiMap<Integer, Integer> phiToBeforeLoop() {
 		BiMap<Integer, Integer> inMap = HashBiMap.create();
-		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction).forEach(phi -> {
-			if (this.blocks.stream().anyMatch(b -> b.ownsValue(phi.getUse(0)))) {
-				inMap.put(phi.getDef(), phi.getUse(1));
-			} else {
-				inMap.put(phi.getDef(), phi.getUse(0));
-			}
-		});
+
+		int predNum = (this.hasBlock(this.getHead().preds().get(0).idx())) ? 1 : 0;
+
+		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction)
+				.forEach(phi -> inMap.put(phi.getDef(), phi.getUse(predNum)));
 		return inMap;
+	}
+
+	public List<BBlock> breakToPostLoop(BBlock breakBlock) {
+		BBlock afterBreakBlock = breakBlock.succs().stream().filter(b -> !this.hasBlock(b.idx())).findFirst().get();
+		BBlock postLoopSuccessor = getPostLoopSuccessor(breakBlock);
+		List<BBlock> bridge = BBlockOrdering.blocksBetween(afterBreakBlock, postLoopSuccessor);
+		bridge.remove(postLoopSuccessor);
+		return bridge;
+	}
+
+	public BBlock getPostLoopSuccessor(BBlock breakBlock) {
+		BBlock afterBreakBlock = breakBlock.succs().stream().filter(b -> !this.hasBlock(b.idx())).findFirst().get();
+		BBlock postLoopSuccessor = afterBreakBlock;
+
+		while (this.getOwner().getCFG().isDominatedBy(postLoopSuccessor, breakBlock)) {
+			postLoopSuccessor = postLoopSuccessor.succs().get(0);
+		}
+		return postLoopSuccessor;
 	}
 
 	public Formula[] getBeforeLoop(int i) {

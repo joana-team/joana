@@ -129,6 +129,43 @@ class ConverterTest {
 						+ "int v_6 = 0;\n" + "int[3] v_5;\n" + "int v_7;\n" + "v_5 = {0, 0, 0};\n" + "if ((v_2 < 0))\n"
 						+ "  {\n" + "    v_5[0] = 0;\n" + "  } \n" + "else\n" + "  {\n" + "    v_5[0] = 1;\n" + "  }\n"
 						+ "v_7 = (v_5[0]);\n" + "l output int o_v_7 = v_7;");
+		prettyPrint.put("Break", "use_sec basic;\n" + "bit_width 3;\n" + "(int) mBreak_f_I_I_2(int v_2, int v_9){\n"
+				+ "  if (!(0 > v_9))\n" + "    {\n" + "      int v_4 = 1;\n" + "      int v_5 = 0;\n"
+				+ "      int v_7 = 2;\n" + "      int v_8 = -1;\n" + "      int v_6;\n" + "      v_6 = (v_9 & v_2);\n"
+				+ "      if (!(v_6 != 2))\n" + "        {\n" + "          return (v_6,);\n" + "        }\n"
+				+ "      v_9 = *mBreak_f_I_I_2(v_2, v_8);\n" + "    }\n" + "  return (v_9,);\n" + "}\n"
+				+ "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n" + "int v_5 = 0;\n" + "int v_7 = 2;\n"
+				+ "int v_8 = -1;\n" + "int v_9;\n" + "int v_10;\n" + "v_9 = *mBreak_f_I_I_2(v_2, v_4);\n"
+				+ "v_10 = v_9;\n" + "l output int o_v_10 = v_10;");
+		prettyPrint.put("Break3", "use_sec basic;\n" + "bit_width 3;\n" + "(int) mBreak3_f_I_I_2(int v_2, int v_9){\n"
+				+ "  if (!(0 > v_9))\n" + "    {\n" + "      int v_4 = 1;\n" + "      int v_5 = 0;\n"
+				+ "      int v_7 = 2;\n" + "      int v_8 = -1;\n" + "      int v_6;\n" + "      v_6 = (v_9 & v_2);\n"
+				+ "      if (!(v_6 != 2))\n" + "        {\n" + "        int v_10;\n" + "          v_10 = (v_2 + 2);\n"
+				+ "          if ((v_2 != 0))\n" + "            {\n" + "\n" + "            } \n" + "          else\n"
+				+ "            {\n" + "\n" + "            }\n" + "          return (v_10,);\n" + "        }\n"
+				+ "      v_9 = *mBreak3_f_I_I_2(v_2, v_8);\n" + "    }\n" + "  return (v_9,);\n" + "}\n"
+				+ "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n" + "int v_5 = 0;\n" + "int v_7 = 2;\n"
+				+ "int v_8 = -1;\n" + "int v_9;\n" + "int v_11;\n" + "v_9 = *mBreak3_f_I_I_2(v_2, v_4);\n"
+				+ "v_11 = v_9;\n" + "l output int o_v_11 = v_11;");
+		prettyPrint.put("Break4", "use_sec basic;\n" + "bit_width 3;\n" + "(int) mBreak4_f_I_I_2(int v_2, int v_9){\n"
+				+ "  if (!(0 > v_9))\n" + "    {\n" + "      int v_4 = 1;\n" + "      int v_5 = 0;\n"
+				+ "      int v_7 = 2;\n" + "      int v_8 = -1;\n" + "      int v_6;\n" + "      v_6 = (v_9 & v_2);\n"
+				+ "      if (!(v_6 != 2))\n" + "        {\n" + "        int v_10; int v_11;\n"
+				+ "          if ((v_2 != 0))\n" + "            {\n" + "              v_10 = (v_2 + 2);\n"
+				+ "            } \n" + "          else\n" + "            {\n" + "\n" + "            }\n"
+				+ "          v_11 = phi(v_10, v_6);\n" + "          return (v_11,);\n" + "        }\n"
+				+ "      v_9 = *mBreak4_f_I_I_2(v_2, v_8);\n" + "    }\n" + "  return (v_9,);\n" + "}\n"
+				+ "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n" + "int v_5 = 0;\n" + "int v_7 = 2;\n"
+				+ "int v_8 = -1;\n" + "int v_9;\n" + "int v_12;\n" + "v_9 = *mBreak4_f_I_I_2(v_2, v_4);\n"
+				+ "v_12 = v_9;\n" + "l output int o_v_12 = v_12;");
+		prettyPrint.put("BreakWithArray",
+				"use_sec basic;\n" + "bit_width 3;\n" + "(int[3]) mBreakWithArray_f_I_I_3(int[3] v_6){\n"
+						+ "  if (!(0 < 0))\n" + "    {\n" + "      int v_4 = 0;\n" + "      int v_5 = 3;\n"
+						+ "      int v_7 = 1;\n" + "      v_6[0] = 1;\n" + "      if (!(0 != 3))\n" + "        {\n"
+						+ "          return (v_6,);\n" + "        }\n" + "      v_6 = *mBreakWithArray_f_I_I_3(v_6);\n"
+						+ "    }\n" + "  return (v_6,);\n" + "}\n" + "h input int v_2 = 0buuu;\n" + "int v_4 = 0;\n"
+						+ "int v_5 = 3;\n" + "int v_7 = 1;\n" + "int[3] v_6;\n" + "v_6 = {0, 0, 0};\n"
+						+ "v_6 = *mBreakWithArray_f_I_I_3(v_6);\n" + "l output int o_v_4 = 0;");
 	}
 
 	/*
@@ -242,6 +279,22 @@ class ConverterTest {
 
 	@Test void convertArrayInIf() throws IOException, InterruptedException {
 		testConversion("ArrayInIf", true);
+	}
+
+	@Test void convertBreak() throws IOException, InterruptedException {
+		testConversion("Break", true);
+	}
+
+	@Test void convertBreak3() throws IOException, InterruptedException {
+		testConversion("Break3", true);
+	}
+
+	@Test void convertBreak4() throws IOException, InterruptedException {
+		testConversion("Break4", true);
+	}
+
+	@Test void convertBreakWithArray() throws IOException, InterruptedException {
+		testConversion("BreakWithArray", true);
 	}
 
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {

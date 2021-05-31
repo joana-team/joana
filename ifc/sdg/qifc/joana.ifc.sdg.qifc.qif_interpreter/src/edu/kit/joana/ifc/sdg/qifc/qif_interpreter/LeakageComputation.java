@@ -77,5 +77,6 @@ public class LeakageComputation {
 			modelCount = approxMC.estimateModelCount(count, hVars);
 		}
 		System.out.println("# of inputs w/ the same output: " + modelCount);
+		System.out.println("---");
 	}
 }

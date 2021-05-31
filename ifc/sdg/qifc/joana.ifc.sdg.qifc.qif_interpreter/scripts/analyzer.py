@@ -20,12 +20,17 @@ def collect_results(path, possible_args):
     results = {}
     for args in possible_args:
         res = execute(args, path)
-        print("in " + ''.join(str(args)) + " -- out: " + res)
-        if res == "2\n1\n1":
-            print(args)
-        if res not in results.keys():
-            results[res] = 0
-        results[res] += 1
+        res = [num.strip() for num in res.split("\n") if "#" not in num and "---" not in num]
+        print(res)
+
+        count = 0
+        for single_res in res:
+            single_res = single_res + str(count)
+
+            if single_res not in results.keys():
+                results[single_res] = 0
+            results[single_res] += 1
+            count += 1
     return results
 
 

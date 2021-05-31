@@ -1,4 +1,5 @@
 import json
+import os
 
 import math
 
@@ -31,6 +32,9 @@ def result_file_name(name):
 
 def load_results(testcase_name):
     path = result_file_name(testcase_name)
+    if not os.path.exists(path):
+        print("Skipping testcase: " + testcase_name + " -- result file not found")
+        return None
     with open(path) as f:
         data = json.load(f)
     return data

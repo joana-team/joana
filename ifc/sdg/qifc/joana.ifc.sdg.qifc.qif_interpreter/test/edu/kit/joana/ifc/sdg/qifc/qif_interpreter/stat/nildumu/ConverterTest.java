@@ -167,14 +167,14 @@ class ConverterTest {
 						+ "int v_5 = 3;\n" + "int v_7 = 1;\n" + "int[3] v_6;\n" + "v_6 = {0, 0, 0};\n"
 						+ "v_6 = *mBreakWithArray_f_I_I_3(v_6);\n" + "l output int o_v_4 = 0;");
 		prettyPrint.put("ArrayLoop", "use_sec basic;\n" + "bit_width 3;\n"
-				+ "(int, int[3]) mArrayLoop_f_I_I_3(int v_2, int[3] v_5, int v_9){\n" + "  if (!(v_9 >= 3))\n"
+				+ "(int, int[3]) mArrayLoop_f_I_I_3(int v_9, int v_2, int[3] v_5){\n" + "  if (!(v_9 >= 3))\n"
 				+ "    {\n" + "      int v_4 = 1;\n" + "      int v_6 = 0;\n" + "      int v_7 = 3;\n"
 				+ "      int v_8;\n" + "      v_5[v_9] = v_2;\n" + "      v_8 = (v_9 + 1);\n"
-				+ "      v_9, v_5 = *mArrayLoop_f_I_I_3(v_2, v_5, v_8);\n" + "    }\n" + "  return (v_9, v_5);\n"
+				+ "      v_9, v_5 = *mArrayLoop_f_I_I_3(v_8, v_2, v_5);\n" + "    }\n" + "  return (v_9, v_5);\n"
 				+ "}\n" + "h input int v_2 = 0buuu;\n" + "int v_4 = 1;\n" + "int v_6 = 0;\n" + "int v_7 = 3;\n"
 				+ "int v_9;\n" + "int[3] v_5;\n" + "int v_10;\n" + "v_5 = {0, 0, 0};\n"
-				+ "v_9, v_5 = *mArrayLoop_f_I_I_3(v_2, v_5, v_6);\n" + "v_10 = (v_5[0]);\n"
-				+ "l output int o_v_10 = v_10;\n");
+				+ "v_9, v_5 = *mArrayLoop_f_I_I_3(v_6, v_2, v_5);\n" + "v_10 = (v_5[0]);\n"
+				+ "l output int o_v_10 = v_10;");
 	}
 
 	/*
@@ -304,6 +304,10 @@ class ConverterTest {
 
 	@Test void convertBreakWithArray() throws IOException, InterruptedException {
 		testConversion("BreakWithArray", true);
+	}
+
+	@Test void convertLoop3() throws IOException, InterruptedException {
+		testConversion("Loop3", true);
 	}
 
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {

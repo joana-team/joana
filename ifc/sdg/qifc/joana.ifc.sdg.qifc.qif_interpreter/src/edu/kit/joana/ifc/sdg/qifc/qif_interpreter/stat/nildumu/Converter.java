@@ -1,6 +1,5 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
-import com.google.common.collect.BiMap;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IComparisonInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
@@ -83,17 +82,24 @@ public class Converter {
 		result.iMethod = l.getOwner();
 
 		// get names for all the variables used ready
-		List<Integer> argsParamVals = l.getAllUses();
-		argsParamVals.removeAll(l.getAllDefs());
-		//argsParamVals.addAll(l.getAllWrittenToArrays());
-		BiMap<Integer, Integer> beforeLoop = l.phiToBeforeLoop().inverse();
-		argsParamVals.removeIf(i -> l.getOwner().isConstant(i) && !beforeLoop.containsKey(i));
-		Map<Integer, Integer> inLoop = l.phiToInsideLoop();
+		List<Integer> usedValsForParams = l.getAllUses();
+		usedValsForParams.removeAll(l.getAllDefs());
+		usedValsForParams.removeIf(i -> l.getOwner().isConstant(i));
 
-		result.callArgs = argsParamVals.stream().mapToInt(i -> i).toArray();
-		result.params = argsParamVals.stream().map(i -> beforeLoop.getOrDefault(i, i)).mapToInt(i -> i).toArray();
-		result.recCallArgs = Arrays.stream(result.params).map(i -> inLoop.getOrDefault(i, i)).toArray();
-		result.returnVars = ArrayUtils.addAll(inLoop.keySet().stream().mapToInt(i -> i).toArray(),
+		List<Triple<Integer, Integer, Integer>> phiMap = l.phiMapping();
+
+		result.callArgs = new int[phiMap.size() + usedValsForParams.size()];
+		IntStream.range(0, phiMap.size()).forEach(i -> result.callArgs[i] = phiMap.get(i).getMiddle());
+		IntStream.range(0, usedValsForParams.size())
+				.forEach(i -> result.callArgs[phiMap.size() + i] = usedValsForParams.get(i));
+
+		result.params = result.callArgs.clone();
+		IntStream.range(0, phiMap.size()).forEach(i -> result.params[i] = phiMap.get(i).getLeft());
+
+		result.recCallArgs = result.callArgs.clone();
+		IntStream.range(0, phiMap.size()).forEach(i -> result.callArgs[i] = phiMap.get(i).getRight());
+
+		result.returnVars = ArrayUtils.addAll(phiMap.stream().mapToInt(Triple::getLeft).toArray(),
 				l.getAllWrittenToArrays().stream().mapToInt(i -> i).toArray());
 
 		// parameters for loop method
@@ -117,7 +123,7 @@ public class Converter {
 		Parser.ArgumentsNode args = arguments(result.recCallArgs());
 
 		// loop method return type
-		List<Type> elementTypes = IntStream.range(0, inLoop.size())
+		List<Type> elementTypes = IntStream.range(0, phiMap.size())
 				.mapToObj(i -> edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType())
 				.collect(Collectors.toList());
 		l.getAllWrittenToArrays()
@@ -160,7 +166,7 @@ public class Converter {
 				Arrays.stream(result.returnVars).mapToObj(i -> Converter.varName(i, l.getOwner()))
 						.toArray(String[]::new), new Parser.UnpackOperatorNode(callToLoop));
 		result.returnDefs = new HashMap<>();
-		IntStream.range(0, inLoop.keySet().size()).forEach(i -> result.returnDefs
+		IntStream.range(0, phiMap.size()).forEach(i -> result.returnDefs
 				.put(i, varDecl(varName(result.returnVars[i], l.getOwner()), returnType.getBracketAccessResult(i))));
 		return result;
 	}

@@ -111,7 +111,7 @@ public class StaticAnalysis {
 				}
 			}
 		}
-		System.out.println("Visited instructions: " + sv.getVisitedInstructions());
+		// System.out.println("Visited instructions: " + sv.getVisitedInstructions());
 	}
 
 	public void createConstant(int op1) {

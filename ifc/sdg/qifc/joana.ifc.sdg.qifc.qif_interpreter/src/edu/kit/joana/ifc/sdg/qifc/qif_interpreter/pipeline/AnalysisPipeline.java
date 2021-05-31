@@ -41,7 +41,8 @@ public class AnalysisPipeline {
 		Logger.finishPipelineStage(stage.identity(), stage.success());
 
 		if (!stage.success() && stage.identity().failsFatally) {
-			System.exit(1);
+			System.out.println("Failed stage: " + stage.identity());
+			//System.exit(1);
 		}
 	}
 }

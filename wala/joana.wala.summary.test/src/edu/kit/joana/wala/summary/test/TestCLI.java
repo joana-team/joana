@@ -89,6 +89,12 @@ public class TestCLI implements Callable<Integer> {
   @Option(names = "--use_pg_for_cpp")
   String use_pg_for_cpp = "";
 
+  @Option(names = "--app")
+  String app = "";
+
+  @Option(names = "--entry_method")
+  String entryMethod = "";
+
   enum EntryPointMode {
     MAIN,
     RANDOM,
@@ -113,15 +119,15 @@ public class TestCLI implements Callable<Integer> {
           if (export_graphs) {
             util.exportGraphs(new Loader().load(jarOrClass), export_folder.get(), Paths.get(util.baseFile(jarOrClass)).toFile().getName(), Optional.empty());
           }
-          util.writeSSVFromPG(Paths.get(jarOrClass), util.summaryFilePath(jarOrClass));
+          util.writeSSVFromPG(Paths.get(jarOrClass), util.summaryFilePath(jarOrClass, app));
         }
       } else {
-        util.createBenchFiles(jarOrClass, util.pdgFilePath(jarOrClass), util.pgFilePath(jarOrClass),
-            !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass)) : Optional.empty(),
-            use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass)),
+        util.createBenchFiles(jarOrClass, util.pdgFilePath(jarOrClass, app), util.pgFilePath(jarOrClass, app),
+            !omit_summary ? Optional.of(util.summaryFilePath(jarOrClass, app)) : Optional.empty(),
+            use_existing_pdg && util.useOldPdg(jarOrClass, util.pdgFilePath(jarOrClass, app)),
             export_folder, store_pdg, max_sums,
             remove_normal, new HashSet<>(Arrays.asList(remove_nodes)), remove_unreachable, entry.length > 0 ? entry[entry.length - 1] : -1,
-            remove_neighbor_edges, list_nodes, !no_reorder, use_pg_for_cpp, entryPointMode);
+            remove_neighbor_edges, list_nodes, !no_reorder, use_pg_for_cpp, entryPointMode, entryMethod);
       }
     }
     return 1;
@@ -151,16 +157,16 @@ public class TestCLI implements Callable<Integer> {
       }
     }
 
-    private Path pgFilePath(String classOrFile){
-      return Paths.get(baseFile(classOrFile) + ".pg");
+    private Path pgFilePath(String classOrFile, String app){
+      return Paths.get(baseFile(classOrFile) + app + ".pg");
     }
 
-    private Path summaryFilePath(String classOrFile){
-      return Paths.get(baseFile(classOrFile) + ".ssv");
+    private Path summaryFilePath(String classOrFile, String app){
+      return Paths.get(baseFile(classOrFile) + app + ".ssv");
     }
 
-    private Path pdgFilePath(String classOrFile){
-      return Paths.get(baseFile(classOrFile) + ".pdg");
+    private Path pdgFilePath(String classOrFile, String app){
+      return Paths.get(baseFile(classOrFile) + app + ".pdg");
     }
 
     private String baseFile(String classOrFile){
@@ -194,11 +200,12 @@ public class TestCLI implements Callable<Integer> {
       }
     }
 
-    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, EntryPointMode entryPointMode) throws IOException, ClassNotFoundException {
-      return createSDG(classOrFile, pdgFile, useOldPdg, config.instantiate(), entryPointMode);
+    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, EntryPointMode entryPointMode, String entryMethod) throws IOException, ClassNotFoundException {
+      return createSDG(classOrFile, pdgFile, useOldPdg, config.instantiate(), entryPointMode, entryMethod);
     }
 
-    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, SDGConfig config, EntryPointMode entryPointMode) throws IOException, ClassNotFoundException {
+    private SDG createSDG(String classOrFile, Path pdgFile, boolean useOldPdg, SDGConfig config, EntryPointMode entryPointMode,
+        String entryMethod) throws IOException, ClassNotFoundException {
       if (useOldPdg){
         return SDG.readFromAndUseLessHeap(pdgFile.toString());
       }
@@ -210,6 +217,20 @@ public class TestCLI implements Callable<Integer> {
       }
       switch (entryPointMode) {
       case MAIN:
+        if (entryMethod.length() > 0) {
+          final SDGBuildPreparation.Config cfg = new SDGBuildPreparation.Config("Search main <unused>", "<unused>",
+              builder.classpath(), true, SDGBuilder.FieldPropagation.FLAT);
+          try {
+            List<String> names = SDGBuildPreparation
+                .searchMethods(new NullPrintStream(), cfg, false, ".*" + entryMethod + ".*");
+            System.out.println(names);
+            builder.configEntryMethod(names.get(0));
+          } catch (ClassHierarchyException e) {
+            e.printStackTrace();
+            System.exit(1);
+          }
+          break;
+        }
         if (isClassName(classOrFile)) {
           builder.entry(Class.forName(classOrFile));
         }
@@ -231,8 +252,8 @@ public class TestCLI implements Callable<Integer> {
     }
 
     private SDG createAndStoreSDG(String classOrFile, Path pdgFile, boolean useOldPdg, boolean storePDG,
-        EntryPointMode entryPointMode) throws IOException, ClassNotFoundException {
-      SDG sdg = createSDG(classOrFile, pdgFile, useOldPdg, entryPointMode);
+        EntryPointMode entryPointMode, String entryMethod) throws IOException, ClassNotFoundException {
+      SDG sdg = createSDG(classOrFile, pdgFile, useOldPdg, entryPointMode, entryMethod);
       if (!useOldPdg && storePDG) {
         BufferedOutputStream bOut = new BufferedOutputStream(Files.newOutputStream(pdgFile));
         SDGSerializer.toPDGFormat(sdg, bOut);
@@ -243,10 +264,10 @@ public class TestCLI implements Callable<Integer> {
     private void createBenchFiles(String classOrFile, Path pdgFile, Path pgPath, Optional<Path> summaryFile, boolean useOldPdg,
         Optional<Path> exportedGraphsFolder, boolean storePDG, long max_sums, boolean remove_normal, Set<Integer> remove_nodes,
         boolean remove_unreachable, int entry, String[] remove_neighbor_edges, boolean list_nodes, boolean reorder,
-        String use_pg_for_cpp, EntryPointMode entryPointMode) {
+        String use_pg_for_cpp, EntryPointMode entryPointMode, String entryMethod) {
       Runnable inner = () -> {
         try {
-          writeCPPTestSource(use_pg_for_cpp.equals("") ? Optional.of(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG, entryPointMode)) : Optional.empty(), pgPath, summaryFile,
+          writeCPPTestSource(use_pg_for_cpp.equals("") ? Optional.of(createAndStoreSDG(classOrFile, pdgFile, useOldPdg, storePDG, entryPointMode, entryMethod)) : Optional.empty(), pgPath, summaryFile,
               exportedGraphsFolder, max_sums, remove_normal, remove_nodes, remove_unreachable, entry, remove_neighbor_edges,
               list_nodes, reorder, use_pg_for_cpp);
         } catch (IOException | ClassNotFoundException e) {
@@ -391,7 +412,7 @@ public class TestCLI implements Callable<Integer> {
 
     public Graph createPG(String jarOrClass, SDGConfig config, EntryPointMode entryPointMode) {
       try {
-        SDG sdg = createSDG(jarOrClass, Paths.get("tmp"), false, config, entryPointMode);
+        SDG sdg = createSDG(jarOrClass, Paths.get("tmp"), false, config, entryPointMode, "");
         return new SDGToGraph().convert(sdg, true).reorderNodes();
       } catch (IOException | ClassNotFoundException e) {
         e.printStackTrace();
@@ -409,7 +430,7 @@ public class TestCLI implements Callable<Integer> {
       SDGConfig conf = config.instantiate();
       conf.setPointsToPrecision(pts);
       conf.setFieldPropagation(propagation);
-      return calcSumsAndStore(jarOrClass, conf, Paths.get(pgFilePath(jarOrClass).toString() + "_" + pts.name() + "_" + propagation.name()));
+      return calcSumsAndStore(jarOrClass, conf, Paths.get(pgFilePath(jarOrClass, "").toString() + "_" + pts.name() + "_" + propagation.name()));
     }
 
     public void checkAll(String jarOrClass) {

@@ -39,9 +39,10 @@ public class Int extends Value {
 		return this.constantBits;
 	}
 
-	@Override public boolean isEffectivelyConstant() {
+	@Override public boolean isEffectivelyConstant(Method m) {
 		return this.constantBits != null && Arrays.stream(this.constantBits)
-				.allMatch(blv -> blv != BitLatticeValue.UNKNOWN);
+				.allMatch(blv -> blv != BitLatticeValue.UNKNOWN) && !BBlock
+				.getBBlockForInstruction(m.getDef(this.getValNum()), m.getCFG()).isLoopHeader();
 	}
 
 	private Formula[] initDeps() {

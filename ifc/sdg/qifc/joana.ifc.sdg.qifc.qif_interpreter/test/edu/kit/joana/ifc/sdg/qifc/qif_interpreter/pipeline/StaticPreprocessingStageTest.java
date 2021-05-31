@@ -53,6 +53,10 @@ class StaticPreprocessingStageTest {
 		constantBitsTest("ArrayInIf");
 	}
 
+	@Test void constantBits_Array5() {
+		constantBitsTest("Array5");
+	}
+
 	void constantBitsTest(String testcase) {
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(TestUtils.getDummyArgs(testcase), IStage.Stage.SAT_ANALYSIS);
@@ -132,15 +136,15 @@ class StaticPreprocessingStageTest {
 		System.out.println(needsToBeComputed);
 
 		for (Integer i : needsToBeComputed) {
-			Assertions.assertTrue(computed.contains(i) || constantOrParameter(m.getValue(i)));
+			Assertions.assertTrue(computed.contains(i) || constantOrParameter(m.getValue(i), m));
 		}
 
 		for (Integer i : m.getLeakedValues()) {
-			Assertions.assertTrue(computed.contains(i) || constantOrParameter(m.getValue(i)));
+			Assertions.assertTrue(computed.contains(i) || constantOrParameter(m.getValue(i), m));
 		}
 	}
 
-	private boolean constantOrParameter(Value v) {
-		return v.isConstant() || v.isEffectivelyConstant() || v.isParameter();
+	private boolean constantOrParameter(Value v, Method m) {
+		return v.isConstant() || v.isEffectivelyConstant(m) || v.isParameter();
 	}
 }

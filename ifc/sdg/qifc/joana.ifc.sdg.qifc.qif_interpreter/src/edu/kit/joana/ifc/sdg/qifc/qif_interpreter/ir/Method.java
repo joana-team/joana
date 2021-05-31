@@ -139,14 +139,25 @@ public class Method {
 	private void initConstants() {
 		for(BBlock current: this.getCFG().getBlocks()) {
 			for (SSAInstruction i: current.instructions()) {
-				for (int j = 0; j < i.getNumberOfUses(); j++) {
-					if (isConstant(i.getUse(j)) && !this.programValues.containsKey(i.getUse(j))) {
-						Type type = getConstType(i.getUse(j));
-						programValues.put(i.getUse(j),
-								Value.createConstant(i.getUse(j), type, getConstantValue(i.getUse(j), type)));
+
+				if (i instanceof SSAArrayLoadInstruction) {
+					checkForConstant(((SSAArrayLoadInstruction) i).getIndex());
+				} else if (i instanceof SSAArrayStoreInstruction) {
+					checkForConstant(((SSAArrayStoreInstruction) i).getIndex());
+					checkForConstant(((SSAArrayStoreInstruction) i).getValue());
+				} else {
+					for (int j = 0; j < i.getNumberOfUses(); j++) {
+						checkForConstant(i.getUse(j));
 					}
 				}
 			}
+		}
+	}
+
+	private void checkForConstant(int valNum) {
+		if (isConstant(valNum) && !this.programValues.containsKey(valNum)) {
+			Type type = getConstType(valNum);
+			programValues.put(valNum, Value.createConstant(valNum, type, getConstantValue(valNum, type)));
 		}
 	}
 

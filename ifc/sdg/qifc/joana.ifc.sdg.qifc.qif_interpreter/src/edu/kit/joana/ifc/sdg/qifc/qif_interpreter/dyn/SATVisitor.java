@@ -45,7 +45,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	private boolean needsVisiting(SSAInstruction i, BBlock b, Method m) {
-		if ((i.hasDef() && !m.getValue(i.getDef()).dynAnalysisNecessary())
+		if ((i.hasDef() && !m.getValue(i.getDef()).dynAnalysisNecessary(m))
 				|| i instanceof SSAConditionalBranchInstruction && !b.hasRelevantCF()
 				|| i instanceof SSAInvokeInstruction && ((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
 				.equals(OUTPUT_FUNCTION) || i instanceof SSAReturnInstruction && m.getProg().getEntryMethod().equals(m)
@@ -100,7 +100,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				instruction)) { // all entries are constant after assignemnt according to pre-analysis
 			IntStream.range(0, array.length()).forEach(i -> array
 					.addAssignmentFromPreProcessing(this.block.generateImplicitFlowFormula(), i, instruction));
-		} else if (m.getValue(instruction.getIndex()).isEffectivelyConstant() && array
+		} else if (m.getValue(instruction.getIndex()).isEffectivelyConstant(m) && array
 				.isEffectivelyConstant(instruction, LogicUtil.numericValue(m.getDepsForValue(instruction
 						.getIndex())))) { // idx amd assigned array element are constant according to pre-analysis
 			array.addAssignmentFromPreProcessing(this.block.generateImplicitFlowFormula(),

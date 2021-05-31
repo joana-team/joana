@@ -89,7 +89,7 @@ public class BBlock implements DotNode {
 	}
 
 	/**
-	 * DFS over the CFG, creeates new Basic Blocks and adds successors accorsdingly
+	 * DFS over the CFG, creeates new Basic Blocks and adds successors accordingly
 	 * In order to build a complete CFG, the predecessors need to be generated separately
 	 * see {@code} findPredecessors
 	 *

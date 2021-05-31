@@ -184,7 +184,7 @@ public abstract class Value {
 		return this.influencesLeak;
 	}
 
-	public boolean isEffectivelyConstant() {
+	public boolean isEffectivelyConstant(Method m) {
 		return false;
 	}
 
@@ -216,7 +216,7 @@ public abstract class Value {
 		isParameter = parameter;
 	}
 
-	public boolean dynAnalysisNecessary() {
-		return this.influencesLeak && !this.isEffectivelyConstant();
+	public boolean dynAnalysisNecessary(Method m) {
+		return this.influencesLeak && !this.isEffectivelyConstant(m);
 	}
 }

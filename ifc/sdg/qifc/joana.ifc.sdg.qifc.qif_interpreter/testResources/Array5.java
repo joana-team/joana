@@ -11,7 +11,7 @@ public class Array5 {
 
 	public int f(int h) {
 		int[] a = new int[3];
-		int i = 0;
+		int i = 1;
 		while (i < 3) {
 			a[i] = i & h;
 			i++;
@@ -19,5 +19,4 @@ public class Array5 {
 		Out.print(a[2]);
 		return 0;
 	}
-
 }

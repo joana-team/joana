@@ -62,7 +62,7 @@ public class Slicer {
 
 	private SDG removeUnneededEdges(SDG sdg, Method m) {
 		for (Map.Entry<Integer, Value> e : m.getProgramValues().entrySet()) {
-			if (e.getValue().isEffectivelyConstant()) {
+			if (e.getValue().isEffectivelyConstant(m)) {
 				SDGNode def = m.of(m.of(m.getDef(e.getKey())));
 
 				if (def == null)

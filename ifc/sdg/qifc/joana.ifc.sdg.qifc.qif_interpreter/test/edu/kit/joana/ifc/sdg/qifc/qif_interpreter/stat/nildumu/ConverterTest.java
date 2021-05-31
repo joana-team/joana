@@ -310,6 +310,10 @@ class ConverterTest {
 		testConversion("Loop3", true);
 	}
 
+	@Test void convertArray5() throws IOException, InterruptedException {
+		testConversion("Array5", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {

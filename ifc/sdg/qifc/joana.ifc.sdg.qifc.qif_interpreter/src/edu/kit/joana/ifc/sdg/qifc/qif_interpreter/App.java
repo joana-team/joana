@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.NullPrintStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class App {
 	public static void main(String[] args) throws InvalidClassFileException, MissingValueException,
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException, OutOfScopeException, IOException,
 			UnexpectedTypeException, InterruptedException {
-		//System.setErr(new NullPrintStream());
+		System.setErr(new NullPrintStream());
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");

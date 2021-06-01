@@ -61,7 +61,8 @@ public class LoopHandler {
 			}
 
 			if (b.isLoopHeader() && !b.equals(head)) {
-				LoopBody l = LoopHandler.analyze(m, b, sa, base);
+				LoopBody l = LoopHandler.analyze(m, b, sa,
+						m.getLoops().stream().filter(loop -> loop.getHead().equals(b)).findFirst().get());
 				m.addLoop(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));

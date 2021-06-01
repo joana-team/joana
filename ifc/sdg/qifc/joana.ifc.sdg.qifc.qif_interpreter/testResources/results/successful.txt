@@ -39,3 +39,5 @@ testResources/IrrelevantLoop.java
 testResources/BreakWithArray.java
 testResources/LoopinLoop3.java
 testResources/LoopinLoop2.java
+testResources/LoopinLoop2.java
+testResources/LoopinLoop3.java

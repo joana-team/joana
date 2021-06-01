@@ -2,16 +2,16 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
 public class LoopinLoop2 {
 
-	public  static void main(String[] args) {
+	public static void main(String[] args) {
 
 		LoopinLoop2 if_ = new LoopinLoop2();
-		if_.f(0, 1);
+		if_.f(1);
 
 	}
 
-	public int f(int h1, int h2) {
+	public int f(int h2) {
 		int l = 0;
-		while (h1 > 0) {
+		while (h2 > 0) {
 			while (h2 > 0) {
 				l++;
 				h2--;

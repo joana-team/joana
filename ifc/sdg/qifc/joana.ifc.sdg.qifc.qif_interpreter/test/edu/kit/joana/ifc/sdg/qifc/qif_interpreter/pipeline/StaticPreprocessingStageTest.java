@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
@@ -55,6 +56,10 @@ class StaticPreprocessingStageTest {
 
 	@Test void constantBits_Array5() {
 		constantBitsTest("Array5");
+	}
+
+	@Test void constantBits_CallTwice() {
+		constantBitsTest("CallTwice");
 	}
 
 	void constantBitsTest(String testcase) {
@@ -115,6 +120,10 @@ class StaticPreprocessingStageTest {
 		slicingTest("SimpleArithmetic");
 	}
 
+	@Test void slice_CallTwice() {
+		slicingTest("CallTwice");
+	}
+
 	void slicingTest(String testcase) {
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(TestUtils.getDummyArgs(testcase), IStage.Stage.STATIC_PREPROCESSING);
@@ -128,8 +137,9 @@ class StaticPreprocessingStageTest {
 			if (i == null)
 				continue;
 			if (e.getValue().influencesLeak()) {
-				computed.add(e.getKey());
-				IntStream.range(0, i.getNumberOfUses()).forEach(j -> needsToBeComputed.add(i.getUse(j)));
+				int firstUse = (i instanceof SSAInvokeInstruction) ? 1 : 0;
+				IntStream.range(firstUse, i.getNumberOfUses()).forEach(j -> needsToBeComputed.add(i.getUse(j)));
+				System.out.println(needsToBeComputed);
 			}
 		}
 

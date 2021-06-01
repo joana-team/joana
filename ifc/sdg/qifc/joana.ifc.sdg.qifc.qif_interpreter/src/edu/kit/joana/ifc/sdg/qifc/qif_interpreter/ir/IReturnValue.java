@@ -34,7 +34,9 @@ public interface IReturnValue<T> {
 				IntStream.range(0, valDeps.length).forEach(
 						k -> s.addMapping(callee.getArray(params[finalI]).getValueDependencies()[k], valDeps[k]));
 			} else {
-				s.addMapping(callee.getDepsForValue(params[i]), caller.getDepsForValue(argValueNum[i]));
+				Formula[] paramF = callee.getDepsForValue(params[i]);
+				Formula[] argsF = caller.getDepsForValue(argValueNum[i]);
+				s.addMapping(paramF, argsF);
 			}
 		}
 		return s;

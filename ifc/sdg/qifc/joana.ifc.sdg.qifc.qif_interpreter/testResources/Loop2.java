@@ -11,9 +11,10 @@ public class Loop2 {
 
 	public int f(int h) {
 		int l = 0;
-		while(3 > l) {
+		while (3 > l) {
 			l++;
 		}
+		Out.print(l);
 		return l;
 	}
 

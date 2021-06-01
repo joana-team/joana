@@ -12,6 +12,7 @@ import java.io.IOException;
 public class BuildStage implements IStage {
 
 	private boolean success = false;
+	public static IRBuilder builder;
 
 	@Override public Environment execute(Environment env) {
 		assert (env.completedStage(Stage.INIT));
@@ -20,7 +21,7 @@ public class BuildStage implements IStage {
 		InitStage.InitResult data = (InitStage.InitResult) env.lastStage;
 
 		// create SDG
-		IRBuilder builder = new IRBuilder(data.classFilePath, data.className);
+		builder = new IRBuilder(data.classFilePath, data.className);
 		builder.createBaseSDGConfig();
 		try {
 			builder.buildAndKeepBuilder();

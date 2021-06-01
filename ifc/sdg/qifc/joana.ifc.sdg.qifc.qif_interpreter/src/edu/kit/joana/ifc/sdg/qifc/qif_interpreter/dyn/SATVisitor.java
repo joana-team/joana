@@ -15,7 +15,7 @@ import org.logicng.formulas.Variable;
 import java.util.stream.IntStream;
 
 public class SATVisitor implements SSAInstruction.IVisitor {
-	private static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
+	public static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
 	private final edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis staticAnalysis;
 	private boolean containsOutOfScopeInstruction;

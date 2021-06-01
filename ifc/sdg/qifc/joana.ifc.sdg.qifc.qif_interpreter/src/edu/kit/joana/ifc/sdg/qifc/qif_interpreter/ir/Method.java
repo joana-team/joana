@@ -507,4 +507,9 @@ public class Method {
 	public boolean isDepsAnalyzed() {
 		return this.depsAnalyzed;
 	}
+
+	public List<SSAInstruction> instructions() {
+		return Arrays.stream(this.getCFG().getWalaCFG().getInstructions()).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+	}
 }

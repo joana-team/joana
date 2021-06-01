@@ -39,7 +39,7 @@ public class LoopConversionVisitor extends ConversionVisitor {
 			int[] returnVars = new int[res.returnVars.length];
 			for (int i = 0; i < returnVars.length; i++) {
 				Optional<SSAInstruction> possibleBreakReturn = instructionForDef(res.returnVars[i], l.getHead());
-				Optional<SSAInstruction> possibleBreakPhi = instructionForUse(res.returnVars[i], postLoopSuccessor);
+				Optional<SSAInstruction> possibleBreakPhi = phiInstructionForUse(res.returnVars[i], postLoopSuccessor);
 				int finalI = i;
 				returnVars[i] = possibleBreakPhi
 						.map(ssaInstruction -> (ssaInstruction.getUse(0) == res.returnVars[finalI]) ?
@@ -67,8 +67,8 @@ public class LoopConversionVisitor extends ConversionVisitor {
 		return b.instructions().stream().filter(i -> i instanceof SSAPhiInstruction && i.getDef() == def).findFirst();
 	}
 
-	private Optional<SSAInstruction> instructionForUse(int use, BBlock b) {
-		return b.instructions().stream()
+	private Optional<SSAInstruction> phiInstructionForUse(int use, BBlock b) {
+		return b.instructions().stream().filter(i -> i instanceof SSAPhiInstruction)
 				.filter(i -> IntStream.range(0, i.getNumberOfUses()).anyMatch(j -> i.getUse(j) == use)).findFirst();
 	}
 }

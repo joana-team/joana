@@ -314,6 +314,10 @@ class ConverterTest {
 		testConversion("Array5", true);
 	}
 
+	@Test void convertCallTwice() throws IOException, InterruptedException {
+		testConversion("CallTwice", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {

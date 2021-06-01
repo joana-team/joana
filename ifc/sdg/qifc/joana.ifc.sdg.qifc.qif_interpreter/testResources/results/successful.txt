@@ -21,3 +21,12 @@ testResources/Array3.java
 testResources/Array2.java
 testResources/ArrayLoop.java
 testResources/ArrayReturn.java
+testResources/Loop2.java
+testResources/Loop5.java
+testResources/Recursion2.java
+testResources/MultipleBreaks.java
+testResources/ArrayRecursion.java
+testResources/Recursion3.java
+testResources/MultipleReturns.java
+testResources/LoopinLoop.java
+testResources/CallTwice.java

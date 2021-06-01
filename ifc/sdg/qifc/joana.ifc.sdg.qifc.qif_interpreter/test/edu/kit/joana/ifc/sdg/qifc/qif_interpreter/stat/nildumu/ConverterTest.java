@@ -322,6 +322,10 @@ class ConverterTest {
 		testConversion("Array6", true);
 	}
 
+	@Test void convertMethodConstantReturn() throws IOException, InterruptedException {
+		testConversion("MethodConstantReturn", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {

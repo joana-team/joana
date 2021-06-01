@@ -3,12 +3,14 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat;
 import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.wala.core.PDGNode;
 
@@ -20,13 +22,11 @@ public class Slicer {
 	public Slicer() {
 	}
 
-	public Map<Integer, Boolean> neededDefs;
-	public Map<Integer, Boolean> neededCF;
+	public Map<Pair<Method, Integer>, Boolean> neededDefs;
+	public Map<Pair<Method, Integer>, Boolean> neededCF;
 
 	public void findRelevantSlice(Integer leakedVal, Method m) {
-		neededDefs = m.getProgramValues().keySet().stream().collect(Collectors.toMap(i -> i, i -> false));
-		neededCF = m.getCFG().getBlocks().stream().filter(BBlock::splitsControlFlow).map(BBlock::idx)
-				.collect(Collectors.toMap(i -> i, i -> false));
+		initResultDataStructures(m.getProg());
 
 		SDG sdg = removeUnneededEdges(m.getProg().getSdg(), m);
 
@@ -53,18 +53,21 @@ public class Slicer {
 			edu.kit.joana.ifc.sdg.graph.slicer.Slicer ssb = new SummarySlicerBackward(sdg);
 
 			Collection<SDGNode> sdgSlice = ssb.slice(criterion);
-			List<PDGNode> slice = sdgSlice.stream().map(m::of).filter(Objects::nonNull).collect(Collectors.toList());
+			printSlice(criterion, sdgSlice);
 
-			// printSlice(criterion, sdgSliceF);
-			// printSlice(sliceF);
-
-			for (PDGNode node : slice) {
-				SSAInstruction instruction = m.instruction(node);
-				if (instruction != null && instruction.hasDef()) {
-					neededDefs.put(instruction.getDef(), true);
-				} else if (instruction instanceof SSAConditionalBranchInstruction) {
-					BBlock b = BBlock.getBBlockForInstruction(instruction, m.getCFG());
-					neededCF.put(b.idx(), true);
+			for (Method method : m.getProg().getMethods()) {
+				List<PDGNode> slice = sdgSlice.stream().map(method::of).filter(Objects::nonNull)
+						.collect(Collectors.toList());
+				//System.out.println("PDG: " + method.identifier());
+				//printSlice(slice);
+				for (PDGNode node : slice) {
+					SSAInstruction instruction = method.instruction(node);
+					if (instruction != null && instruction.hasDef()) {
+						neededDefs.put(Pair.make(method, instruction.getDef()), true);
+					} else if (instruction instanceof SSAConditionalBranchInstruction) {
+						BBlock b = BBlock.getBBlockForInstruction(instruction, method.getCFG());
+						neededCF.put(Pair.make(method, b.idx()), true);
+					}
 				}
 			}
 		}
@@ -93,5 +96,17 @@ public class Slicer {
 			}
 		}
 		return sdg;
+	}
+
+	private void initResultDataStructures(Program p) {
+		neededDefs = new HashMap<>();
+		neededCF = new HashMap<>();
+
+		for (Method m : p.getMethods()) {
+			neededDefs.putAll(m.getProgramValues().keySet().stream()
+					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> false)));
+			neededCF.putAll(m.getCFG().getBlocks().stream().filter(BBlock::splitsControlFlow).map(BBlock::idx)
+					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> false)));
+		}
 	}
 }

@@ -45,14 +45,11 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	}
 
 	private boolean needsVisiting(SSAInstruction i, BBlock b, Method m) {
-		if ((i.hasDef() && !m.getValue(i.getDef()).dynAnalysisNecessary(m))
-				|| i instanceof SSAConditionalBranchInstruction && !b.hasRelevantCF()
-				|| i instanceof SSAInvokeInstruction && ((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
-				.equals(OUTPUT_FUNCTION) || i instanceof SSAReturnInstruction && m.getProg().getEntryMethod().equals(m)
-				|| i instanceof SSAGotoInstruction) {
-			return false;
-		} else
-			return true;
+		return (!i.hasDef() || m.getValue(i.getDef()).dynAnalysisNecessary(m)) && (
+				!(i instanceof SSAConditionalBranchInstruction) || b.hasRelevantCF()) && (
+				!(i instanceof SSAInvokeInstruction) || !((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
+						.equals(OUTPUT_FUNCTION)) && (!(i instanceof SSAReturnInstruction) || !m.getProg()
+				.getEntryMethod().equals(m)) && !(i instanceof SSAGotoInstruction);
 	}
 
 	public SATVisitor(StaticAnalysis staticAnalysis) {

@@ -398,7 +398,12 @@ public class Converter {
 
 	public static String varName(int valNum, Method m) {
 		String methodId = m.identifier().replaceAll("[\\.\\(\\)]", "_");
-		return "v_" /* + methodId + "_" */ + valNum;
+		String loopId = "";
+		if (m.isComputedInLoop(valNum)) {
+			LoopBody loop = m.getLoops().stream().filter(l -> l.producesValNum(valNum)).findFirst().get();
+			loopId = "_" + methodName(loop);
+		}
+		return "v_" + methodId + loopId + "_" + valNum;
 	}
 
 	public static int valNum(String varName) {

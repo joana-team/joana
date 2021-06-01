@@ -1,8 +1,10 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
+import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.Slicer;
@@ -12,11 +14,9 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuProgram;
 import edu.kit.joana.util.Triple;
 import nildumu.Lattices;
 import nildumu.Parser;
+import nildumu.mih.MethodInvocationHandler;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StaticPreprocessingStage implements IStage {
 
@@ -26,8 +26,8 @@ public class StaticPreprocessingStage implements IStage {
 	@Override public Environment execute(Environment env) {
 
 		assert (env.completedStage(Stage.BUILD));
-		Map<Integer, Boolean> neededDefs = new HashMap<>();
-		Map<Integer, Boolean> neededCF = new HashMap<>();
+		Map<Pair<Method, Integer>, Boolean> neededDefs = new HashMap<>();
+		Map<Pair<Method, Integer>, Boolean> neededCF = new HashMap<>();
 
 		// ---------------------- Nildumu ------------------------
 		Converter c = new Converter();
@@ -40,32 +40,41 @@ public class StaticPreprocessingStage implements IStage {
 
 		assert p != null;
 		env.nProgram = new NildumuProgram(p, options);
-		for (Map.Entry<Integer, Value> e : env.iProgram.getEntryMethod().getProgramValues().entrySet()) {
 
-			if (env.iProgram.getEntryMethod().getDef(e.getKey()) != null && BBlock
-					.getBBlockForInstruction(env.iProgram.getEntryMethod().getDef(e.getKey()),
-							env.iProgram.getEntryMethod().getCFG()).isLoopHeader()) {
-				e.getValue().setConstantBitMask(Value.BitLatticeValue.defaultUnknown(e.getValue().getWidth()));
-				continue;
-			}
+		Parser.MethodInvocationNode n = (Parser.MethodInvocationNode) env.nProgram.context.nodes().stream()
+				.filter(node -> node instanceof Parser.MethodInvocationNode).findFirst().get();
+		Lattices.Bit b = Lattices.BitLattice.get().create(Lattices.B.U);
+		MethodInvocationHandler.MethodReturnValue retVal = env.nProgram.context.methodInvocationHandler()
+				.analyze(env.nProgram.context, n, Collections.singletonList(new Lattices.Value(Arrays.asList(b, b, b))),
+						new HashMap<>());
 
-			if (e.getValue().isArrayType()) {
-				for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {
-					Triple<String, String, String> varNames = Converter
-							.arrayVarName(i.getKey().getArrayRef(), env.iProgram.getEntryMethod(), i.getValue());
-					int elementWidth = ((Array) e.getValue()).elementType().bitwidth();
-					Value.BitLatticeValue[][] bitMask = {
-							createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getLeft())),
-							createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getMiddle())),
-							createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getRight())) };
-					env.iProgram.getEntryMethod().getArray(i.getKey().getArrayRef())
-							.addConstantBitMask(i.getKey(), bitMask);
+		for (Method m : env.iProgram.getMethods()) {
+			for (Map.Entry<Integer, Value> e : m.getProgramValues().entrySet()) {
+
+				if (m.getDef(e.getKey()) != null && BBlock.getBBlockForInstruction(m.getDef(e.getKey()), m.getCFG())
+						.isLoopHeader()) {
+					e.getValue().setConstantBitMask(Value.BitLatticeValue.defaultUnknown(e.getValue().getWidth()));
+					continue;
 				}
 
-			} else {
-				Value.BitLatticeValue[] bitMask = createBitMask(e.getValue().getWidth(), env.nProgram.context
-						.getVariableValue(Converter.varName(e.getKey(), env.iProgram.getEntryMethod())));
-				e.getValue().setConstantBitMask(bitMask);
+				if (e.getValue().isArrayType()) {
+					for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {
+						Triple<String, String, String> varNames = Converter
+								.arrayVarName(i.getKey().getArrayRef(), m, i.getValue());
+						int elementWidth = ((Array<? extends Value>) e.getValue()).elementType().bitwidth();
+						Value.BitLatticeValue[][] bitMask = {
+								createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getLeft())),
+								createBitMask(elementWidth,
+										env.nProgram.context.getVariableValue(varNames.getMiddle())),
+								createBitMask(elementWidth,
+										env.nProgram.context.getVariableValue(varNames.getRight())) };
+						m.getArray(i.getKey().getArrayRef()).addConstantBitMask(i.getKey(), bitMask);
+					}
+				} else {
+					Value.BitLatticeValue[] bitMask = createBitMask(e.getValue().getWidth(),
+							env.nProgram.context.getVariableValue(Converter.varName(e.getKey(), m)));
+					e.getValue().setConstantBitMask(bitMask);
+				}
 			}
 		}
 
@@ -79,18 +88,20 @@ public class StaticPreprocessingStage implements IStage {
 			updateNeededDefs(neededCF, slicer.neededCF);
 		}
 
-		env.iProgram.getEntryMethod().getProgramValues()
-				.forEach((key, value) -> value.setInfluencesLeak(neededDefs.getOrDefault(key, true)));
-		env.iProgram.getEntryMethod().getCFG().getBlocks()
-				.forEach(b -> b.setHasRelevantCF(neededCF.getOrDefault(b.idx(), true)));
-
+		for (Method m : env.iProgram.getMethods()) {
+			m.getProgramValues()
+					.forEach((key, value) -> value.setInfluencesLeak(neededDefs.getOrDefault(Pair.make(m, key), true)));
+			m.getCFG().getBlocks()
+					.forEach(bb -> bb.setHasRelevantCF(neededCF.getOrDefault(Pair.make(m, bb.idx()), true)));
+		}
 		success = true;
 		return env;
 	}
 
-	private void updateNeededDefs(Map<Integer, Boolean> neededDefs, Map<Integer, Boolean> update) {
-		for (int key : update.keySet()) {
-			neededDefs.put(key, neededDefs.getOrDefault(key, false) || update.get(key));
+	private void updateNeededDefs(Map<Pair<Method, Integer>, Boolean> neededDefs,
+			Map<Pair<Method, Integer>, Boolean> update) {
+		for (Pair<Method, Integer> p : update.keySet()) {
+			neededDefs.put(p, neededDefs.getOrDefault(p, false) || update.get(p));
 		}
 	}
 

@@ -1,3 +1,5 @@
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
+
 public class Iterations {
 
 	public static void main(String[] args) {
@@ -28,7 +30,7 @@ public class Iterations {
 			z = z + 1;
 			h = h & 0b11111111111111111111110000000000;
 		}
-		System.out.println(h);
+		Out.print(h);
 		return h;
 	}
 }

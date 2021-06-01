@@ -206,6 +206,12 @@ public abstract class Value {
 		public Formula asPropFormula() {
 			return this.asPropFormula;
 		}
+
+		public static BitLatticeValue[] defaultUnknown(int length) {
+			BitLatticeValue[] res = new BitLatticeValue[length];
+			Arrays.fill(res, UNKNOWN);
+			return res;
+		}
 	}
 
 	public boolean isParameter() {

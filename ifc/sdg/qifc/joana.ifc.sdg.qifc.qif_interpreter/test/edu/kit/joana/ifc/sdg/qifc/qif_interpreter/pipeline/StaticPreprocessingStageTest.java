@@ -62,6 +62,10 @@ class StaticPreprocessingStageTest {
 		constantBitsTest("CallTwice");
 	}
 
+	@Test void constantBits_Array6() {
+		constantBitsTest("Array6");
+	}
+
 	void constantBitsTest(String testcase) {
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(TestUtils.getDummyArgs(testcase), IStage.Stage.SAT_ANALYSIS);
@@ -124,6 +128,10 @@ class StaticPreprocessingStageTest {
 		slicingTest("CallTwice");
 	}
 
+	@Test void slice_Array6() {
+		slicingTest("Array6");
+	}
+
 	void slicingTest(String testcase) {
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(TestUtils.getDummyArgs(testcase), IStage.Stage.STATIC_PREPROCESSING);
@@ -137,13 +145,15 @@ class StaticPreprocessingStageTest {
 			if (i == null)
 				continue;
 			if (e.getValue().influencesLeak()) {
+				computed.add(e.getKey());
 				int firstUse = (i instanceof SSAInvokeInstruction) ? 1 : 0;
 				IntStream.range(firstUse, i.getNumberOfUses()).forEach(j -> needsToBeComputed.add(i.getUse(j)));
-				System.out.println(needsToBeComputed);
+				// System.out.println(needsToBeComputed);
 			}
 		}
 
-		System.out.println(needsToBeComputed);
+		System.out.println("Need: " + needsToBeComputed);
+		System.out.println("Computed: " + computed);
 
 		for (Integer i : needsToBeComputed) {
 			Assertions.assertTrue(computed.contains(i) || constantOrParameter(m.getValue(i), m));

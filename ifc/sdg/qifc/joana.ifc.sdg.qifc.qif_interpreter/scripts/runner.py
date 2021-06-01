@@ -6,7 +6,7 @@ import sys
 
 import util
 
-ignored = ["testResources/PrintInCall.java"]
+ignored = ["testResources/PrintInCall.java", "testResources/LoopinLoop2.java", "testResources/Iterations.java"]
 
 
 def run_test(args, path):

@@ -14,9 +14,10 @@ public class BreakWithArray {
 		int[] a = new int[3];
 		while (l >= 0) {
 			a[l] = 1;
-			if (l == 3) {
+			if (l == 2) {
 				break;
 			}
+			l++;
 		}
 		Out.print(l);
 		return l;

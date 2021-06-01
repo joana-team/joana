@@ -8,6 +8,7 @@ import util
 
 
 def execute(args, path):
+    print("Execution with: " + ''.join(str(arg) for arg in args))
     cwd = os.getcwd()
     script_path = cwd + "/run.sh"
 

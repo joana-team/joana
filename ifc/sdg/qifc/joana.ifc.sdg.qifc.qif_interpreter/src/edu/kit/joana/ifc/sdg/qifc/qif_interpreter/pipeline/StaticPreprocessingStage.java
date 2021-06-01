@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.Slicer;
@@ -40,6 +41,13 @@ public class StaticPreprocessingStage implements IStage {
 		assert p != null;
 		env.nProgram = new NildumuProgram(p, options);
 		for (Map.Entry<Integer, Value> e : env.iProgram.getEntryMethod().getProgramValues().entrySet()) {
+
+			if (env.iProgram.getEntryMethod().getDef(e.getKey()) != null && BBlock
+					.getBBlockForInstruction(env.iProgram.getEntryMethod().getDef(e.getKey()),
+							env.iProgram.getEntryMethod().getCFG()).isLoopHeader()) {
+				e.getValue().setConstantBitMask(Value.BitLatticeValue.defaultUnknown(e.getValue().getWidth()));
+				continue;
+			}
 
 			if (e.getValue().isArrayType()) {
 				for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {

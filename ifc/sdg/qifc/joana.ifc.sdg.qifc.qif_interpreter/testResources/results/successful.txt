@@ -30,3 +30,12 @@ testResources/Recursion3.java
 testResources/MultipleReturns.java
 testResources/LoopinLoop.java
 testResources/CallTwice.java
+testResources/Array6.java
+testResources/Break4.java
+testResources/Arithmetic.java
+testResources/IrrelevantIf2.java
+testResources/Break3.java
+testResources/IrrelevantLoop.java
+testResources/BreakWithArray.java
+testResources/LoopinLoop3.java
+testResources/LoopinLoop2.java

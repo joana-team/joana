@@ -112,18 +112,18 @@ def parse_dimacs_file(file_path):
     return int(first_line[2]), int(first_line[3])
 
 
-def evaluate_testcase(output_dir, classname):
+def evaluate_testcase(output_dir, classname, name_suffix):
     evaluation = parseLogfile(output_dir, classname)
     json_str = EvaluationSerializer().encode(evaluation)
 
     if not os.path.exists(EVALUATION_DIR):
         os.mkdir(EVALUATION_DIR)
 
-    eval_file = EVALUATION_DIR + classname + ".json"
+    eval_file = EVALUATION_DIR + classname + name_suffix + ".json"
     with open(eval_file, 'w+') as f:
         f.write(
             json_str.replace("\\", "").replace("\"{", "{").replace("\"[", "[").replace("}\"", "}").replace("]\"", "]"))
 
 
 if __name__ == "__main__":
-    evaluate_testcase(sys.argv[1], sys.argv[2])
+    evaluate_testcase(sys.argv[1], sys.argv[2], sys.argv[3])

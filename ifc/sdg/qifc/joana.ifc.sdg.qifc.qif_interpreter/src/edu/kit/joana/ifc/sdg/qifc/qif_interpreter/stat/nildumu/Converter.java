@@ -448,10 +448,11 @@ public class Converter {
 		return "x" + varNameCounter++;
 	}
 
-	public static Triple<String, String, String> arrayVarName(int valNum, Method method, int idx) {
+	public static List<String> arrayVarName(int valNum, Method method, int idx) {
+		int arrayLength = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.ARRAY.bitwidth();
 		String base = "__bl_" + varName(valNum, method) + "_";
 		String idxStr = (idx == 0) ? "" : String.valueOf(idx);
-		return Triple.triple(base + "0" + idxStr, base + "1" + idxStr, base + "2" + idxStr);
+		return IntStream.range(0, arrayLength).mapToObj(i -> base + i + idxStr).collect(Collectors.toList());
 	}
 
 	public static Parser.ArgumentsNode arguments(List<String> varNames) {

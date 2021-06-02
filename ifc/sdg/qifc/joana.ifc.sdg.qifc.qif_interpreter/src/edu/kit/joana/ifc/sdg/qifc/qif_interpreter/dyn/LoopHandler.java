@@ -119,8 +119,6 @@ public class LoopHandler {
 			m.getArray(i).setValueDependencies(res);
 		}
 
-		// TODO do the same for arrays
-
 		return base;
 	}
 

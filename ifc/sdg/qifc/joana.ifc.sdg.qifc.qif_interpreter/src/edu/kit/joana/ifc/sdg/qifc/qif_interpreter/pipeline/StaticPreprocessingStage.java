@@ -10,7 +10,6 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.Slicer;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.Converter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuOptions;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuProgram;
-import edu.kit.joana.util.Triple;
 import nildumu.Lattices;
 import nildumu.Parser;
 import nildumu.mih.MethodInvocationHandler;
@@ -53,15 +52,11 @@ public class StaticPreprocessingStage implements IStage {
 
 				if (e.getValue().isArrayType()) {
 					for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {
-						Triple<String, String, String> varNames = Converter
-								.arrayVarName(i.getKey().getArrayRef(), m, i.getValue());
+						List<String> varNames = Converter.arrayVarName(i.getKey().getArrayRef(), m, i.getValue());
 						int elementWidth = ((Array<? extends Value>) e.getValue()).elementType().bitwidth();
-						Value.BitLatticeValue[][] bitMask = {
-								createBitMask(elementWidth, env.nProgram.context.getVariableValue(varNames.getLeft())),
-								createBitMask(elementWidth,
-										env.nProgram.context.getVariableValue(varNames.getMiddle())),
-								createBitMask(elementWidth,
-										env.nProgram.context.getVariableValue(varNames.getRight())) };
+						Value.BitLatticeValue[][] bitMask = varNames.stream().map(varName -> createBitMask(elementWidth,
+								env.nProgram.context.getVariableValue(varName)))
+								.toArray(Value.BitLatticeValue[][]::new);
 						m.getArray(i.getKey().getArrayRef()).addConstantBitMask(i.getKey(), bitMask);
 					}
 				} else {

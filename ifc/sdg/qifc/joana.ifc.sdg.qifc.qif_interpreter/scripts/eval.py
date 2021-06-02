@@ -121,7 +121,8 @@ def evaluate_testcase(output_dir, classname):
 
     eval_file = EVALUATION_DIR + classname + ".json"
     with open(eval_file, 'w+') as f:
-        f.write(json_str)
+        f.write(
+            json_str.replace("\\", "").replace("\"{", "{").replace("\"[", "[").replace("}\"", "}").replace("]\"", "]"))
 
 
 if __name__ == "__main__":

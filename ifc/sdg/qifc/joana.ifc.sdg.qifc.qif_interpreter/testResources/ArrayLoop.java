@@ -12,6 +12,7 @@ public class ArrayLoop {
 	public int f(int h) {
 		int[] a = new int[1];
 		int i = 0;
+		a[1] = 2;
 		while (i < 3) {
 			a[i] = h;
 			i++;

@@ -3,7 +3,6 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
@@ -34,12 +33,13 @@ public class StaticPreprocessingStage implements IStage {
 		Parser.ProgramNode p = null;
 		try {
 			p = c.convertProgram(env.iProgram);
+			//System.out.println(p.toPrettyString());
 		} catch (ConversionException e) {
 			e.printStackTrace();
 		}
 
 		assert p != null;
-		env.nProgram = new NildumuProgram(p, options);
+		env.nProgram = new NildumuProgram(p, options, Converter.loopMethods);
 
 		Parser.MethodInvocationNode n = (Parser.MethodInvocationNode) env.nProgram.context.nodes().stream()
 				.filter(node -> node instanceof Parser.MethodInvocationNode).findFirst().get();
@@ -50,12 +50,6 @@ public class StaticPreprocessingStage implements IStage {
 
 		for (Method m : env.iProgram.getMethods()) {
 			for (Map.Entry<Integer, Value> e : m.getProgramValues().entrySet()) {
-
-				if (m.getDef(e.getKey()) != null && BBlock.getBBlockForInstruction(m.getDef(e.getKey()), m.getCFG())
-						.isLoopHeader()) {
-					e.getValue().setConstantBitMask(Value.BitLatticeValue.defaultUnknown(e.getValue().getWidth()));
-					continue;
-				}
 
 				if (e.getValue().isArrayType()) {
 					for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {
@@ -107,7 +101,7 @@ public class StaticPreprocessingStage implements IStage {
 
 	private Value.BitLatticeValue[] createBitMask(int valueWidth, Lattices.Value latticeValue) {
 		if (valueWidth != latticeValue.bits.size()) {
-			assert (latticeValue.toString().equals("xx"));
+			// assert (latticeValue.toString().equals("xx"));
 			return Collections.nCopies(valueWidth, Value.BitLatticeValue.UNKNOWN).toArray(new Value.BitLatticeValue[0]);
 		}
 

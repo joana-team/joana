@@ -70,6 +70,10 @@ class StaticPreprocessingStageTest {
 		constantBitsTest("Array6");
 	}
 
+	@Test void constantBits_Loop10() {
+		constantBitsTest("Loop10");
+	}
+
 	@Test void constantBits_MethodConstantReturn() {
 		constantBitsTest("MethodConstantReturn");
 	}
@@ -132,6 +136,10 @@ class StaticPreprocessingStageTest {
 
 	@Test void slice_SimpleArithmetic() {
 		slicingTest("SimpleArithmetic");
+	}
+
+	@Test void slice_ArrayLoop() {
+		slicingTest("ArrayLoop");
 	}
 
 	@Test void slice_CallTwice() {

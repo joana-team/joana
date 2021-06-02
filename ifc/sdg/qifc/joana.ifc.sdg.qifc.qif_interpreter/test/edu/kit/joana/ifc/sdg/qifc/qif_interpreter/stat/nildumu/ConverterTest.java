@@ -326,6 +326,14 @@ class ConverterTest {
 		testConversion("MethodConstantReturn", true);
 	}
 
+	@Test void convertLoop10() throws IOException, InterruptedException {
+		testConversion("Loop10", true);
+	}
+
+	@Test void convertLoopAfterLoop() throws IOException, InterruptedException {
+		testConversion("LoopAfterLoop", true);
+	}
+
 	void testConversion(String testCase, boolean print) throws IOException, InterruptedException {
 		String res = convertProgram(testCase);
 		if (print) {

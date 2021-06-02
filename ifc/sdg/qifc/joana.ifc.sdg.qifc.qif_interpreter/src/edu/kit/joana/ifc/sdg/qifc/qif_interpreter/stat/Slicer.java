@@ -53,7 +53,7 @@ public class Slicer {
 			edu.kit.joana.ifc.sdg.graph.slicer.Slicer ssb = new SummarySlicerBackward(sdg);
 
 			Collection<SDGNode> sdgSlice = ssb.slice(criterion);
-			printSlice(criterion, sdgSlice);
+			//printSlice(criterion, sdgSlice);
 
 			for (Method method : m.getProg().getMethods()) {
 				List<PDGNode> slice = sdgSlice.stream().map(method::of).filter(Objects::nonNull)
@@ -91,6 +91,8 @@ public class Slicer {
 				if (def == null)
 					continue; // "real" constants don't have their own node
 
+				//sdg.getIncomingEdgesOfKind(def, SDGEdge.Kind.DATA_DEP).forEach(edge -> System.out.println("Removed: " + edge.toString()));
+				//sdg.getIncomingEdgesOfKind(def, SDGEdge.Kind.CONTROL_DEP_COND).forEach(edge -> System.out.println("Removed: " + edge.toString()));
 				sdg.removeAllEdges(sdg.getIncomingEdgesOfKind(def, SDGEdge.Kind.DATA_DEP));
 				sdg.removeAllEdges(sdg.getIncomingEdgesOfKind(def, SDGEdge.Kind.CONTROL_DEP_COND));
 			}

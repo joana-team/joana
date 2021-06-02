@@ -41,3 +41,8 @@ testResources/LoopinLoop3.java
 testResources/LoopinLoop2.java
 testResources/LoopinLoop2.java
 testResources/LoopinLoop3.java
+testResources/Loop10.java
+testResources/ArrayLoop.java
+testResources/ArrayLoop.java
+testResources/LoopAfterLoop.java
+testResources/Loop10.java

@@ -11,6 +11,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import nildumu.Parser;
+import swp.lexer.Location;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,14 +43,14 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 		varDecls.put(instruction.getDef(), Converter.varDecl(Converter.varName(instruction.getDef(), m),
 				m.getValue(instruction.getDef()).getType().nildumuType()));
 		Parser.BracketedAccessOperatorNode arrayAccess = new Parser.BracketedAccessOperatorNode(
-				access(instruction.getArrayRef()), access(instruction.getIndex()));
+				access(instruction.getArrayRef(), instruction), access(instruction.getIndex(), instruction));
 		stmts.add(Converter.assignment(Converter.varName(instruction.getDef(), m), arrayAccess));
 	}
 
 	@Override public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-		Parser.ArrayAssignmentNode arrayAssignmentNode = new Parser.ArrayAssignmentNode(Converter.DUMMY_LOCATION,
-				Converter.varName(instruction.getArrayRef(), m), access(instruction.getIndex()),
-				access(instruction.getValue()));
+		Parser.ArrayAssignmentNode arrayAssignmentNode = new Parser.ArrayAssignmentNode(location(instruction),
+				Converter.varName(instruction.getArrayRef(), m), access(instruction.getIndex(), instruction),
+				access(instruction.getValue(), instruction));
 		stmts.add(arrayAssignmentNode);
 
 		int arrayVarIdx = arrayVarIdxCounter.getOrDefault(instruction.getArrayRef(), 1);
@@ -67,8 +68,8 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 			e.printStackTrace();
 		}
 
-		Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
-				access(instruction.getUse(1)), terminal);
+		Parser.BinaryOperatorNode binOp = new Parser.BinaryOperatorNode(access(instruction.getUse(0), instruction),
+				access(instruction.getUse(1), instruction), terminal);
 
 		this.varDecls.put(instruction.getDef(), Converter.varDecl(Converter.varName(instruction.getDef(), m),
 				m.getValue(instruction.getDef()).getType().nildumuType()));
@@ -80,7 +81,8 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 		IUnaryOpInstruction.Operator op = (IUnaryOpInstruction.Operator) instruction.getOpcode();
 		Parser.UnaryOperatorNode unOp = null;
 		try {
-			unOp = new Parser.UnaryOperatorNode(access(instruction.getUse(0)), Converter.LexerTerminal.of(op));
+			unOp = new Parser.UnaryOperatorNode(access(instruction.getUse(0), instruction),
+					Converter.LexerTerminal.of(op));
 		} catch (ConversionException e) {
 			e.printStackTrace();
 		}
@@ -91,8 +93,8 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 
 	@Override public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
 		try {
-			Parser.BinaryOperatorNode expr = new Parser.BinaryOperatorNode(access(instruction.getUse(0)),
-					access(instruction.getUse(1)),
+			Parser.BinaryOperatorNode expr = new Parser.BinaryOperatorNode(access(instruction.getUse(0), instruction),
+					access(instruction.getUse(1), instruction),
 					Converter.LexerTerminal.of((IConditionalBranchInstruction.Operator) instruction.getOperator()));
 			this.blockToExpr.put(currentBlock.idx(), expr);
 		} catch (ConversionException e) {
@@ -105,9 +107,10 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 			return;
 
 		if (instruction.returnsVoid()) {
-			this.stmts.add(new Parser.ReturnStatementNode(Converter.DUMMY_LOCATION));
+			this.stmts.add(new Parser.ReturnStatementNode(location(instruction)));
 		} else {
-			this.stmts.add(new Parser.ReturnStatementNode(Converter.DUMMY_LOCATION, access(instruction.getResult())));
+			this.stmts.add(new Parser.ReturnStatementNode(location(instruction),
+					access(instruction.getResult(), instruction)));
 		}
 	}
 
@@ -115,15 +118,16 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 		if (instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
 			int leaked = instruction.getUse(0);
 			Parser.OutputVariableDeclarationNode node;
-			node = new Parser.OutputVariableDeclarationNode(Converter.DUMMY_LOCATION,
+			node = new Parser.OutputVariableDeclarationNode(location(instruction),
 					"o_" + Converter.varName(instruction.getUse(0), m),
-					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(), access(leaked), "l");
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
+					access(leaked, instruction), "l");
 			this.stmts.add(node);
 		} else {
 			assert (instruction.hasDef());
 			Parser.ArgumentsNode args = Converter.arguments(IntStream.range(1, instruction.getNumberOfParameters())
 					.mapToObj(i -> Converter.varName(instruction.getUse(i), m)).collect(Collectors.toList()));
-			Parser.MethodInvocationNode invocation = new Parser.MethodInvocationNode(Converter.DUMMY_LOCATION,
+			Parser.MethodInvocationNode invocation = new Parser.MethodInvocationNode(location(instruction),
 					Converter.methodName(instruction.getDeclaredTarget()), args);
 			this.varDecls.put(instruction.getDef(), Converter.varDecl(Converter.varName(instruction.getDef(), m),
 					m.getValue(instruction.getDef()).getType().nildumuType()));
@@ -138,7 +142,7 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 
 		// initialize array w/ zeros
 		int arrayLength = ((Array<? extends Value>) m.getValue(instruction.getDef())).length();
-		Parser.ArrayLiteralNode initVal = new Parser.ArrayLiteralNode(Converter.DUMMY_LOCATION,
+		Parser.ArrayLiteralNode initVal = new Parser.ArrayLiteralNode(location(instruction),
 				Collections.nCopies(arrayLength, Parser.literal(0)));
 		stmts.add(Converter.assignment(Converter.varName(instruction.getDef(), m), initVal));
 		arrayVarIdxCounter.put(instruction.getDef(), 1);
@@ -169,8 +173,9 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 			int substitutedVar = loopHead.ownsValue(instruction.getUse(0)) ?
 					instruction.getUse(0) :
 					instruction.getUse(1);
-			stmts.add(new Parser.VariableAssignmentNode(Converter.DUMMY_LOCATION,
-					Converter.varName(instruction.getDef(), m), access(substitutedVar)));
+			stmts.add(
+					new Parser.VariableAssignmentNode(location(instruction), Converter.varName(instruction.getDef(), m),
+							access(substitutedVar, instruction)));
 		} else {
 			// phi from if-stmt
 			BBlock condBlock = m.getCFG().getImmDom(currentBlock);
@@ -180,11 +185,12 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 					1;
 			int sndArg = 1 - firstArg;
 
-			Parser.PhiNode phi = new Parser.PhiNode(Converter.DUMMY_LOCATION,
+			Parser.PhiNode phi = new Parser.PhiNode(location(instruction),
 					Arrays.asList(Converter.varName(instruction.getUse(firstArg), m),
 							Converter.varName(instruction.getUse(sndArg), m)));
-			stmts.add(new Parser.VariableAssignmentNode(Converter.DUMMY_LOCATION,
-					Converter.varName(instruction.getDef(), m), phi));
+			stmts.add(
+					new Parser.VariableAssignmentNode(location(instruction), Converter.varName(instruction.getDef(), m),
+							phi));
 		}
 	}
 
@@ -200,16 +206,20 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 		return this.blockToExpr.get(idx);
 	}
 
-	public Parser.PrimaryExpressionNode access(int valNum) {
+	public Parser.PrimaryExpressionNode access(int valNum, SSAInstruction instruction) {
 		if (this.valToParam.containsKey(valNum)) {
 			return accessParam(valNum);
 		} else if (m.isConstant(valNum)) {
 			return Parser.literal((Integer) m.getValue(valNum).getVal());
 		}
-		return new Parser.VariableAccessNode(Converter.DUMMY_LOCATION, Converter.varName(valNum, m));
+		return new Parser.VariableAccessNode(location(instruction), Converter.varName(valNum, m));
 	}
 
 	private Parser.ParameterAccessNode accessParam(int valNum) {
 		return new Parser.ParameterAccessNode(Converter.DUMMY_LOCATION, valToParam.get(valNum).name);
+	}
+
+	private Location location(SSAInstruction i) {
+		return new Location(currentBlock.idx(), i.iindex);
 	}
 }

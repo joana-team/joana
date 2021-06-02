@@ -7,10 +7,7 @@ import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
@@ -39,19 +36,27 @@ public class Converter {
 	private Context context;
 
 	public Map<Integer, Parser.InputVariableDeclarationNode> inputs;
-	public static Map<LoopBody, LoopConversionResult> loopMethods;
+	public static Map<LoopBody, NildumuProgram.LoopMethod> loopMethods;
 	public static Map<SSAArrayStoreInstruction, Integer> arrayVarIndices;
 
 	public Converter() {
 		this.options = NildumuOptions.DEFAULT;
 		this.context = new Context(options.secLattice, options.intWidth);
 		this.inputs = new HashMap<>();
-		this.arrayVarIndices = new HashMap<>();
+		arrayVarIndices = new HashMap<>();
+		loopMethods = new HashMap<>();
+	}
+
+	public Converter(Context context) {
+		this.options = NildumuOptions.DEFAULT;
+		this.context = context;
+		this.inputs = new HashMap<>();
+		arrayVarIndices = new HashMap<>();
 		loopMethods = new HashMap<>();
 	}
 
 	public Parser.ProgramNode convertProgram(Program p) throws ConversionException {
-		List<Parser.InputVariableDeclarationNode> inputs = convertSecretInputs(p);
+		List<Parser.StatementNode> inputs = convertSecretInputs(p);
 		Parser.ProgramNode programNode = new Parser.ProgramNode(context);
 		inputs.forEach(programNode::addGlobalStatement);
 		programNode.addGlobalStatements(parseConstantValues(p.getEntryMethod()));
@@ -77,8 +82,8 @@ public class Converter {
 	 * @param l loopBody object
 	 * @return pair that contains the generated method and a variableDeclarationNode for the loop results
 	 */
-	public LoopConversionResult convertLoop(LoopBody l) {
-		LoopConversionResult result = new LoopConversionResult();
+	public NildumuProgram.LoopMethod convertLoop(LoopBody l) {
+		NildumuProgram.LoopMethod result = new NildumuProgram.LoopMethod();
 		result.iMethod = l.getOwner();
 
 		// get names for all the variables used ready
@@ -113,8 +118,11 @@ public class Converter {
 				.topological(l.getBlocks().stream().filter(b -> !l.getHead().equals(b)).collect(Collectors.toSet()),
 						l.getHead().succs().stream().filter(b -> l.hasBlock(b.idx())).findFirst().get());
 
-		Parser.BlockNode body = new Parser.BlockNode(DUMMY_LOCATION, parseConstantValues(l.getOwner()));
+		Parser.BlockNode body = new Parser.BlockNode(
+				new Location(l.getHead().idx(), l.getHead().getWalaBasicBlock().getFirstInstructionIndex()),
+				parseConstantValues(l.getOwner()));
 		body.addAll(convertStatements(loopBlocks, cVis));
+		result.loopBody = new ArrayList<>(body.statementNodes);
 
 		// convert loop condition
 		l.getHead().getWalaBasicBlock().getLastInstruction().visit(cVis);
@@ -128,8 +136,6 @@ public class Converter {
 				.collect(Collectors.toList());
 		l.getAllWrittenToArrays()
 				.forEach(a -> elementTypes.add(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.ARRAY.nildumuType()));
-		// elementTypes.addAll(Collections.nCopies(l.getAllWrittenToArrays().size(),
-		// 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.ARRAY.nildumuType()));
 		Type returnType = edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.nTypes.getOrCreateTupleType(elementTypes);
 
 		// recursive call to loop method
@@ -166,34 +172,9 @@ public class Converter {
 				Arrays.stream(result.returnVars).mapToObj(i -> Converter.varName(i, l.getOwner()))
 						.toArray(String[]::new), new Parser.UnpackOperatorNode(callToLoop));
 		result.returnDefs = new HashMap<>();
-		IntStream.range(0, phiMap.size()).forEach(i -> result.returnDefs
-				.put(i, varDecl(varName(result.returnVars[i], l.getOwner()), returnType.getBracketAccessResult(i))));
+		IntStream.range(0, phiMap.size()).forEach(i -> result.returnDefs.put(result.returnVars[i],
+				varDecl(varName(result.returnVars[i], l.getOwner()), returnType.getBracketAccessResult(i))));
 		return result;
-	}
-
-	public static class LoopConversionResult {
-		Method iMethod;
-		Parser.MethodNode method;
-		Map<Integer, Parser.VariableDeclarationNode> returnDefs;
-		Parser.MultipleVariableAssignmentNode call;
-		int[] callArgs;
-		int[] params;
-		int[] recCallArgs;
-		int[] returnVars;
-
-		List<String> recCallArgs() {
-			return Arrays.stream(recCallArgs).mapToObj(i -> Converter.varName(i, iMethod)).collect(Collectors.toList());
-		}
-
-		List<String> callArgs() {
-			return Arrays.stream(callArgs).mapToObj(i -> Converter.varName(i, iMethod)).collect(Collectors.toList());
-		}
-
-		List<Pair<String, Type>> params() {
-			return Arrays.stream(params).mapToObj(
-					i -> Pair.make(Converter.varName(i, iMethod), iMethod.getValue(i).getType().nildumuType()))
-					.collect(Collectors.toList());
-		}
 	}
 
 	public Parser.MethodNode convertMethod(Method m) {
@@ -237,7 +218,7 @@ public class Converter {
 		if (b.isLoopHeader()) {
 			LoopBody loop = b.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().idx() == b.idx())
 					.findFirst().get();
-			LoopConversionResult convertedMethod = convertLoop(loop);
+			NildumuProgram.LoopMethod convertedMethod = convertLoop(loop);
 			loopMethods.put(loop, convertedMethod);
 			converted.add(convertedMethod.call);
 			varDecls.putAll(convertedMethod.returnDefs);
@@ -281,20 +262,48 @@ public class Converter {
 		return convertStatementsRec(toConvert, converted, varDecls, cVis);
 	}
 
-	private List<Parser.InputVariableDeclarationNode> convertSecretInputs(Program p) {
-		List<Parser.InputVariableDeclarationNode> inputs = new ArrayList<>();
-		Method topLevel = p.getEntryMethod();
-
-		for (int i = 1; i < topLevel.getParamNum(); i++) {
-			int valNum = topLevel.getIr().getParameter(i);
-			Parser.InputVariableDeclarationNode node = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
-					varName(valNum, topLevel), topLevel.getParamType(i).nildumuType(),
-					new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get()
-							.parse("0b" + String.join("", Collections.nCopies(options.intWidth, "u")))), "h");
-			this.inputs.put(valNum, node);
-			inputs.add(node);
+	private List<Parser.StatementNode> convertSecretInputs(Program p) {
+		int[] paramValNums = Arrays.copyOfRange(p.getEntryMethod().getIr().getParameterValueNumbers(), 1,
+				p.getEntryMethod().getIr().getNumberOfParameters());
+		List<Parser.StatementNode> inputs = convertToSecretInput(paramValNums, p.getEntryMethod());
+		for (int i = 0; i < paramValNums.length; i++) {
+			this.inputs.put(paramValNums[i], (Parser.InputVariableDeclarationNode) inputs.get(i));
 		}
 		return inputs;
+	}
+
+	public List<Parser.StatementNode> convertToSecretInput(int[] valNums, Method m) {
+		List<Parser.StatementNode> inputs = new ArrayList<>();
+		for (int valNum : valNums) {
+			if (m.getValue(valNum).getType().equals(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER)) {
+				Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
+						varName(valNum, m), m.getValue(valNum).getType().nildumuType(),
+						new Parser.IntegerLiteralNode(DUMMY_LOCATION,
+								Lattices.ValueLattice.get().parse(unknownLiteral(options.intWidth))), "h");
+				inputs.add(decl);
+
+			} else {
+				assert (m.getValue(valNum).isArrayType());
+				Array<? extends Value> arr = (Array<? extends Value>) m.getValue(valNum);
+				inputs.add(varDecl(varName(valNum, m), arr.getType().nildumuType()));
+
+				for (int i = 0; i < arr.length(); i++) {
+					String varname = varName();
+					Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
+							varname, arr.elementType().nildumuType(), new Parser.IntegerLiteralNode(DUMMY_LOCATION,
+							Lattices.ValueLattice.get().parse(unknownLiteral(options.intWidth))), "h");
+					inputs.add(decl);
+					inputs.add(new Parser.ArrayAssignmentNode(DUMMY_LOCATION, varName(valNum, m),
+							new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get().parse(i)),
+							variableAccess(varname)));
+				}
+			}
+		}
+		return inputs;
+	}
+
+	private String unknownLiteral(int length) {
+		return "0b" + String.join("", Collections.nCopies(length, "u"));
 	}
 
 	/**
@@ -327,6 +336,29 @@ public class Converter {
 			params.put(m.getIr().getParameter(i), p);
 		}
 		return params;
+	}
+
+	public List<Parser.StatementNode> convertToPublicOutput(int[] returnVars, Method m) {
+		List<Parser.StatementNode> outputs = new ArrayList<>();
+		for (int valNum : returnVars) {
+			if (m.getValue(valNum).getType().equals(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER)) {
+				Parser.OutputVariableDeclarationNode out = new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION,
+						varName(), m.getValue(valNum).getType().nildumuType(), variableAccess(varName(valNum, m)), "l");
+				outputs.add(out);
+			} else {
+				assert (m.getValue(valNum).isArrayType());
+				Array<? extends Value> arr = (Array<? extends Value>) m.getValue(valNum);
+				for (int i = 0; i < arr.length(); i++) {
+					String varname = varName();
+					outputs.add(new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION, varname,
+							arr.elementType().nildumuType(),
+							new Parser.BracketedAccessOperatorNode(variableAccess(varName(arr.getValNum(), m)),
+									new Parser.IntegerLiteralNode(DUMMY_LOCATION,
+											Lattices.ValueLattice.get().parse(i))), "l"));
+				}
+			}
+		}
+		return outputs;
 	}
 
 	public static class LexerTerminal {
@@ -403,7 +435,7 @@ public class Converter {
 			LoopBody loop = m.getLoops().stream().filter(l -> l.producesValNum(valNum)).findFirst().get();
 			loopId = "_" + methodName(loop);
 		}
-		return "v_" + methodId + loopId + "_" + valNum;
+		return "v_" + /*methodId + loopId + */ "_" + valNum;
 	}
 
 	public static int valNum(String varName) {

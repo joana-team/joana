@@ -15,11 +15,11 @@ import java.util.stream.IntStream;
 public class LoopConversionVisitor extends ConversionVisitor {
 
 	LoopBody l;
-	Converter.LoopConversionResult res;
+	NildumuProgram.LoopMethod res;
 	final Set<Integer> alreadyDefined;
 
 	public LoopConversionVisitor(Converter conv, Method m, Map<Integer, Parser.ParameterNode> parameterToNode,
-			LoopBody l, Converter.LoopConversionResult res) {
+			LoopBody l, NildumuProgram.LoopMethod res) {
 		super(conv, m, parameterToNode);
 		this.l = l;
 		this.res = res;
@@ -48,7 +48,7 @@ public class LoopConversionVisitor extends ConversionVisitor {
 			}
 
 			Parser.ReturnStatementNode returnStmt = new Parser.ReturnStatementNode(Converter.DUMMY_LOCATION,
-					Arrays.stream(returnVars).mapToObj(this::access).collect(Collectors.toList()));
+					Arrays.stream(returnVars).mapToObj(var -> access(var, instruction)).collect(Collectors.toList()));
 			beforeBreak.add(returnStmt);
 
 			Parser.ExpressionNode breakIf = blockToExpr(currentBlock.idx());

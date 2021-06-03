@@ -12,6 +12,7 @@ import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
@@ -19,7 +20,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
 
 import java.util.*;
 
-public class Program {
+public class Program extends ProgramPart {
 
 	private final SDGProgram sdgProg;
 	private final SDG sdg;

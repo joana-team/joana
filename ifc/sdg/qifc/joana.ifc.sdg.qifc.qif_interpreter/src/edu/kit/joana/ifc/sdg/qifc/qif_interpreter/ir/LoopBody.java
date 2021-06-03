@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
@@ -16,7 +17,7 @@ import org.logicng.formulas.Variable;
 
 import java.util.*;
 
-public class LoopBody {
+public class LoopBody extends ProgramPart {
 
 	private final int level;
 	private final Map<Integer, Formula[]> in;

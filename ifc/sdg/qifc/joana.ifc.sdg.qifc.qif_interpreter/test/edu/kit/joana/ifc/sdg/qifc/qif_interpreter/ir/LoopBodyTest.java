@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ class LoopBodyTest {
 		Program p = TestUtils.build("Loop");
 		Method m = p.getEntryMethod();
 
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 		sa.computeSATDeps(m);
 
 		LoopBody l = m.getLoops().get(0);
@@ -34,7 +34,7 @@ class LoopBodyTest {
 	@Test void breaksTest() throws IOException, InterruptedException {
 		Program p = TestUtils.build("Break");
 
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 		sa.computeSATDeps();
 
 		LoopBody l = p.getEntryMethod().getLoops().get(0);
@@ -44,7 +44,7 @@ class LoopBodyTest {
 	@Test void breaksTest2() throws IOException, InterruptedException {
 		Program p = TestUtils.build("MultipleBreaks");
 
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 		sa.computeSATDeps();
 
 		LoopBody l = p.getEntryMethod().getLoops().get(0);
@@ -54,7 +54,7 @@ class LoopBodyTest {
 	@Test void breaksTest3() throws IOException, InterruptedException {
 		Program p = TestUtils.build("Breaks2");
 
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 		sa.computeSATDeps();
 
 		LoopBody l = p.getEntryMethod().getLoops().get(1);

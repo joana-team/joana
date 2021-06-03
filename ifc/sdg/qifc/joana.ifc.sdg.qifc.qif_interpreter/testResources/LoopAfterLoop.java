@@ -16,7 +16,7 @@ public class LoopAfterLoop {
 			l++;
 		}
 		int i = 0;
-		while (i < 3) {
+		while (i < 16) {
 			h--;
 			i++;
 		}

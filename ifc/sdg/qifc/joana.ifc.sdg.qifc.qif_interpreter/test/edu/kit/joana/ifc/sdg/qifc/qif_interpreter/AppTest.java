@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec.Interpreter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
@@ -59,7 +59,7 @@ class AppTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
 		Interpreter i = new Interpreter(p, ps);
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 		List<String> args = Arrays.asList("1", "2");
 
 		i.execute(args);
@@ -72,7 +72,7 @@ class AppTest {
 		Program p = TestUtils.build("If");
 		// execute
 		Interpreter i = new Interpreter(p);
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 
 		sa.computeSATDeps();
 		i.execute(Arrays.asList("0"));
@@ -91,7 +91,7 @@ class AppTest {
 		Program p = TestUtils.build("Loop7");
 		// execute
 		Interpreter i = new Interpreter(p);
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 
 		Method entry = p.getEntryMethod();
 		entry.getCFG().print();

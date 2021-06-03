@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATAnalysis;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ class MethodTest {
 		Program p = TestUtils.build("WhileAfterIf");
 		Method m = p.getEntryMethod();
 
-		StaticAnalysis sa = new StaticAnalysis(p);
+		SATAnalysis sa = new SATAnalysis(p);
 		sa.computeSATDeps(m);
 
 		m.getCFG().print();

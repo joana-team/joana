@@ -13,8 +13,8 @@ public class RecursiveFunctionSATVisitor extends SATVisitor {
 
 	private final Method m;
 
-	public RecursiveFunctionSATVisitor(StaticAnalysis staticAnalysis, Method m) {
-		super(staticAnalysis);
+	public RecursiveFunctionSATVisitor(SATAnalysis SATAnalysis, Method m) {
+		super(SATAnalysis);
 		this.m = m;
 	}
 

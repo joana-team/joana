@@ -1,6 +1,8 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
-import com.ibm.wala.ssa.*;
+import com.ibm.wala.ssa.SSAArrayLoadInstruction;
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
+import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
@@ -26,8 +28,8 @@ public class LoopSATVisitor extends SATVisitor {
 		this.l = l;
 	}
 
-	public LoopSATVisitor(StaticAnalysis staticAnalysis, LoopBody l) {
-		super(staticAnalysis);
+	public LoopSATVisitor(SATAnalysis SATAnalysis, LoopBody l) {
+		super(SATAnalysis);
 		this.l = l;
 		Map<Integer, Formula[]> initals = new HashMap<>();
 		l.getOwner().getProgramValues().forEach((i, v) -> initals.put(i, v.getDeps()));

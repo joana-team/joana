@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 public class SATVisitor implements SSAInstruction.IVisitor {
 	public static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
-	private final edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.StaticAnalysis staticAnalysis;
+	private final SATAnalysis SATAnalysis;
 	private boolean containsOutOfScopeInstruction;
 	private SSAInstruction outOfScopeInstruction;
 	private BBlock block;
@@ -52,8 +52,8 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				.getEntryMethod().equals(m)) && !(i instanceof SSAGotoInstruction);
 	}
 
-	public SATVisitor(StaticAnalysis staticAnalysis) {
-		this.staticAnalysis = staticAnalysis;
+	public SATVisitor(SATAnalysis SATAnalysis) {
+		this.SATAnalysis = SATAnalysis;
 		this.containsOutOfScopeInstruction = false;
 		this.visitedInstructions = 0;
 	}
@@ -131,12 +131,12 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		if (m.getValue(op1ValNum).getDeps() == null) {
 			// if there doesn't exist a value object for this valueNumber at this point, it has to be constant
-			staticAnalysis.createConstant(op1ValNum);
+			SATAnalysis.createConstant(op1ValNum);
 		}
 		Formula[] op1 = m.getDepsForValue(op1ValNum);
 
 		if (m.getValue(op2ValNum).getDeps() == null) {
-			staticAnalysis.createConstant(op2ValNum);
+			SATAnalysis.createConstant(op2ValNum);
 		}
 		Formula[] op2 = m.getDepsForValue(op2ValNum);
 

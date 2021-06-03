@@ -31,7 +31,7 @@ public class LoopHandler {
 	 * @param sa   StaticAnalysis object that is responsible for analysing the whole program
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
-	public static LoopBody analyze(Method m, BBlock head, StaticAnalysis sa, LoopBody base) {
+	public static LoopBody analyze(Method m, BBlock head, SATAnalysis sa, LoopBody base) {
 		int loopUnrollingMax = m.getProg().getConfig().loopUnrollingMax();
 
 		base.computeLoopCondition();

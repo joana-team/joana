@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LoopSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -7,18 +8,14 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Variable;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
-public class StaticAnalysis {
+public class SATAnalysis {
 
 	private final Program program;
 	private final Method entry;
 
-	public StaticAnalysis(Program program) {
+	public SATAnalysis(Program program) {
 		this.program = program;
 		this.entry = program.getEntryMethod();
 	}
@@ -56,6 +53,7 @@ public class StaticAnalysis {
 
 	public int computeSATDeps(Method m) {
 		SATVisitor sv = new SATVisitor(this);
+
 		computeSATDeps(m, sv);
 		return sv.getVisitedInstructions();
 	}
@@ -68,50 +66,57 @@ public class StaticAnalysis {
 		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
 		imIFVisitor.compute(m.getCFG());
 
-		List<Integer> visited = new ArrayList<>();
-		Queue<BBlock> toVisit = new ArrayDeque<>();
-		toVisit.add(m.getCFG().getBlock(0));
+		State state = State.init(program);
+		state.toVisit.add(state.reentry);
 
-		while (!toVisit.isEmpty()) {
-			BBlock b = toVisit.poll();
-			visited.add(b.idx());
+		computeSATDeps(state, m, sv);
+	}
 
-			if (b.isLoopHeader()) {
-				LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().idx() == b.idx()).findFirst().get();
-				if (b.hasRelevantCF()) {
-					try {
-						sv.visitBlock(m, b, -1);
-					} catch (OutOfScopeException e) {
-						e.printStackTrace();
-					}
-					LoopHandler.analyze(m, b, this, l);
-				}
+	public void computeSATDeps(State state, Method m, SATVisitor sv) {
+		if (state.toVisit.isEmpty()) {
+			return;
+		}
+		BBlock b = state.toVisit.poll();
+		state.visited.add(b.idx());
 
-				// add all after-loop successors, but skip the dummy blocks
-				for (BBlock succ : b.succs().stream().filter(succ -> !l.getBlocks().contains(succ))
-						.collect(Collectors.toList())) {
-					if (succ.isDummy()) {
-						succ = succ.succs().get(0);
-					}
-					toVisit.add(succ);
-				}
-			} else {
+		if (b.isLoopHeader()) {
+			LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().idx() == b.idx()).findFirst().get();
+			LoopSegment newSegment = new LoopSegment(l, state.currentSegment);
+			state = newSegment.dynamic(state);
+			if (b.hasRelevantCF()) {
 				try {
 					sv.visitBlock(m, b, -1);
-
-					for (BBlock succ: b.succs()) {
-						if (succ.isLoopHeader() || succ.preds().stream()
-								.allMatch(pred -> visited.contains(pred.idx()))) {
-							toVisit.add(succ);
-						}
-					}
-
 				} catch (OutOfScopeException e) {
 					e.printStackTrace();
 				}
+				LoopHandler.analyze(m, b, this, l);
+			}
+
+			// add all after-loop successors, but skip the dummy blocks
+			for (BBlock succ : b.succs().stream().filter(succ -> !l.getBlocks().contains(succ))
+					.collect(Collectors.toList())) {
+				if (succ.isDummy()) {
+					succ = succ.succs().get(0);
+				}
+				state.toVisit.add(succ);
+			}
+		} else {
+			try {
+				sv.visitBlock(m, b, -1);
+
+				for (BBlock succ : b.succs()) {
+					State finalState = state;
+					if (succ.isLoopHeader() || succ.preds().stream()
+							.allMatch(pred -> finalState.visited.contains(pred.idx()))) {
+						state.toVisit.add(succ);
+					}
+				}
+
+			} catch (OutOfScopeException e) {
+				e.printStackTrace();
 			}
 		}
-		// System.out.println("Visited instructions: " + sv.getVisitedInstructions());
+		computeSATDeps(state, m, sv);
 	}
 
 	public void createConstant(int op1) {

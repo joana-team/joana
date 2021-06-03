@@ -9,7 +9,7 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.util.Triple;
 import nildumu.Context;
@@ -22,6 +22,8 @@ import swp.lexer.Location;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil.computeConditionalBranch;
 
 /**
  * converts a qif program into a nildumu ast
@@ -61,7 +63,7 @@ public class Converter {
 		inputs.forEach(programNode::addGlobalStatement);
 		programNode.addGlobalStatements(parseConstantValues(p.getEntryMethod()));
 		ConversionVisitor cVis = new ConversionVisitor(this, p.getEntryMethod(), new HashMap<>());
-		List<BBlock> allBlocks = BBlockOrdering
+		List<BasicBlock> allBlocks = CFGUtil
 				.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
 		List<Parser.StatementNode> stmts = convertStatements(allBlocks, cVis);
 		programNode.addGlobalStatements(stmts);
@@ -114,7 +116,7 @@ public class Converter {
 
 		// convert loopBody to ast stmts
 		ConversionVisitor cVis = new LoopConversionVisitor(this, l.getOwner(), parameterMap, l, result);
-		List<BBlock> loopBlocks = BBlockOrdering
+		List<BasicBlock> loopBlocks = CFGUtil
 				.topological(l.getBlocks().stream().filter(b -> !l.getHead().equals(b)).collect(Collectors.toSet()),
 						l.getHead().succs().stream().filter(b -> l.hasBlock(b.idx())).findFirst().get());
 
@@ -196,10 +198,10 @@ public class Converter {
 	private Parser.BlockNode convertMethodBody(Method m, Map<Integer, Parser.ParameterNode> params) {
 		ConversionVisitor cVis = new ConversionVisitor(this, m, params);
 		return new Parser.BlockNode(DUMMY_LOCATION,
-				convertStatements(BBlockOrdering.topological(m.getCFG().getBlocks(), m.getCFG().entry()), cVis));
+				convertStatements(CFGUtil.topological(m.getCFG().getBlocks(), m.getCFG().entry()), cVis));
 	}
 
-	public List<Parser.StatementNode> convertStatements(List<BBlock> toConvert, ConversionVisitor cVis) {
+	public List<Parser.StatementNode> convertStatements(List<BasicBlock> toConvert, ConversionVisitor cVis) {
 		Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> convertedPair = convertStatementsRec(
 				toConvert, new ArrayList<>(), new HashMap<>(), cVis);
 		return Util.prepend(convertedPair.fst, new ArrayList<>(convertedPair.snd.values()));
@@ -207,13 +209,13 @@ public class Converter {
 	}
 
 	private Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> convertStatementsRec(
-			List<BBlock> toConvert, List<Parser.StatementNode> converted,
+			List<BasicBlock> toConvert, List<Parser.StatementNode> converted,
 			Map<Integer, Parser.VariableDeclarationNode> varDecls, ConversionVisitor cVis) {
 
 		if (toConvert.isEmpty())
 			return Pair.make(converted, varDecls);
 
-		BBlock b = toConvert.remove(0);
+		BasicBlock b = toConvert.remove(0);
 
 		if (b.isLoopHeader()) {
 			LoopBody loop = b.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().idx() == b.idx())
@@ -223,7 +225,7 @@ public class Converter {
 			converted.add(convertedMethod.call);
 			varDecls.putAll(convertedMethod.returnDefs);
 			toConvert.removeAll(loop.getBlocks());
-			for (BBlock bb : loop.getBreaks()) {
+			for (BasicBlock bb : loop.getBreaks()) {
 				toConvert.removeAll(loop.breakToPostLoop(bb));
 			}
 			return convertStatementsRec(toConvert, converted, varDecls, cVis);
@@ -234,12 +236,10 @@ public class Converter {
 		varDecls.putAll(blockStmts.snd);
 
 		if (b.isCondHeader() && !b.isBreak()) {
-			BBlock trueTarget = b.getCFG().getBlock(b.getTrueTarget());
-			BBlock falseTarget = b.succs().stream().filter(bb -> bb.idx() != b.getTrueTarget()).findAny().get();
-			List<BBlock> trueBranch = computeConditionalBranch(b, trueTarget, trueTarget,
-					new ArrayList<>(Arrays.asList(trueTarget)));
-			List<BBlock> falseBranch = computeConditionalBranch(b, falseTarget, falseTarget,
-					new ArrayList<>(Arrays.asList(falseTarget)));
+			BasicBlock trueTarget = b.getCFG().getBlock(b.getTrueTarget());
+			BasicBlock falseTarget = b.succs().stream().filter(bb -> bb.idx() != b.getTrueTarget()).findAny().get();
+			List<BasicBlock> trueBranch = computeConditionalBranch(b, trueTarget);
+			List<BasicBlock> falseBranch = computeConditionalBranch(b, falseTarget);
 			toConvert.removeAll(trueBranch);
 			toConvert.removeAll(falseBranch);
 			Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> trueStmts = convertStatementsRec(
@@ -304,26 +304,6 @@ public class Converter {
 
 	private String unknownLiteral(int length) {
 		return "0b" + String.join("", Collections.nCopies(length, "u"));
-	}
-
-	/**
-	 * returns a list of blocks that belong to a branch in an if-statement
-	 * <p>
-	 * invariant: all nodes that belong to the branch are dominated by the first block in the branch. We recursively (DFS) add successors, until we find one that is not dominated by {@code firstBlock}
-	 *
-	 * @param head       block containing the if-condition
-	 * @param firstBlock successor of head that belongs to the branch we want to compute
-	 * @param branch     list of blocks that we have already identified as being part of the branch. {@code current} is already part of the list!
-	 * @return list of all basic blocks that belong to the branch
-	 */
-	public List<BBlock> computeConditionalBranch(BBlock head, BBlock firstBlock, BBlock current, List<BBlock> branch) {
-		for (BBlock succ : current.succs()) {
-			if ((succ.isDummy() || head.getCFG().isDominatedBy(succ, firstBlock)) && !branch.contains(succ)) {
-				branch.add(succ);
-				branch = computeConditionalBranch(head, firstBlock, succ, branch);
-			}
-		}
-		return branch;
 	}
 
 	public Map<Integer, Parser.ParameterNode> parseParameters(Method m) {

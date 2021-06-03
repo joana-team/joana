@@ -42,7 +42,7 @@ public interface IReturnValue<T> {
 		return s;
 	}
 
-	void addReturnSite(SSAReturnInstruction instruction, BBlock b);
+	void addReturnSite(SSAReturnInstruction instruction, BasicBlock b);
 
 	boolean containsRecursionVar(T testValue);
 

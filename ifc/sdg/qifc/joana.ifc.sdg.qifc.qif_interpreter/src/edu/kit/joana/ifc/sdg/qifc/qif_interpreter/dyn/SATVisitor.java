@@ -20,15 +20,15 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	private final SATAnalysis SATAnalysis;
 	private boolean containsOutOfScopeInstruction;
 	private SSAInstruction outOfScopeInstruction;
-	private BBlock block;
+	private BasicBlock block;
 	private Method m;
 	private int visitedInstructions;
 
-	public BBlock getCurrentBlock() {
+	public BasicBlock getCurrentBlock() {
 		return this.block;
 	}
 
-	public void visitBlock(Method m, BBlock b, int prevBlock) throws OutOfScopeException {
+	public void visitBlock(Method m, BasicBlock b, int prevBlock) throws OutOfScopeException {
 		this.block = b;
 		this.m = m;
 
@@ -44,7 +44,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		}
 	}
 
-	private boolean needsVisiting(SSAInstruction i, BBlock b, Method m) {
+	private boolean needsVisiting(SSAInstruction i, BasicBlock b, Method m) {
 		return (!i.hasDef() || m.getValue(i.getDef()).dynAnalysisNecessary(m)) && (
 				!(i instanceof SSAConditionalBranchInstruction) || b.hasRelevantCF()) && (
 				!(i instanceof SSAInvokeInstruction) || !((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
@@ -269,7 +269,8 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	 */
 	@Override public void visitPhi(SSAPhiInstruction instruction) {
 		if (!block.isLoopHeader()) {
-			if (block.preds().stream().map(pred -> (pred.isDummy() ? pred.preds().get(0) : pred)).anyMatch(BBlock::isLoopHeader)) {
+			if (block.preds().stream().map(pred -> (pred.isDummy() ? pred.preds().get(0) : pred))
+					.anyMatch(BasicBlock::isLoopHeader)) {
 				handleBreakPhi(instruction);
 			} else {
 				handleCondPhi(instruction);
@@ -282,7 +283,8 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	// if the out-of-loop successor of a loop-header contains phi-instructions, these are the result of a break statement in the loop-body
 	// the actual value of this def depends on 2 conditions: the loop-head and the break-condition
 	private void handleBreakPhi(SSAPhiInstruction instruction) {
-		BBlock loopHeader = block.preds().stream().map(pred -> (pred.isDummy()) ? pred.preds().get(0) : pred).filter(BBlock::isLoopHeader).findFirst().get();
+		BasicBlock loopHeader = block.preds().stream().map(pred -> (pred.isDummy()) ? pred.preds().get(0) : pred)
+				.filter(BasicBlock::isLoopHeader).findFirst().get();
 		LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().equals(loopHeader)).findFirst().get();
 		int normalExitValueIdx = (loopHeader.ownsValue(instruction.getUse(0))) ? 0 : 1;
 		int normalExitValue = instruction.getUse(normalExitValueIdx);
@@ -291,9 +293,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		// finding the block that ends w/ the break:
 		// predecessors of the current block (containing the phi-instruction resulting from the break statement) are a dummy node (coming from the loop header) and a non-dummy block (coming from the goto-block out of the loop)
 		// the break-block is then the first non-dummy predecessor of the goto-block
-		BBlock gotoBlock = block.preds().stream().filter(pred -> !pred.isDummy()).findFirst().get();
+		BasicBlock gotoBlock = block.preds().stream().filter(pred -> !pred.isDummy()).findFirst().get();
 
-		Formula[] breakDeps = LoopHandler.computeBreakValues(l, instruction.getDef(), normalExitValue, breakExitValue, gotoBlock);
+		Formula[] breakDeps = LoopHandler
+				.computeBreakValues(l, instruction.getDef(), normalExitValue, breakExitValue, gotoBlock);
 		m.setDepsForvalue(instruction.getDef(), breakDeps);
 	}
 
@@ -313,7 +316,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		Formula[] op1 = m.getDepsForValue(instruction.getUse(0));
 		Formula[] op2 = m.getDepsForValue(instruction.getUse(1));
 
-		BBlock predZero = block.preds().get(0);
+		BasicBlock predZero = block.preds().get(0);
 		m.setDepsForvalue(instruction.getDef(), LogicUtil.ternaryOp(predZero.generateImplicitFlowFormula(), op1, op2));
 	}
 

@@ -5,29 +5,27 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MethodSegment extends Segment<Method> {
+public class ContainerSegment extends Segment<ProgramPart.Container> {
 
-	public MethodSegment(Method m, Segment<? extends ProgramPart> parent) {
-		super(m, parent);
-
-		if (this.level < 5) {
-			this.children = segment(
-					new ArrayList<>(CFGUtil.topological(this.getBlocks(), this.programPart.getCFG().entry())));
-		}
+	public ContainerSegment(ProgramPart.Container c, Segment<? extends ProgramPart> parent) {
+		super(c, parent);
+		this.children = segment(new ArrayList<>(this.getBlocks()));
 	}
 
 	@Override public State computeSATDeps(State state, Method m, SATVisitor sv) {
-		return null;
+		for (Segment<? extends ProgramPart> c : this.children) {
+			state = c.computeSATDeps(state, m, sv);
+		}
+		return state;
 	}
 
 	@Override public boolean owns(BasicBlock block) {
-		return this.programPart.getCFG().getBlocks().contains(block);
+		return this.programPart.blocks.contains(block);
 	}
 
 	@Override public void finalize() {
@@ -35,10 +33,10 @@ public class MethodSegment extends Segment<Method> {
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {
-		return new HashSet<>(this.programPart.getCFG().getBlocks());
+		return new HashSet<>(this.programPart.blocks);
 	}
 
 	@Override public String getLabel() {
-		return "Method " + this.programPart.identifier();
+		return "Container";
 	}
 }

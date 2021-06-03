@@ -7,7 +7,7 @@ import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
@@ -29,12 +29,12 @@ public class LoopBody extends ProgramPart {
 	private final Map<Integer, Formula[][]> placeholderArrayVars;
 	private final Map<Integer, LoopIteration> runs;
 	private final Method owner;
-	private final BBlock head;
-	private final Set<BBlock> blocks;
-	private final List<BBlock> breaks;
+	private final BasicBlock head;
+	private final Set<BasicBlock> blocks;
+	private final List<BasicBlock> breaks;
 	private Formula jumpOut;
 
-	public LoopBody(Method owner, BBlock head) {
+	public LoopBody(Method owner, BasicBlock head) {
 		this.level = owner.getCFG().getLevel(head);
 		this.owner = owner;
 		this.in = new HashMap<>();
@@ -50,14 +50,14 @@ public class LoopBody extends ProgramPart {
 	}
 
 	public void computeLoopCondition() {
-		BBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
+		BasicBlock insideLoopSuccessor = head.succs().stream().filter(blocks::contains).findFirst().get();
 		boolean evalTo = head.getTrueTarget() == insideLoopSuccessor.idx();
 		this.jumpOut = (evalTo) ? LogicUtil.ff.not(head.getCondExpr()) : head.getCondExpr();
 	}
 
-	private List<BBlock> findBreaks() {
-		List<BBlock> breaks = new ArrayList<>();
-		for (BBlock b : this.blocks) {
+	private List<BasicBlock> findBreaks() {
+		List<BasicBlock> breaks = new ArrayList<>();
+		for (BasicBlock b : this.blocks) {
 			if (b.isCondHeader() && b.succs().stream()
 					.anyMatch(succ -> owner.getCFG().getLevel(succ) < owner.getCFG().getLevel(head))) {
 				breaks.add(b);
@@ -70,8 +70,8 @@ public class LoopBody extends ProgramPart {
 		//
 		// a blocks idx is always greater than that of its predecessors
 		// (exceptions iis the back edge to a loop head, but we are not looking at loop heads here, so it should be ok)
-		Comparator<BBlock> comp = (o1, o2) -> {
-			assert(!o1.isDummy() && !o2.isDummy());
+		Comparator<BasicBlock> comp = (o1, o2) -> {
+			assert (!o1.isDummy() && !o2.isDummy());
 			return o1.idx() - o2.idx();
 		};
 		breaks.sort(comp);
@@ -151,7 +151,8 @@ public class LoopBody extends ProgramPart {
 
 		Formula wasCalculated;
 		if (!owner.isConstant(this.resultMapping.get(valnum))) {
-			BBlock definedIn = this.blocks.stream().filter(b -> b.ownsValue(resultMapping.get(valnum))).findFirst().get();
+			BasicBlock definedIn = this.blocks.stream().filter(b -> b.ownsValue(resultMapping.get(valnum))).findFirst()
+					.get();
 			wasCalculated = definedIn.generateImplicitFlowFormula();
 		} else {
 			wasCalculated = LogicUtil.ff.constant(true);
@@ -228,7 +229,7 @@ public class LoopBody extends ProgramPart {
 		return new ArrayList<>(arrs);
 	}
 
-	public Set<BBlock> getBlocks() {
+	public Set<BasicBlock> getBlocks() {
 		return blocks;
 	}
 
@@ -236,7 +237,7 @@ public class LoopBody extends ProgramPart {
 		return this.blocks.stream().anyMatch(b -> b.idx() == idx);
 	}
 
-	public BBlock getHead() {
+	public BasicBlock getHead() {
 		return head;
 	}
 
@@ -281,17 +282,17 @@ public class LoopBody extends ProgramPart {
 		return phiMap;
 	}
 
-	public List<BBlock> breakToPostLoop(BBlock breakBlock) {
-		BBlock afterBreakBlock = breakBlock.succs().stream().filter(b -> !this.hasBlock(b.idx())).findFirst().get();
-		BBlock postLoopSuccessor = getPostLoopSuccessor(breakBlock);
-		List<BBlock> bridge = BBlockOrdering.blocksBetween(afterBreakBlock, postLoopSuccessor);
+	public List<BasicBlock> breakToPostLoop(BasicBlock breakBlock) {
+		BasicBlock afterBreakBlock = breakBlock.succs().stream().filter(b -> !this.hasBlock(b.idx())).findFirst().get();
+		BasicBlock postLoopSuccessor = getPostLoopSuccessor(breakBlock);
+		List<BasicBlock> bridge = CFGUtil.blocksBetween(afterBreakBlock, postLoopSuccessor);
 		bridge.remove(postLoopSuccessor);
 		return bridge;
 	}
 
-	public BBlock getPostLoopSuccessor(BBlock breakBlock) {
-		BBlock afterBreakBlock = breakBlock.succs().stream().filter(b -> !this.hasBlock(b.idx())).findFirst().get();
-		BBlock postLoopSuccessor = afterBreakBlock;
+	public BasicBlock getPostLoopSuccessor(BasicBlock breakBlock) {
+		BasicBlock afterBreakBlock = breakBlock.succs().stream().filter(b -> !this.hasBlock(b.idx())).findFirst().get();
+		BasicBlock postLoopSuccessor = afterBreakBlock;
 
 		while (this.getOwner().getCFG().isDominatedBy(postLoopSuccessor, breakBlock)) {
 			postLoopSuccessor = postLoopSuccessor.succs().get(0);
@@ -303,7 +304,7 @@ public class LoopBody extends ProgramPart {
 		return this.beforeLoop.get(i);
 	}
 
-	public List<BBlock> getBreaks() {
+	public List<BasicBlock> getBreaks() {
 		return this.breaks;
 	}
 
@@ -312,8 +313,8 @@ public class LoopBody extends ProgramPart {
 	}
 
 	public Formula getJumpOut() {
-		BBlock inLoopPred = head.preds().stream().filter(pred -> this.hasBlock(pred.idx())).findFirst().get();
-		return LogicUtil.ff.or(LogicUtil.ff.not(inLoopPred.generateImplicitFlowFormula()),this.jumpOut);
+		BasicBlock inLoopPred = head.preds().stream().filter(pred -> this.hasBlock(pred.idx())).findFirst().get();
+		return LogicUtil.ff.or(LogicUtil.ff.not(inLoopPred.generateImplicitFlowFormula()), this.jumpOut);
 	}
 
 	public Method getOwner() {

@@ -40,7 +40,7 @@ public class ReturnValue extends RecursiveReturnValue<Formula[]> {
 		return false;
 	}
 
-	@Override public void addReturnSite(SSAReturnInstruction instruction, BBlock b) {
+	@Override public void addReturnSite(SSAReturnInstruction instruction, BasicBlock b) {
 		this.returnDeps = m.getDepsForValue(instruction.getResult());
 		this.addReturn(Triple.triple(b.idx(), b.generateImplicitFlowFormula(), this.returnDeps));
 

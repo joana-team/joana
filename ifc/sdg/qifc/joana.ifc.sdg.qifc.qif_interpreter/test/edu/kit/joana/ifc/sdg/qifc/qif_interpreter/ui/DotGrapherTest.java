@@ -11,7 +11,7 @@ class DotGrapherTest {
 	@Test
 	public void dotGraphTest() throws IOException, InterruptedException {
 		Program p = TestUtils.build("If");
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 	}
 
 }

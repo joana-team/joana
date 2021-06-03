@@ -6,7 +6,7 @@ import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ConversionException;
@@ -28,7 +28,7 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 	public final Map<Integer, Parser.ExpressionNode> blockToExpr;
 	private Map<Integer, Parser.VariableDeclarationNode> varDecls;
 	private final Map<Integer, Integer> arrayVarIdxCounter;
-	public BBlock currentBlock;
+	public BasicBlock currentBlock;
 
 	public ConversionVisitor(Converter conv, Method m, Map<Integer, Parser.ParameterNode> parameterToNode) {
 		this.m = m;
@@ -157,17 +157,17 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 				m.getValue(instruction.getDef()).getType().nildumuType()));
 
 		if (!currentBlock.isLoopHeader() && currentBlock.preds().stream()
-				.map(pred -> (pred.isDummy() ? pred.preds().get(0) : pred)).anyMatch(BBlock::isLoopHeader)) {
+				.map(pred -> (pred.isDummy() ? pred.preds().get(0) : pred)).anyMatch(BasicBlock::isLoopHeader)) {
 			// phi that results from a break in loop
 			// since loops are converted into functions, we only need to assign the new value the value of the loop-function return variable
 
 			// one of the uses comes from a loop header, the other one from somewhere inside the loop
-			BBlock use0DefBlock = BBlock.getBBlockForInstruction(m.getDef(instruction.getUse(0)), m.getCFG());
-			BBlock loopHead;
+			BasicBlock use0DefBlock = BasicBlock.getBBlockForInstruction(m.getDef(instruction.getUse(0)), m.getCFG());
+			BasicBlock loopHead;
 			if (use0DefBlock.isLoopHeader() && m.getCFG().isDominatedBy(currentBlock, use0DefBlock)) {
 				loopHead = use0DefBlock;
 			} else {
-				loopHead = BBlock.getBBlockForInstruction(m.getDef(instruction.getUse(1)), m.getCFG());
+				loopHead = BasicBlock.getBBlockForInstruction(m.getDef(instruction.getUse(1)), m.getCFG());
 			}
 
 			int substitutedVar = loopHead.ownsValue(instruction.getUse(0)) ?
@@ -178,8 +178,8 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 							access(substitutedVar, instruction)));
 		} else {
 			// phi from if-stmt
-			BBlock condBlock = m.getCFG().getImmDom(currentBlock);
-			BBlock firstPred = currentBlock.preds().get(0);
+			BasicBlock condBlock = m.getCFG().getImmDom(currentBlock);
+			BasicBlock firstPred = currentBlock.preds().get(0);
 			int firstArg = (m.getCFG().isDominatedBy(firstPred, m.getCFG().getBlock(condBlock.getTrueTarget()))) ?
 					0 :
 					1;
@@ -194,7 +194,7 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 		}
 	}
 
-	public Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> visitBlock(BBlock b) {
+	public Pair<List<Parser.StatementNode>, Map<Integer, Parser.VariableDeclarationNode>> visitBlock(BasicBlock b) {
 		this.currentBlock = b;
 		this.stmts = new ArrayList<>();
 		this.varDecls = new HashMap<>();

@@ -25,7 +25,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 
 	private final Method m;
 	private final Interpreter interpreter;
-	private BBlock block;
+	private BasicBlock block;
 	private int prevBlockIdx;
 	private int nextBlockIdx;
 
@@ -57,7 +57,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 	 * @param prevBlockIdx the idx of the basic block that was previously executed (needed to  correctly evaluate phis). If it is the first block of a program to be executed, this value should be -1
 	 * @return the index of the next block to be executed or -1 if the execution is finished
 	 */
-	public int executeBlock(BBlock start, int prevBlockIdx) throws OutOfScopeException {
+	public int executeBlock(BasicBlock start, int prevBlockIdx) throws OutOfScopeException {
 		if (start.isExitBlock()) {
 			return -1;
 		}
@@ -202,7 +202,7 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 				.asList(block.getCFG().getWalaCFG().getNormalSuccessors(block.getWalaBasicBlock()));
 		assert (succs.size() == 2);
 
-		BBlock trueTargetBlock = block.getCFG().getMethod().getBlockStartingAt(instruction.getTarget());
+		BasicBlock trueTargetBlock = block.getCFG().getMethod().getBlockStartingAt(instruction.getTarget());
 		succs.removeIf(b -> b.getNumber() == trueTargetBlock.idx());
 		assert (succs.size() == 1);
 

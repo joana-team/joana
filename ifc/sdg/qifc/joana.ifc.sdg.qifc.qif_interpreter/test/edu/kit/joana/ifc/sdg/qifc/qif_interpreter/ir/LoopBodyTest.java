@@ -63,30 +63,30 @@ class LoopBodyTest {
 
 	@Test void breakToPostLoop() throws IOException, InterruptedException {
 		Program p = TestUtils.build("Break");
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 
 		LoopBody l = p.getEntryMethod().getLoops().get(0);
-		BBlock breakBlock = l.getBreaks().get(0);
+		BasicBlock breakBlock = l.getBreaks().get(0);
 		List<Integer> result = l.breakToPostLoop(breakBlock).stream().map(b -> b.idx()).collect(Collectors.toList());
 		Assertions.assertEquals(Arrays.asList(-5, 4), result);
 	}
 
 	@Test void breakToPostLoop2() throws IOException, InterruptedException {
 		Program p = TestUtils.build("Break3");
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 
 		LoopBody l = p.getEntryMethod().getLoops().get(0);
-		BBlock breakBlock = l.getBreaks().get(0);
+		BasicBlock breakBlock = l.getBreaks().get(0);
 		List<Integer> result = l.breakToPostLoop(breakBlock).stream().map(b -> b.idx()).collect(Collectors.toList());
 		Assertions.assertEquals(Arrays.asList(-5, 4, -6, -7, 5, 9), result);
 	}
 
 	@Test void breakToPostLoop3() throws IOException, InterruptedException {
 		Program p = TestUtils.build("Break4");
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 
 		LoopBody l = p.getEntryMethod().getLoops().get(0);
-		BBlock breakBlock = l.getBreaks().get(0);
+		BasicBlock breakBlock = l.getBreaks().get(0);
 		List<Integer> result = l.breakToPostLoop(breakBlock).stream().map(b -> b.idx()).collect(Collectors.toList());
 		Assertions.assertEquals(Arrays.asList(-5, 4, -6, 6, -7, 5, 10), result);
 	}

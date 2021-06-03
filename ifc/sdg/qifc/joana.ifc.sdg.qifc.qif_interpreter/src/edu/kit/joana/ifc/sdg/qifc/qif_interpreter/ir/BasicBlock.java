@@ -2,6 +2,8 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.ssa.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LinearSegment;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
@@ -9,19 +11,20 @@ import org.logicng.formulas.Formula;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class BBlock implements DotNode {
+public class BasicBlock implements DotNode {
 
-	private static final Map<Integer, BBlock> dummies = new HashMap<>();
+	private static final Map<Integer, BasicBlock> dummies = new HashMap<>();
 	private static int dummyCtr = -2;
 
 	private final SSACFG.BasicBlock walaBBlock;
+	private LinearSegment segment;
 	private final CFG g;
 	private final List<SSAInstruction> instructions;
 	private IFTreeNode ifTree;
 	private final int idx;
 	private final boolean isDummy;
-	private List<BBlock> succs;
-	private List<BBlock> preds;
+	private List<BasicBlock> succs;
+	private List<BasicBlock> preds;
 	private boolean isLoopHeader = false;
 	private boolean isPartOfLoop = false;
 	private boolean isCondHeader = false;
@@ -35,7 +38,7 @@ public class BBlock implements DotNode {
 
 	private boolean hasRelevantCF;
 
-	public BBlock(SSACFG.BasicBlock walaBBlock, CFG g) {
+	public BasicBlock(SSACFG.BasicBlock walaBBlock, CFG g) {
 		this.walaBBlock = walaBBlock;
 		this.g = g;
 		this.instructions = walaBBlock.getAllInstructions().stream().filter(i -> !(i == null))
@@ -49,7 +52,7 @@ public class BBlock implements DotNode {
 		g.addRep(walaBBlock, this);
 	}
 
-	private BBlock(CFG g, int idx, int replacedPredIdx) {
+	private BasicBlock(CFG g, int idx, int replacedPredIdx) {
 		this.isDummy = true;
 		this.replacedPredIdx = replacedPredIdx;
 		this.walaBBlock = null;
@@ -63,24 +66,24 @@ public class BBlock implements DotNode {
 		dummies.put(this.idx, this);
 	}
 
-	public static BBlock createDummy(CFG g, int replacedPredIdx) {
-		return new BBlock(g, dummyCtr--, replacedPredIdx);
+	public static BasicBlock createDummy(CFG g, int replacedPredIdx) {
+		return new BasicBlock(g, dummyCtr--, replacedPredIdx);
 	}
 
-	private static void addEdge(BBlock from, BBlock to) {
+	private static void addEdge(BasicBlock from, BasicBlock to) {
 		from.succs.add(to);
 		to.preds.add(from);
 	}
 
-	public static BBlock bBlock(Method m, SSACFG.BasicBlock walaBBlock) {
+	public static BasicBlock bBlock(Method m, SSACFG.BasicBlock walaBBlock) {
 		return m.getCFG().repMap().get(walaBBlock);
 	}
 
-	public static BBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
+	public static BasicBlock getBBlockForInstruction(SSAInstruction i, CFG g) {
 		return g.repMap().values().stream().filter(b -> b.hasInstruction(i)).findFirst().get();
 	}
 
-	public static BBlock getBlockForIdx(Method m, int idx) {
+	public static BasicBlock getBlockForIdx(Method m, int idx) {
 		if (idx < -1) {
 			return dummies.get(idx);
 		}
@@ -104,7 +107,7 @@ public class BBlock implements DotNode {
 			if (g.repMap().containsKey(bb)) {
 				addEdge(this, g.repMap().get(bb));
 			} else {
-				BBlock newSucc = new BBlock(bb, this.g);
+				BasicBlock newSucc = new BasicBlock(bb, this.g);
 				g.addNode(newSucc);
 				this.succs.add(newSucc);
 				newSucc.findSuccessorsRec(g);
@@ -133,7 +136,7 @@ public class BBlock implements DotNode {
 		return instructions;
 	}
 
-	public List<BBlock> succs() {
+	public List<BasicBlock> succs() {
 		return succs;
 	}
 
@@ -143,7 +146,7 @@ public class BBlock implements DotNode {
 	 *
 	 * @return ordered list of the blocks predecessors
 	 */
-	public List<BBlock> preds() {
+	public List<BasicBlock> preds() {
 		return preds;
 	}
 
@@ -305,7 +308,7 @@ public class BBlock implements DotNode {
 		int realTarget = this.getCFG().getBlocks().stream()
 				.filter(b -> b.getWalaBasicBlock().getFirstInstructionIndex() == instructionIdx).findFirst().get().idx;
 
-		int dummyTarget = BBlock.getBlockForIdx(this.g.getMethod(), realTarget).preds.stream()
+		int dummyTarget = BasicBlock.getBlockForIdx(this.g.getMethod(), realTarget).preds.stream()
 				.filter(pred -> this.succs.contains(pred)).findFirst().get().idx;
 		return dummyTarget;
 	}
@@ -370,5 +373,26 @@ public class BBlock implements DotNode {
 
 	@Override public int getId() {
 		return idx;
+	}
+
+	public boolean hasMethodCall() {
+		return this.instructions.stream().anyMatch(
+				i -> i instanceof SSAInvokeInstruction && !((SSAInvokeInstruction) i).getDeclaredTarget().getSignature()
+						.equals(SATVisitor.OUTPUT_FUNCTION));
+	}
+
+	public Method getCallee() {
+		assert (hasMethodCall());
+		return this.getCFG().getMethod().getProg().getMethod(
+				((SSAInvokeInstruction) this.getWalaBasicBlock().getLastInstruction()).getDeclaredTarget()
+						.getSignature());
+	}
+
+	public LinearSegment getSegment() {
+		return segment;
+	}
+
+	public void setSegment(LinearSegment segment) {
+		this.segment = segment;
 	}
 }

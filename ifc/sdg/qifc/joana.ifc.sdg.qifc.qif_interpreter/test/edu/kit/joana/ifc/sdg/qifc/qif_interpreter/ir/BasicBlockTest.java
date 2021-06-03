@@ -8,12 +8,12 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BBlockTest {
+class BasicBlockTest {
 
 	@Test void getOwningLoopTest() throws IOException, InterruptedException {
 		Program p = TestUtils.build("LoopinLoop3");
 		Method m = p.getEntryMethod();
-		DotGrapher.exportDotGraph(m.getCFG());
+		DotGrapher.exportGraph(m.getCFG());
 
 		testOwningLoop(m, 3, 2);
 		testOwningLoop(m, 2, 2);
@@ -26,7 +26,7 @@ class BBlockTest {
 	}
 
 	void testOwningLoop(Method m, int blockIdx, int loopHeadIdx) {
-		BBlock inOuterLoop = BBlock.getBlockForIdx(m, blockIdx);
+		BasicBlock inOuterLoop = BasicBlock.getBlockForIdx(m, blockIdx);
 		LoopBody l = inOuterLoop.getOwningLoop();
 		assertEquals(loopHeadIdx, l.getHead().idx());
 	}

@@ -15,19 +15,19 @@ import java.util.stream.Collectors;
 /**
  * wrapper class for Wala CFG w/ some utility functions
  */
-public class CFG implements Graph<BBlock>, DotGraph {
+public class CFG implements Graph<BasicBlock>, DotGraph {
 
 	private final Method m;
 	private final SSACFG walaCFG;
-	private final BiMap<SSACFG.BasicBlock, BBlock> repMap = HashBiMap.create();
-	private final List<BBlock> blocks;
-	private final BBlock entry;
-	private Dominators<BBlock> walaDoms;
-	private edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<BBlock> nildumuDoms;
+	private final BiMap<SSACFG.BasicBlock, BasicBlock> repMap = HashBiMap.create();
+	private final List<BasicBlock> blocks;
+	private final BasicBlock entry;
+	private Dominators<BasicBlock> walaDoms;
+	private edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<BasicBlock> nildumuDoms;
 
 	private CFG(Method m) {
 		this.m = m;
-		this.entry = new BBlock(m.getIr().getControlFlowGraph().entry(), this);
+		this.entry = new BasicBlock(m.getIr().getControlFlowGraph().entry(), this);
 		this.blocks = new ArrayList<>();
 		this.blocks.add(entry);
 		this.walaCFG = m.getIr().getControlFlowGraph();
@@ -39,11 +39,11 @@ public class CFG implements Graph<BBlock>, DotGraph {
 		cfg.blocks.forEach(b -> b.findPredecessors(cfg));
 
 		// sorting these makes testing and debugging easier. However it should not be assumed that this list is sorted in the interpreter itself
-		cfg.blocks.sort(Comparator.comparingInt(BBlock::idx));
+		cfg.blocks.sort(Comparator.comparingInt(BasicBlock::idx));
 
 		// loop and conditionals info
-		cfg.nildumuDoms = new edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<>(cfg.entry, (BBlock::succs));
-		for (BBlock bb : cfg.blocks) {
+		cfg.nildumuDoms = new edu.kit.joana.ifc.sdg.qifc.nildumu.Dominators<>(cfg.entry, (BasicBlock::succs));
+		for (BasicBlock bb : cfg.blocks) {
 			if (cfg.nildumuDoms.isPartOfLoop(bb)) {
 				bb.setPartOfLoop(true);
 				if (bb.equals(cfg.nildumuDoms.loopHeader(bb))) {
@@ -59,12 +59,12 @@ public class CFG implements Graph<BBlock>, DotGraph {
 		cfg.addDummyBlocks();
 		cfg.walaDoms = Dominators.make(cfg, cfg.entry);
 
-		DotGrapher.exportDotGraph(cfg);
+		DotGrapher.exportGraph(cfg);
 
 		return cfg;
 	}
 
-	public int getLevel(BBlock b) {
+	public int getLevel(BasicBlock b) {
 		if (b.isDummy()) {
 			return getLevel(b.succs().get(0));
 		}
@@ -72,12 +72,12 @@ public class CFG implements Graph<BBlock>, DotGraph {
 	}
 
 	private void addDummyBlocks() {
-		List<BBlock> decisionNodes = this.blocks.stream().filter(BBlock::splitsControlFlow)
+		List<BasicBlock> decisionNodes = this.blocks.stream().filter(BasicBlock::splitsControlFlow)
 				.collect(Collectors.toList());
-		for (BBlock b : decisionNodes) {
-			List<BBlock> newSuccs = new ArrayList<>();
-			for (BBlock succ : b.succs()) {
-				BBlock newDummy = BBlock.createDummy(this, b.idx());
+		for (BasicBlock b : decisionNodes) {
+			List<BasicBlock> newSuccs = new ArrayList<>();
+			for (BasicBlock succ : b.succs()) {
+				BasicBlock newDummy = BasicBlock.createDummy(this, b.idx());
 				if (succ.isPartOfLoop()) {
 					newDummy.setPartOfLoop(true);
 				}
@@ -90,13 +90,14 @@ public class CFG implements Graph<BBlock>, DotGraph {
 		}
 	}
 
-	public Set<BBlock> getBasicBlocksInLoop(BBlock header) {
+	public Set<BasicBlock> getBasicBlocksInLoop(BasicBlock header) {
 		assert (header.isLoopHeader());
-		Set<BBlock> inLoop = new HashSet<>();
+		Set<BasicBlock> inLoop = new HashSet<>();
 		inLoop.add(header);
 
 		// find predecessor w/ back-edge
-		Optional<BBlock> loopJmpBack = header.preds().stream().filter(pred -> isDominatedBy(pred, header)).findFirst();
+		Optional<BasicBlock> loopJmpBack = header.preds().stream().filter(pred -> isDominatedBy(pred, header))
+				.findFirst();
 		assert (loopJmpBack.isPresent());
 
 		// add all predecessors until header is reached
@@ -106,8 +107,8 @@ public class CFG implements Graph<BBlock>, DotGraph {
 		return inLoop;
 	}
 
-	private void addLoopNodeRec(Set<BBlock> alreadyFound, BBlock current) {
-		for (BBlock b : current.preds()) {
+	private void addLoopNodeRec(Set<BasicBlock> alreadyFound, BasicBlock current) {
+		for (BasicBlock b : current.preds()) {
 			if (!alreadyFound.contains(b)) {
 				alreadyFound.add(b);
 				addLoopNodeRec(alreadyFound, b);
@@ -116,21 +117,21 @@ public class CFG implements Graph<BBlock>, DotGraph {
 	}
 
 	public void print() {
-		for (BBlock b : blocks) {
+		for (BasicBlock b : blocks) {
 			b.print();
 			StringBuilder succs = new StringBuilder("Successors: ");
-			for (BBlock s : b.succs()) {
+			for (BasicBlock s : b.succs()) {
 				succs.append(s.idx()).append(" ");
 			}
 			succs.append("\nPredecessors: ");
-			for (BBlock s : b.preds()) {
+			for (BasicBlock s : b.preds()) {
 				succs.append(s.idx()).append(" ");
 			}
 			System.out.println(succs.toString());
 		}
 	}
 
-	public List<BBlock> getBlocks() {
+	public List<BasicBlock> getBlocks() {
 		return blocks;
 	}
 
@@ -138,88 +139,88 @@ public class CFG implements Graph<BBlock>, DotGraph {
 		return m;
 	}
 
-	public BBlock entry() {
-		return BBlock.bBlock(m, m.getCFG().walaCFG.entry());
+	public BasicBlock entry() {
+		return BasicBlock.bBlock(m, m.getCFG().walaCFG.entry());
 	}
 
 	public SSACFG getWalaCFG() {
 		return walaCFG;
 	}
 
-	public boolean isDominatedBy(BBlock node, BBlock potentialDom) {
+	public boolean isDominatedBy(BasicBlock node, BasicBlock potentialDom) {
 		return walaDoms.isDominatedBy(node, potentialDom);
 	}
 
-	public BBlock getImmDom(BBlock node) {
+	public BasicBlock getImmDom(BasicBlock node) {
 		return walaDoms.getIdom(node);
 	}
 
-	@Override public void removeNodeAndEdges(BBlock n) throws UnsupportedOperationException {
+	@Override public void removeNodeAndEdges(BasicBlock n) throws UnsupportedOperationException {
 		this.blocks.remove(n);
-		for(BBlock b: blocks) {
+		for (BasicBlock b : blocks) {
 			b.preds().remove(n);
 			b.succs().remove(n);
 		}
 	}
 
-	@Override public Iterator<BBlock> getPredNodes(BBlock n) {
+	@Override public Iterator<BasicBlock> getPredNodes(BasicBlock n) {
 		return n.preds().iterator();
 	}
 
-	@Override public int getPredNodeCount(BBlock n) {
+	@Override public int getPredNodeCount(BasicBlock n) {
 		return n.preds().size();
 	}
 
-	@Override public Iterator<BBlock> getSuccNodes(BBlock n) {
+	@Override public Iterator<BasicBlock> getSuccNodes(BasicBlock n) {
 		return n.succs().iterator();
 	}
 
-	@Override public int getSuccNodeCount(BBlock N) {
+	@Override public int getSuccNodeCount(BasicBlock N) {
 		return N.succs().size();
 	}
 
-	@Override public void addEdge(BBlock src, BBlock dst) {
+	@Override public void addEdge(BasicBlock src, BasicBlock dst) {
 		src.succs().add(dst);
 		dst.preds().add(src);
 	}
 
-	@Override public void removeEdge(BBlock src, BBlock dst) throws UnsupportedOperationException {
+	@Override public void removeEdge(BasicBlock src, BasicBlock dst) throws UnsupportedOperationException {
 		src.succs().remove(dst);
 		dst.preds().remove(src);
 	}
 
-	public void replaceEdge(BBlock src, BBlock dst, BBlock oldSrc) {
+	public void replaceEdge(BasicBlock src, BasicBlock dst, BasicBlock oldSrc) {
 		int pos = dst.preds().indexOf(oldSrc);
 		dst.preds().remove(pos);
 		dst.preds().add(pos, src);
 		src.succs().add(dst);
 	}
 
-	@Override public void removeAllIncidentEdges(BBlock node) throws UnsupportedOperationException {
+	@Override public void removeAllIncidentEdges(BasicBlock node) throws UnsupportedOperationException {
 		removeIncomingEdges(node);
 		removeOutgoingEdges(node);
 	}
 
-	@Override public void removeIncomingEdges(BBlock node) throws UnsupportedOperationException {
+	@Override public void removeIncomingEdges(BasicBlock node) throws UnsupportedOperationException {
 		node.emptyPreds();
-		for (BBlock b : blocks) {
+		for (BasicBlock b : blocks) {
 			b.succs().remove(node);
 		}
 	}
 
-	@Override public void removeOutgoingEdges(BBlock node) throws UnsupportedOperationException {
+	@Override public void removeOutgoingEdges(BasicBlock node) throws UnsupportedOperationException {
 		node.emptySuccs();
-		for (BBlock b: blocks) {
+		for (BasicBlock b : blocks) {
 			b.preds().remove(node);
 		}
 	}
 
-	@Override public boolean hasEdge(BBlock src, BBlock dst) {
-		assert(src.succs().contains(dst) == dst.preds().contains(src));
+	@Override public boolean hasEdge(BasicBlock src, BasicBlock dst) {
+		assert (src.succs().contains(dst) == dst.preds().contains(src));
 		return src.succs().contains(dst);
 	}
 
-	@Override public Iterator<BBlock> iterator() {
+	@Override public Iterator<BasicBlock> iterator() {
 		return blocks.iterator();
 	}
 
@@ -227,42 +228,41 @@ public class CFG implements Graph<BBlock>, DotGraph {
 		return blocks.size();
 	}
 
-	@Override public void addNode(BBlock n) {
+	@Override public void addNode(BasicBlock n) {
 		blocks.add(n);
 	}
 
-	@Override public void removeNode(BBlock n) throws UnsupportedOperationException {
+	@Override public void removeNode(BasicBlock n) throws UnsupportedOperationException {
 		removeAllIncidentEdges(n);
 		blocks.remove(n);
 	}
 
-	@Override public boolean containsNode(BBlock n) {
+	@Override public boolean containsNode(BasicBlock n) {
 		return blocks.contains(n);
 	}
 
-	public BBlock getBlock(int i) {
+	public BasicBlock getBlock(int i) {
 		return blocks.stream().filter(b -> b.idx() == i).findFirst().get();
 	}
 
-	public void addRep(SSACFG.BasicBlock a, BBlock b) {
+	public void addRep(SSACFG.BasicBlock a, BasicBlock b) {
 		this.repMap.put(a, b);
 	}
 
-	public BiMap<SSACFG.BasicBlock, BBlock> repMap() {
+	public BiMap<SSACFG.BasicBlock, BasicBlock> repMap() {
 		return this.repMap;
 	}
 
-	@Override public BBlock getRoot() {
+	@Override public BasicBlock getRoot() {
 		return this.entry;
 	}
 
 	@Override public List<DotNode> getNodes() {
-		return this.blocks.stream().map(b -> (DotNode)b).collect(Collectors.toList());
+		return this.blocks.stream().map(b -> (DotNode) b).collect(Collectors.toList());
 	}
 
 	@Override public String getName() {
-		return m.identifier()
-				.replace('.', '_')
+		return m.identifier().replace('.', '_')
 				.replace('(', '_')
 				.replace(')', '_');
 	}

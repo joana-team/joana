@@ -1,6 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
@@ -54,12 +54,12 @@ public class Interpreter {
 		while (nextBlock != -1) {
 			prevBlock = currentBlock;
 			currentBlock = nextBlock;
-			BBlock next = BBlock.getBlockForIdx(m, currentBlock);
+			BasicBlock next = BasicBlock.getBlockForIdx(m, currentBlock);
 			nextBlock = ev.executeBlock(next, prevBlock);
 
 			// skip dummy Blocks
 			if (nextBlock < -1) {
-				BBlock dummy = BBlock.getBlockForIdx(m, nextBlock);
+				BasicBlock dummy = BasicBlock.getBlockForIdx(m, nextBlock);
 				nextBlock = dummy.succs().get(0).idx();
 			}
 		}

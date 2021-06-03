@@ -41,7 +41,7 @@ public class Int extends Value {
 
 	@Override public boolean isEffectivelyConstant(Method m) {
 		return this.isConstant() || this.constantBits != null && Arrays.stream(this.constantBits)
-				.allMatch(blv -> blv != BitLatticeValue.UNKNOWN) && !BBlock
+				.allMatch(blv -> blv != BitLatticeValue.UNKNOWN) && !BasicBlock
 				.getBBlockForInstruction(m.getDef(this.getValNum()), m.getCFG()).isLoopHeader();
 	}
 

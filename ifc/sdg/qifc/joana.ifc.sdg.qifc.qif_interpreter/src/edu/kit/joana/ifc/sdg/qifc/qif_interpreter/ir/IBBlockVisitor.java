@@ -2,14 +2,14 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 public interface IBBlockVisitor {
 
-	void visitStartNode(BBlock node);
+	void visitStartNode(BasicBlock node);
 
-	void visitExitNode(BBlock node);
+	void visitExitNode(BasicBlock node);
 
-	void visitStandardNode(BBlock node);
+	void visitStandardNode(BasicBlock node);
 
-	void visitDecisionNode(BBlock node);
+	void visitDecisionNode(BasicBlock node);
 
-	void visitDummyNode(BBlock node);
+	void visitDummyNode(BasicBlock node);
 
 }

@@ -10,7 +10,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.BBlockOrdering;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.wala.core.PDG;
 import edu.kit.joana.wala.core.PDGNode;
@@ -98,7 +98,7 @@ public class Method extends ProgramPart {
 	}
 
 	private void initLoops() {
-		this.loops = this.cfg.getBlocks().stream().filter(BBlock::isLoopHeader)
+		this.loops = this.cfg.getBlocks().stream().filter(BasicBlock::isLoopHeader)
 				.map(b -> LoopHandler.buildSkeleton(this, b)).collect(Collectors.toList());
 	}
 
@@ -138,8 +138,8 @@ public class Method extends ProgramPart {
 	}
 
 	private void initConstants() {
-		for(BBlock current: this.getCFG().getBlocks()) {
-			for (SSAInstruction i: current.instructions()) {
+		for (BasicBlock current : this.getCFG().getBlocks()) {
+			for (SSAInstruction i : current.instructions()) {
 
 				if (i instanceof SSAArrayLoadInstruction) {
 					checkForConstant(((SSAArrayLoadInstruction) i).getIndex());
@@ -163,7 +163,7 @@ public class Method extends ProgramPart {
 	}
 
 	private void initValues() {
-		for (BBlock b : BBlockOrdering.topological(cfg.getBlocks(), cfg.entry())) {
+		for (BasicBlock b : CFGUtil.topological(cfg.getBlocks(), cfg.entry())) {
 			b.instructions().forEach(i -> {
 				if (i.hasDef() && (i instanceof SSANewInstruction || (i instanceof SSAInvokeInstruction
 						&& ((SSAInvokeInstruction) i).getDeclaredResultType().isArrayType()))) {
@@ -219,7 +219,7 @@ public class Method extends ProgramPart {
 	}
 
 	public SSAInstruction getDef(int valNum) {
-		for (BBlock b : this.cfg.getBlocks()) {
+		for (BasicBlock b : this.cfg.getBlocks()) {
 			if (b.ownsValue(valNum)) {
 				return b.instructions().stream().filter(i -> i.hasDef() && i.getDef() == valNum).findAny().get();
 			}
@@ -310,7 +310,7 @@ public class Method extends ProgramPart {
 		List<Pair<JavaMethodSignature, SDGMethod>> signaturesNoConstructors = signatures.stream().filter(s -> !s.fst.getMethodName().equals(CONSTRUCTOR)).collect(
 				Collectors.toList());
 
-		for (Pair<JavaMethodSignature, SDGMethod> pair: signaturesNoConstructors) {
+		for (Pair<JavaMethodSignature, SDGMethod> pair : signaturesNoConstructors) {
 			if (p.isCalledFromMain(pair.fst)) {
 				return pair;
 			}
@@ -318,8 +318,8 @@ public class Method extends ProgramPart {
 		throw new IllegalStateException("No entrypoint method found");
 	}
 
-	public BBlock getBlockStartingAt(int idx) {
-		Optional<BBlock> block = this.getCFG().getBlocks().stream()
+	public BasicBlock getBlockStartingAt(int idx) {
+		Optional<BasicBlock> block = this.getCFG().getBlocks().stream()
 				.filter(b -> b.getWalaBasicBlock().getFirstInstructionIndex() == idx).findAny();
 
 		if (!block.isPresent()) {

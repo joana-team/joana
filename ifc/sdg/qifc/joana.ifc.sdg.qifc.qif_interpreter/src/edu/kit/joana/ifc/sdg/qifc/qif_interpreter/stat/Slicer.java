@@ -8,7 +8,7 @@ import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.graph.slicer.SummarySlicerBackward;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
@@ -31,7 +31,8 @@ public class Slicer {
 		SDG sdg = removeUnneededEdges(m.getProg().getSdg(), m);
 
 		if (!m.getValue(leakedVal).isConstant() && !m.isParam(leakedVal)) {
-			Optional<BBlock> owner = m.getCFG().getBlocks().stream().filter(b -> b.ownsValue(leakedVal)).findFirst();
+			Optional<BasicBlock> owner = m.getCFG().getBlocks().stream().filter(b -> b.ownsValue(leakedVal))
+					.findFirst();
 			assert (owner.isPresent());
 
 			SSAInstruction leakedValDef = owner.get().instructions().stream()
@@ -65,7 +66,7 @@ public class Slicer {
 					if (instruction != null && instruction.hasDef()) {
 						neededDefs.put(Pair.make(method, instruction.getDef()), true);
 					} else if (instruction instanceof SSAConditionalBranchInstruction) {
-						BBlock b = BBlock.getBBlockForInstruction(instruction, method.getCFG());
+						BasicBlock b = BasicBlock.getBBlockForInstruction(instruction, method.getCFG());
 						neededCF.put(Pair.make(method, b.idx()), true);
 					}
 				}
@@ -107,7 +108,7 @@ public class Slicer {
 		for (Method m : p.getMethods()) {
 			neededDefs.putAll(m.getProgramValues().keySet().stream()
 					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> false)));
-			neededCF.putAll(m.getCFG().getBlocks().stream().filter(BBlock::splitsControlFlow).map(BBlock::idx)
+			neededCF.putAll(m.getCFG().getBlocks().stream().filter(BasicBlock::splitsControlFlow).map(BasicBlock::idx)
 					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> false)));
 		}
 	}

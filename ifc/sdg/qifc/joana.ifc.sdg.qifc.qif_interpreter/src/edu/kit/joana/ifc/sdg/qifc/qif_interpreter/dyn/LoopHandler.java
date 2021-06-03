@@ -16,7 +16,7 @@ import java.util.stream.IntStream;
 
 public class LoopHandler {
 
-	public static LoopBody buildSkeleton(Method m, BBlock head) {
+	public static LoopBody buildSkeleton(Method m, BasicBlock head) {
 		assert (head.isLoopHeader());
 		LoopBody loop = new LoopBody(m, head);
 		return loop;
@@ -31,18 +31,18 @@ public class LoopHandler {
 	 * @param sa   StaticAnalysis object that is responsible for analysing the whole program
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
-	public static LoopBody analyze(Method m, BBlock head, SATAnalysis sa, LoopBody base) {
+	public static LoopBody analyze(Method m, BasicBlock head, SATAnalysis sa, LoopBody base) {
 		int loopUnrollingMax = m.getProg().getConfig().loopUnrollingMax();
 
 		base.computeLoopCondition();
 		extractDeps(m, head, base);
 		List<Integer> visited = new ArrayList<>();
-		Queue<BBlock> toVisit = new ArrayDeque<>();
+		Queue<BasicBlock> toVisit = new ArrayDeque<>();
 
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopSATVisitor sv = new LoopSATVisitor(sa, base);
 
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
-		List<BBlock> breakSuccessors = new ArrayList<>();
+		List<BasicBlock> breakSuccessors = new ArrayList<>();
 
 		// no need to visit head again --> add in-loop successor
 		toVisit.add(head.succs().stream().filter(base.getBlocks()::contains).findFirst().get());
@@ -51,7 +51,7 @@ public class LoopHandler {
 		// visit all loop blocks -- treat like separate function, where input variables are the variables assigned to the phi-def-values
 		// in the loop header
 		while (!toVisit.isEmpty()) {
-			BBlock b = toVisit.poll();
+			BasicBlock b = toVisit.poll();
 			visited.add(b.idx());
 
 			try {
@@ -69,9 +69,9 @@ public class LoopHandler {
 			} else {
 				breakSuccessors.addAll(b.succs().stream().filter(succ -> !base.hasBlock(succ.idx()))
 						.collect(Collectors.toList()));
-				for (BBlock succ : b.succs()) {
+				for (BasicBlock succ : b.succs()) {
 					if (base.getBlocks().contains(succ) && !succ.equals(head) && (succ.isLoopHeader() || succ.preds()
-							.stream().mapToInt(BBlock::idx).allMatch(visited::contains))) {
+							.stream().mapToInt(BasicBlock::idx).allMatch(visited::contains))) {
 						toVisit.add(succ);
 					}
 				}
@@ -81,11 +81,11 @@ public class LoopHandler {
 		base.setOutDT(sv.getCurrentLeaf().root());
 		// if the loop has a (or more) break statements,
 		// we visit the basic blocks that connect the jump out of the loop with the after-loop successor-block of the loop header
-		BBlock afterLoop = head.succs().stream().filter(succ -> !base.hasBlock(succ.idx())).findFirst().get().succs()
-				.get(0);
+		BasicBlock afterLoop = head.succs().stream().filter(succ -> !base.hasBlock(succ.idx())).findFirst().get()
+				.succs().get(0);
 		List<Integer> visitedBreakBlocks = new ArrayList<>();
 		while (!breakSuccessors.isEmpty()) {
-			BBlock b = breakSuccessors.remove(0);
+			BasicBlock b = breakSuccessors.remove(0);
 			visitedBreakBlocks.add(b.idx());
 			try {
 				sv.visitBlock(m, b, -1);
@@ -155,7 +155,7 @@ public class LoopHandler {
 	/*
 	Method to populate the in-value Map, out-value Map and beforeLoop Map of the LoopBody l
 	 */
-	private static void extractDeps(Method m, BBlock head, LoopBody loop) {
+	private static void extractDeps(Method m, BasicBlock head, LoopBody loop) {
 		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG().getPredNodes(head.getWalaBasicBlock());
 
 		// find position i of the phi-use value that belongs to the head's in-loop predecessor
@@ -180,7 +180,7 @@ public class LoopHandler {
 		loop.generateInitialValueSubstitution();
 	}
 
-	private static void extractOutDeps(Method m, BBlock head, LoopBody loop) {
+	private static void extractOutDeps(Method m, BasicBlock head, LoopBody loop) {
 		Iterator<ISSABasicBlock> orderedPredsIter = head.getCFG().getWalaCFG().getPredNodes(head.getWalaBasicBlock());
 
 		// find position i of the phi-use value that belongs to the head's in-loop predecessor
@@ -212,7 +212,8 @@ public class LoopHandler {
 	 * @param breakBlock block 'between' the loop and the block where def is defined
 	 * @return Formula that describes the value assigned to value number {@code def}, depending on whether the loop was exited 'normally' or through a break
 	 */
-	public static Formula[] computeBreakValues(LoopBody l, int def, int normalUse, int breakUse, BBlock breakBlock) {
+	public static Formula[] computeBreakValues(LoopBody l, int def, int normalUse, int breakUse,
+			BasicBlock breakBlock) {
 		Pair<Formula, Formula[]> breakRes = multipleBreaksCondition(l, breakUse, breakBlock);
 
 		Formula breakCondition = breakRes.fst;
@@ -251,28 +252,33 @@ public class LoopHandler {
 	First component of return value: Condition to check whether any conditional jump out of the loop occurs
 	Second component of return value: Value of {@code breakUse} depending on which conditional jump was taken
 	 */
-	private static Pair<Formula, Formula[]> multipleBreaksCondition(LoopBody l, int breakUse, BBlock breakBlock) {
+	private static Pair<Formula, Formula[]> multipleBreaksCondition(LoopBody l, int breakUse, BasicBlock breakBlock) {
 		// we might have multiple breaks in the loop. Here we collect all values that could possibly be our "output" value, i.e. the value that is ultimately assigned to the break-phi,
 		// possibly though multiple phi-instructions in between
 		// The second component of each pair describes the implicit information contained in each value
-		List<Pair<Integer, IFTreeNode>> possibleValues = findBreakValuesRec(l, breakUse, breakBlock,
-				new ArrayList<>());
+		List<Pair<Integer, IFTreeNode>> possibleValues = findBreakValuesRec(l, breakUse, breakBlock, new ArrayList<>());
 
 		int valnum = possibleValues.get(possibleValues.size() - 1).fst;
-		Formula[] value = (l.getIn().containsKey(valnum) ? l.getOwner().getVarsForValue(valnum) : l.getOwner().getDepsForValue(valnum));
+		Formula[] value = (l.getIn().containsKey(valnum) ?
+				l.getOwner().getVarsForValue(valnum) :
+				l.getOwner().getDepsForValue(valnum));
 
 		for (int i = 0; i < possibleValues.size() - 1; i++) {
 			valnum = possibleValues.get(i).fst;
-			Formula[] breakValue = l.getIn().containsKey(valnum) ? l.getOwner().getVarsForValue(valnum) : l.getOwner().getDepsForValue(valnum);
+			Formula[] breakValue = l.getIn().containsKey(valnum) ?
+					l.getOwner().getVarsForValue(valnum) :
+					l.getOwner().getDepsForValue(valnum);
 			value = LogicUtil.ternaryOp(possibleValues.get(i).snd.getImplicitFlowFormula(), breakValue, value);
 		}
 
-		Formula condJumpTaken = possibleValues.stream().map(p -> p.snd).map(IFTreeNode::getImplicitFlowFormula).reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or);
+		Formula condJumpTaken = possibleValues.stream().map(p -> p.snd).map(IFTreeNode::getImplicitFlowFormula)
+				.reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or);
 
 		return Pair.make(condJumpTaken, value);
 	}
 
-	private static List<Pair<Integer, IFTreeNode>> findBreakValuesRec(LoopBody l, int breakUse, BBlock block, List<Pair<Integer, IFTreeNode>> vals) {
+	private static List<Pair<Integer, IFTreeNode>> findBreakValuesRec(LoopBody l, int breakUse, BasicBlock block,
+			List<Pair<Integer, IFTreeNode>> vals) {
 
 		// skip dummy blocks
 		if (block.isDummy()) {
@@ -281,8 +287,10 @@ public class LoopHandler {
 
 		// value is result of phi-instruction. This implies there are more break-statements in the loop where could have jumped out
 		// we add both uses to our list and see where they are defined
-		if (block.ownsValue(breakUse) && block.instructions().stream().anyMatch(i -> i.hasDef() && i.getDef() == breakUse && i instanceof SSAPhiInstruction)) {
-			SSAPhiInstruction instruction = (SSAPhiInstruction) block.instructions().stream().filter(i -> i instanceof SSAPhiInstruction && i.getDef() == breakUse).findFirst().get();
+		if (block.ownsValue(breakUse) && block.instructions().stream()
+				.anyMatch(i -> i.hasDef() && i.getDef() == breakUse && i instanceof SSAPhiInstruction)) {
+			SSAPhiInstruction instruction = (SSAPhiInstruction) block.instructions().stream()
+					.filter(i -> i instanceof SSAPhiInstruction && i.getDef() == breakUse).findFirst().get();
 			vals = findBreakValuesRec(l, instruction.getUse(0), block.preds().get(0), vals);
 			vals = findBreakValuesRec(l, instruction.getUse(1), block.preds().get(1), vals);
 			return vals;
@@ -291,7 +299,7 @@ public class LoopHandler {
 			// base case: add value to our possible values and return
 			// the block might have multiple predecessors --> multiple break locations return the same value
 			// we add all possible break-locations separately bc they represent different control flow information
-			for (BBlock pred: block.preds()) {
+			for (BasicBlock pred : block.preds()) {
 				vals.add(Pair.make(breakUse, pred.getIfTree()));
 			}
 			return vals;

@@ -285,7 +285,7 @@ class InterpreterTest {
 		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
 		Interpreter i = new Interpreter(p, ps);
 
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 
 		List<String> args = Collections.singletonList("2");
 
@@ -301,7 +301,7 @@ class InterpreterTest {
 		PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name());
 		Interpreter i = new Interpreter(p, ps);
 
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 
 		List<String> args = Collections.singletonList("2");
 

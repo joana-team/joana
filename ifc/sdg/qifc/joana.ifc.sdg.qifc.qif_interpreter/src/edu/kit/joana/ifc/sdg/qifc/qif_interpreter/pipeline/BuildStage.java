@@ -4,6 +4,7 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.IRBuilder;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.ProgramSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 
@@ -30,12 +31,14 @@ public class BuildStage implements IStage {
 		}
 
 		env.iProgram = builder.getProgram();
+		env.segments = new ProgramSegment(env.iProgram);
 
 		if (env.args.dumpGraphs) {
 			builder.dumpGraph(env.args.outputDirectory);
 			for (Method m : env.iProgram.getMethods()) {
-				DotGrapher.exportDotGraph(m.getCFG());
+				DotGrapher.exportGraph(m.getCFG());
 			}
+			DotGrapher.exportGraph(env.segments);
 		}
 		success = true;
 		return env;

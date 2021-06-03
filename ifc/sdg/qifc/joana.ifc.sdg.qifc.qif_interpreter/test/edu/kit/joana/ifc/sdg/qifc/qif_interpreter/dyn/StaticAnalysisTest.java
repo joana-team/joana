@@ -2,7 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class StaticAnalysisTest {
 
 		SATAnalysis sa = new SATAnalysis(p);
 		sa.computeSATDeps();
-		p.getEntryMethod().getCFG().getBlocks().stream().filter(BBlock::splitsControlFlow)
+		p.getEntryMethod().getCFG().getBlocks().stream().filter(BasicBlock::splitsControlFlow)
 				.forEach(b -> assertNotNull(b.getCondExpr()));
 	}
 

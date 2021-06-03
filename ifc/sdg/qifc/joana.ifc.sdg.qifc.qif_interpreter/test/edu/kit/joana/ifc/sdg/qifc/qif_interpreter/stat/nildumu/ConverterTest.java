@@ -2,13 +2,14 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.IStage;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.StaticPreprocessingStage;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.junit.jupiter.api.Test;
 
@@ -190,23 +191,21 @@ class ConverterTest {
 	void computeConditionalBranchTestcase(String testcase, int condHeaderIdx) throws IOException, InterruptedException {
 		Program p = TestUtils.build(testcase);
 		Method m = p.getEntryMethod();
-		DotGrapher.exportDotGraph(m.getCFG());
+		DotGrapher.exportGraph(m.getCFG());
 
-		BBlock condHeader = m.getCFG().getBlock(condHeaderIdx);
+		BasicBlock condHeader = m.getCFG().getBlock(condHeaderIdx);
 		int trueTargetIdx = condHeader.getTrueTarget();
 		System.out.println("True target idx: " + trueTargetIdx);
-		BBlock trueTarget = condHeader.succs().stream().filter(b -> b.idx() == trueTargetIdx).findAny().get();
-		BBlock falseTarget = condHeader.succs().stream().filter(b -> b.idx() != trueTargetIdx).findAny().get();
+		BasicBlock trueTarget = condHeader.succs().stream().filter(b -> b.idx() == trueTargetIdx).findAny().get();
+		BasicBlock falseTarget = condHeader.succs().stream().filter(b -> b.idx() != trueTargetIdx).findAny().get();
 
 		Converter c = new Converter();
-		List<BBlock> left = c.computeConditionalBranch(condHeader, trueTarget, trueTarget,
-				new ArrayList<>(Arrays.asList(trueTarget)));
-		List<BBlock> right = c.computeConditionalBranch(condHeader, falseTarget, falseTarget,
-				new ArrayList<>(Arrays.asList(falseTarget)));
+		List<BasicBlock> left = CFGUtil.computeConditionalBranch(condHeader, trueTarget);
+		List<BasicBlock> right = CFGUtil.computeConditionalBranch(condHeader, falseTarget);
 
 		Pair<Set<Integer>, Set<Integer>> expected = branches.get(Pair.make(testcase, condHeader.idx()));
-		HashSet<Integer> trueSet = left.stream().map(BBlock::idx).collect(Collectors.toCollection(HashSet::new));
-		HashSet<Integer> falseSet = right.stream().map(BBlock::idx).collect(Collectors.toCollection(HashSet::new));
+		HashSet<Integer> trueSet = left.stream().map(BasicBlock::idx).collect(Collectors.toCollection(HashSet::new));
+		HashSet<Integer> falseSet = right.stream().map(BasicBlock::idx).collect(Collectors.toCollection(HashSet::new));
 
 		assertEquals(expected.fst.size(), left.size());
 		assertEquals(expected.snd.size(), right.size());
@@ -344,7 +343,7 @@ class ConverterTest {
 
 	String convertProgram(String testCase) throws IOException, InterruptedException {
 		Program p = TestUtils.build(testCase);
-		DotGrapher.exportDotGraph(p.getEntryMethod().getCFG());
+		DotGrapher.exportGraph(p.getEntryMethod().getCFG());
 		Environment env = new Environment(null);
 		env.iProgram = p;
 		env.completedSuccessfully.put(IStage.Stage.BUILD, true);

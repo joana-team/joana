@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.ProgramSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuProgram;
 
@@ -13,6 +14,7 @@ public class Environment {
 	public App.Args args;
 	public Program iProgram;
 	public NildumuProgram nProgram;
+	public ProgramSegment segments;
 	public Map<IStage.Stage, Boolean> completedSuccessfully;
 
 	public Environment(App.Args args) {

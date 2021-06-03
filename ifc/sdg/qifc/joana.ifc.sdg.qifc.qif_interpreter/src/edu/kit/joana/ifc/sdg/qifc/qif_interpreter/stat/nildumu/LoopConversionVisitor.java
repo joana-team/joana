@@ -3,7 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import nildumu.Parser;
@@ -30,11 +30,11 @@ public class LoopConversionVisitor extends ConversionVisitor {
 		super.visitConditionalBranch(instruction);
 
 		if (l.getBreaks().contains(currentBlock)) {
-			List<BBlock> bridge = l.breakToPostLoop(currentBlock);
+			List<BasicBlock> bridge = l.breakToPostLoop(currentBlock);
 			List<Parser.StatementNode> beforeBreak = conv
 					.convertStatements(bridge, new ConversionVisitor(conv, m, this.valToParam));
 
-			BBlock postLoopSuccessor = l.getPostLoopSuccessor(currentBlock);
+			BasicBlock postLoopSuccessor = l.getPostLoopSuccessor(currentBlock);
 
 			int[] returnVars = new int[res.returnVars.length];
 			for (int i = 0; i < returnVars.length; i++) {
@@ -63,11 +63,11 @@ public class LoopConversionVisitor extends ConversionVisitor {
 		}
 	}
 
-	private Optional<SSAInstruction> instructionForDef(int def, BBlock b) {
+	private Optional<SSAInstruction> instructionForDef(int def, BasicBlock b) {
 		return b.instructions().stream().filter(i -> i instanceof SSAPhiInstruction && i.getDef() == def).findFirst();
 	}
 
-	private Optional<SSAInstruction> phiInstructionForUse(int use, BBlock b) {
+	private Optional<SSAInstruction> phiInstructionForUse(int use, BasicBlock b) {
 		return b.instructions().stream().filter(i -> i instanceof SSAPhiInstruction)
 				.filter(i -> IntStream.range(0, i.getNumberOfUses()).anyMatch(j -> i.getUse(j) == use)).findFirst();
 	}

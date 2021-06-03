@@ -38,4 +38,9 @@ public class Util {
 		}
 		return base;
 	}
+
+	public static <T> Collection<T> combine(Collection<T> a, Collection<T> b) {
+		a.addAll(b);
+		return a;
+	}
 }

@@ -1,7 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util;
 
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import org.logicng.formulas.Formula;
 
@@ -76,7 +76,8 @@ public class DecisionTree<T> {
 		}
 
 		if (this.type == NodeType.LEAF) {
-			DecisionTree<T> newInner = this.addInnerNode(implicitFlows.first().fst, BBlock.getBlockForIdx(m, implicitFlows.first().fst).getCondExpr());
+			DecisionTree<T> newInner = this.addInnerNode(implicitFlows.first().fst,
+					BasicBlock.getBlockForIdx(m, implicitFlows.first().fst).getCondExpr());
 			return newInner.addLeaf(idx, leafVal, implicitFlows);
 		}
 
@@ -99,7 +100,8 @@ public class DecisionTree<T> {
 		}
 
 		if (this.type == NodeType.LEAF) {
-			DecisionTree<T> newInner = this.addInnerNode(implicitFlows.first().fst, BBlock.getBlockForIdx(m, implicitFlows.first().fst).getCondExpr());
+			DecisionTree<T> newInner = this.addInnerNode(implicitFlows.first().fst,
+					BasicBlock.getBlockForIdx(m, implicitFlows.first().fst).getCondExpr());
 			return newInner.addLeaf(idx, leafVal, implicitFlows);
 		}
 

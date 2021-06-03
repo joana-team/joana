@@ -4,7 +4,7 @@ import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
@@ -56,12 +56,14 @@ public class LoopSATVisitor extends SATVisitor {
 	}
 
 	private void addPossibleBreakValue() {
-		BBlock outsideLoop = this.getCurrentBlock().succs().stream().filter(succ -> !l.hasBlock(succ.idx())).findFirst().get();
-		Formula takeBreak = (this.getCurrentBlock().getTrueTarget() == outsideLoop.idx()) ? this.getCurrentBlock().getCondExpr() :
+		BasicBlock outsideLoop = this.getCurrentBlock().succs().stream().filter(succ -> !l.hasBlock(succ.idx()))
+				.findFirst().get();
+		Formula takeBreak = (this.getCurrentBlock().getTrueTarget() == outsideLoop.idx()) ?
+				this.getCurrentBlock().getCondExpr() :
 				LogicUtil.ff.not(this.getCurrentBlock().getCondExpr());
 
 		Map<Integer, Formula[]> currentVals = new HashMap<>();
-		for (int i: l.getOwner().getProgramValues().keySet()) {
+		for (int i : l.getOwner().getProgramValues().keySet()) {
 			currentVals.put(i, l.getOwner().getDepsForValue(i).clone());
 		}
 

@@ -68,7 +68,7 @@ public abstract class IFTreeNode {
 		}
 
 		@Override public Formula getImplicitFlowFormula() {
-			Formula condExpr = BBlock.getBlockForIdx(m, blockIdx).getCondExpr();
+			Formula condExpr = BasicBlock.getBlockForIdx(m, blockIdx).getCondExpr();
 			return (evalTo) ? condExpr : LogicUtil.ff.not(condExpr);
 		}
 	}

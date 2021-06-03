@@ -34,8 +34,8 @@ class AppTest {
 		p.getEntryMethod().getCFG().print();
 
 		CFG g = p.getEntryMethod().getCFG();
-		assertEquals(1, g.getBlocks().stream().filter(BBlock::isCondHeader).count());
-		assertTrue(g.getBlocks().stream().filter(BBlock::isCondHeader).findFirst().get().getWalaBasicBlock()
+		assertEquals(1, g.getBlocks().stream().filter(BasicBlock::isCondHeader).count());
+		assertTrue(g.getBlocks().stream().filter(BasicBlock::isCondHeader).findFirst().get().getWalaBasicBlock()
 				.getLastInstruction().toString().contains("conditional branch"));
 	}
 
@@ -46,8 +46,8 @@ class AppTest {
 
 		CFG g = p.getEntryMethod().getCFG();
 
-		assertEquals(1, g.getBlocks().stream().filter(BBlock::isLoopHeader).count());
-		assertTrue(g.getBlocks().stream().filter(BBlock::isLoopHeader).findFirst().get().getWalaBasicBlock()
+		assertEquals(1, g.getBlocks().stream().filter(BasicBlock::isLoopHeader).count());
+		assertTrue(g.getBlocks().stream().filter(BasicBlock::isLoopHeader).findFirst().get().getWalaBasicBlock()
 				.getLastInstruction().toString().contains("conditional branch"));
 	}
 
@@ -95,7 +95,7 @@ class AppTest {
 
 		Method entry = p.getEntryMethod();
 		entry.getCFG().print();
-		p.getMethods().forEach(m -> DotGrapher.exportDotGraph(m.getCFG()));
+		p.getMethods().forEach(m -> DotGrapher.exportGraph(m.getCFG()));
 
 		sa.computeSATDeps();
 

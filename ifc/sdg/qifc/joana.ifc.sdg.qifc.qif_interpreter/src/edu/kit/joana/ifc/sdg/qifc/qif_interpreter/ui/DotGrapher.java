@@ -11,26 +11,27 @@ import java.util.List;
 
 public class DotGrapher {
 
-		private static String outPath;
-		static {
-			outPath = System.getProperty("user.dir");
-		}
+	private static String outPath;
 
-		public static void configureDest(String path) {
-			outPath = path;
-		}
+	static {
+		outPath = System.getProperty("user.dir");
+	}
 
-		public static void exportDotGraph(DotGraph g) {
-			String graph = buildGraph(getNodes(g), getEdges(g), g.getName());
+	public static void configureDest(String path) {
+		outPath = path;
+	}
 
-			// create file
-			File f = new File(outPath + "/" + g.getName() + ".dot");
-			try {
-				f.createNewFile();
-				FileWriter w = new FileWriter(f);
-				w.write(graph);
-				w.close();
-			} catch (IOException e) {
+	public static void exportGraph(DotGraph g) {
+		String graph = buildGraph(getNodes(g), getEdges(g), g.getName());
+
+		// create file
+		File f = new File(outPath + "/" + g.getName() + ".dot");
+		try {
+			f.createNewFile();
+			FileWriter w = new FileWriter(f);
+			w.write(graph);
+			w.close();
+		} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}

@@ -64,7 +64,7 @@ public class ArrayReturnValue extends RecursiveReturnValue<Formula[][]> {
 		return DecisionTree.ARRAY_COMBINATOR;
 	}
 
-	@Override public void addReturnSite(SSAReturnInstruction instruction, BBlock b) {
+	@Override public void addReturnSite(SSAReturnInstruction instruction, BasicBlock b) {
 		this.returnDeps = m.getArray(instruction.getResult()).getValueDependencies();
 		this.addReturn(Triple.triple(b.idx(), b.generateImplicitFlowFormula(), this.returnDeps));
 

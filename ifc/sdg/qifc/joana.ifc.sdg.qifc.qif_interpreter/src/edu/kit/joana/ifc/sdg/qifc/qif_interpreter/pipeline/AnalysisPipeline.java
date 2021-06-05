@@ -7,7 +7,7 @@ import java.util.Deque;
 
 public class AnalysisPipeline {
 
-	Environment env;
+	public Environment env;
 
 	public void runPipeline(App.Args args) {
 		runPipelineUntil(args, IStage.Stage.EXECUTION);

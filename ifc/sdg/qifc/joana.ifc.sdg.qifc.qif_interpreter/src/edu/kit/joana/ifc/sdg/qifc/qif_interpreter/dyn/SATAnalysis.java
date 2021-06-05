@@ -5,6 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LoopSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Variable;
@@ -13,11 +14,13 @@ import java.util.stream.Collectors;
 
 public class SATAnalysis {
 
+	private Environment env;
 	private final Program program;
 	private final Method entry;
 
-	public SATAnalysis(Program program) {
-		this.program = program;
+	public SATAnalysis(Environment env) {
+		this.env = env;
+		this.program = env.iProgram;
 		this.entry = program.getEntryMethod();
 	}
 
@@ -67,8 +70,8 @@ public class SATAnalysis {
 		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
 		imIFVisitor.compute(m.getCFG());
 
-		State state = State.init(program);
-		state.toVisit.add(state.reentry);
+		State state = State.init(env);
+		state.toVisit.add(state.next);
 
 		try {
 			computeSATDeps(state, m, sv);
@@ -86,7 +89,7 @@ public class SATAnalysis {
 
 		if (b.isLoopHeader()) {
 			LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().idx() == b.idx()).findFirst().get();
-			LoopSegment newSegment = new LoopSegment(l, state.currentSegment);
+			LoopSegment newSegment = new LoopSegment(l, state.currentSegment());
 			state = newSegment.dynamic(state);
 
 			if (b.hasRelevantCF()) {

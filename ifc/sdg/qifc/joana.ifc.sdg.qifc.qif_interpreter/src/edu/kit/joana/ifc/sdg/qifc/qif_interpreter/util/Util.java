@@ -43,4 +43,20 @@ public class Util {
 		a.addAll(b);
 		return a;
 	}
+
+	public static <T, S extends Collection<T>> S combine(S... collections) {
+		Optional<S> first = Arrays.stream(collections).findFirst();
+
+		if (!first.isPresent()) {
+			return null;
+		}
+		;
+
+		for (S collection : collections) {
+			if (!collection.equals(first.get())) {
+				first.get().addAll(collection);
+			}
+		}
+		return first.get();
+	}
 }

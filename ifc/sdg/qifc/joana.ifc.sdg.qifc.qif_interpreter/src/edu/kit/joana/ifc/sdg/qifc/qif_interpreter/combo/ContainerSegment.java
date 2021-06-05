@@ -12,9 +12,17 @@ import java.util.Set;
 
 public class ContainerSegment extends Segment<ProgramPart.Container> {
 
-	public ContainerSegment(ProgramPart.Container c, Segment<? extends ProgramPart> parent) {
+	public ContainerSegment(ProgramPart.Container c, Segment<? extends ProgramPart> parent, boolean segmentChildren) {
 		super(c, parent);
-		this.children = segment(new ArrayList<>(this.getBlocks()));
+		if (segmentChildren) {
+			this.children = segment(new ArrayList<>(this.getBlocks()));
+		}
+
+	}
+
+	public ContainerSegment(ProgramPart.Container c, Segment<? extends ProgramPart> parent) {
+		this(c, parent, true);
+
 	}
 
 	@Override public State computeSATDeps(State state, Method m, SATVisitor sv) {
@@ -37,6 +45,6 @@ public class ContainerSegment extends Segment<ProgramPart.Container> {
 	}
 
 	@Override public String getLabel() {
-		return "Container";
+		return this.rank + "\n" + "Container";
 	}
 }

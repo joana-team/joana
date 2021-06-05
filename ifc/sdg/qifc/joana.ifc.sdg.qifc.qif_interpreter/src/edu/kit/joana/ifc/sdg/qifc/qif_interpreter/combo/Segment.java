@@ -15,6 +15,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 	private static int dotnode_id = 0;
 
 	private final int id;
+	public int rank;
 	public T programPart;
 	public int level;
 	public Segment<? extends ProgramPart> parent;
@@ -27,6 +28,10 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 	public List<Integer> arrayOutputs;
 
 	public BasicBlock entry;
+
+	boolean dynAnaFeasible;
+	boolean hasStatAnaChild;
+	boolean collapsed;
 
 	int channelCapacity;
 	Formula executionCondition;
@@ -41,6 +46,9 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 		this.arrayInputs = new HashMap<>();
 		this.outputs = new ArrayList<>();
 		this.arrayOutputs = new ArrayList<>();
+		this.dynAnaFeasible = this.level < 3;
+		this.collapsed = false;
+		this.rank = 0;
 	}
 
 	public Segment() {
@@ -72,24 +80,34 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 		LinearSegment linear = LinearSegment.newEmpty(this);
 
 		BasicBlock curr;
+		int numChildren = 0;
 		while (!unclaimed.isEmpty()) {
 			curr = unclaimed.remove(0);
 			linear.addBlock(curr);
 			if (curr.isLoopHeader()) {
 				BasicBlock finalCurr = curr;
+				linear.rank = numChildren++;
 				LoopSegment loop = new LoopSegment(
 						curr.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().equals(finalCurr))
 								.findFirst().get(), this);
+				loop.rank = numChildren++;
 				linear = startNewSegment(unclaimed, loop, linear, segments);
 			} else if (curr.isCondHeader()) {
+				linear.rank = numChildren++;
 				ConditionalSegment cond = new ConditionalSegment(this, null, curr);
+				cond.rank = numChildren++;
 				linear = startNewSegment(unclaimed, cond, linear, segments);
 			} else if (curr.hasMethodCall()) {
+				linear.rank = numChildren++;
 				MethodSegment method = new MethodSegment(curr.getCallee(), this);
+				method.rank = numChildren++;
 				linear = startNewSegment(unclaimed, method, linear, segments);
 			}
 		}
-		segments.add(linear);
+		if (!linear.children.isEmpty()) {
+			linear.rank = numChildren;
+			segments.add(linear);
+		}
 		return segments;
 	}
 
@@ -103,12 +121,65 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 
 	public abstract Set<BasicBlock> getBlocks();
 
-	public List<DotNode> getNodesRec(List<DotNode> nodes) {
+	public Set<DotNode> getNodesRec(Set<DotNode> nodes) {
 		nodes.add(this);
 		for (Segment<? extends ProgramPart> n : this.children) {
 			nodes = n.getNodesRec(nodes);
 		}
 		return nodes;
+	}
+
+	/**
+	 * @param children a list of segments that should be wrapped into a single segment, cannot be empty
+	 * @param parent   the parent of the returned segment
+	 * @return either a containerSegment that contains all the segments in {@code children} or, if {@code children} contains only a single segment, the segment itself
+	 */
+	public static Segment<? extends ProgramPart> createWithChildren(List<Segment<? extends ProgramPart>> children,
+			Segment<? extends ProgramPart> parent) {
+		if (children.size() == 1) {
+			return children.get(0);
+		}
+		Set<BasicBlock> blocks = new HashSet<>();
+		for (Segment<? extends ProgramPart> child : children) {
+			blocks.addAll(child.getBlocks());
+		}
+		ContainerSegment seg = new ContainerSegment(new ProgramPart.Container(blocks), parent, false);
+		seg.children = children;
+
+		return seg;
+
+	}
+
+	public void collapse() {
+		List<Segment<? extends ProgramPart>> collapsed = new ArrayList<>();
+		List<Segment<? extends ProgramPart>> canCollapse = new ArrayList<>();
+		for (Segment<? extends ProgramPart> child : this.children) {
+			child.collapse();
+			if (!child.hasStatAnaChild()) {
+				canCollapse.add(child);
+			} else {
+				if (!canCollapse.isEmpty()) {
+					collapsed.add(createWithChildren(canCollapse, this));
+				}
+
+				canCollapse = new ArrayList<>();
+				collapsed.add(child);
+			}
+		}
+		if (!canCollapse.isEmpty()) {
+			collapsed.add(createWithChildren(canCollapse, this));
+		}
+
+		if (collapsed.size() == 1) {
+			this.children = collapsed.get(0).children;
+		} else {
+			this.children = collapsed;
+		}
+		this.collapsed = true;
+	}
+
+	public boolean hasStatAnaChild() {
+		return !this.dynAnaFeasible || this.children.stream().anyMatch(Segment::hasStatAnaChild);
 	}
 
 	@Override public List<DotNode> getSuccs() {

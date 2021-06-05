@@ -36,12 +36,17 @@ public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 		return new HashSet(this.programPart.blocks);
 	}
 
+	@Override public void collapse() {
+		// do nothing
+	}
+
 	public void addBlock(BasicBlock b) {
 		this.programPart.blocks.add(b);
 		b.setSegment(this);
 	}
 
 	@Override public String getLabel() {
-		return this.programPart.blocks.stream().map(b -> String.valueOf(b.idx())).reduce("", (s, str) -> s + " " + str);
+		return this.rank + "\n" + this.programPart.blocks.stream().map(b -> String.valueOf(b.idx()))
+				.reduce("", (s, str) -> s + " " + str);
 	}
 }

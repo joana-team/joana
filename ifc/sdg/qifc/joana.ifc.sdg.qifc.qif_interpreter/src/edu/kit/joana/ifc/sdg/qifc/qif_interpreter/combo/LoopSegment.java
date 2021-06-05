@@ -44,6 +44,6 @@ public class LoopSegment extends Segment<LoopBody> {
 	}
 
 	@Override public String getLabel() {
-		return "Loop " + this.programPart.getHead().idx();
+		return this.rank + "\n" + "Loop " + this.programPart.getHead().idx() + "\n" + this.dynAnaFeasible;
 	}
 }

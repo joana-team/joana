@@ -257,13 +257,11 @@ public class CFG implements Graph<BasicBlock>, DotGraph {
 		return this.entry;
 	}
 
-	@Override public List<DotNode> getNodes() {
-		return this.blocks.stream().map(b -> (DotNode) b).collect(Collectors.toList());
+	@Override public Set<DotNode> getNodes() {
+		return this.blocks.stream().map(b -> (DotNode) b).collect(Collectors.toSet());
 	}
 
 	@Override public String getName() {
-		return m.identifier().replace('.', '_')
-				.replace('(', '_')
-				.replace(')', '_');
+		return m.identifier().replace('.', '_').replace('(', '_').replace(')', '_');
 	}
 }

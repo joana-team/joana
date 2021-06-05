@@ -39,6 +39,6 @@ public class MethodSegment extends Segment<Method> {
 	}
 
 	@Override public String getLabel() {
-		return "Method " + this.programPart.identifier();
+		return this.rank + "\n" + "Method " + this.programPart.identifier() + "\n" + this.dynAnaFeasible;
 	}
 }

@@ -22,8 +22,8 @@ public class ConditionalSegment extends Segment<ProgramPart.Container> {
 		int ifTarget = (split.succs().get(0).idx() == split.getTrueTarget()) ? 0 : 1;
 		BasicBlock ifBranch = split.succs().get(ifTarget);
 		BasicBlock elseBranch = split.succs().get(1 - ifTarget);
-		this.createBranch(split, ifBranch);
-		this.createBranch(split, elseBranch);
+		this.createBranch(split, ifBranch, 0);
+		this.createBranch(split, elseBranch, 1);
 		this.children.forEach(c -> this.programPart.blocks.addAll((((ProgramPart.Container) c.programPart).blocks)));
 	}
 
@@ -48,17 +48,19 @@ public class ConditionalSegment extends Segment<ProgramPart.Container> {
 		return (ContainerSegment) this.children.get(1);
 	}
 
-	private void createBranch(BasicBlock split, BasicBlock branchStart) {
+	private void createBranch(BasicBlock split, BasicBlock branchStart, int rank) {
 		Set<BasicBlock> blocks = new HashSet<>(CFGUtil.computeConditionalBranch(split, branchStart));
-		this.children.add(new ContainerSegment(new ProgramPart.Container(blocks), this));
+		ContainerSegment container = new ContainerSegment(new ProgramPart.Container(blocks), this);
+		container.rank = rank;
+		this.children.add(container);
 	}
 
 	@Override public String getLabel() {
-		return "Conditional";
+		return this.rank + "\n" + "Conditional";
 	}
 
 	@Override public State computeSATDeps(State state, Method m, SATVisitor sv) {
-		assert (this.owns(state.reentry));
+		assert (this.owns(state.next));
 		state = this.getIfBranch().computeSATDeps(state, m, sv);
 		state = this.getElseBranch().computeSATDeps(state, m, sv);
 		return state;

@@ -31,7 +31,7 @@ public class BuildStage implements IStage {
 		}
 
 		env.iProgram = builder.getProgram();
-		env.segments = new ProgramSegment(env.iProgram);
+		env.segments = ProgramSegment.create(env.iProgram);
 
 		if (env.args.dumpGraphs) {
 			builder.dumpGraph(env.args.outputDirectory);

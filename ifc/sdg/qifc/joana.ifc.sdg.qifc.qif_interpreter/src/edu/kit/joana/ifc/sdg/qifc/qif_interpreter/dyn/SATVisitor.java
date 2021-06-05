@@ -305,7 +305,6 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	These are used as "input variables" for the in-loop computations and later substituted by the actual value formulas depending on the current iteration
 	 */
 	private void handleLoopPhi(SSAPhiInstruction instruction) {
-		// find the operator for which there already exists as value object
 		Value defVal = m.getValue(instruction.getDef());
 		Variable[] vars = LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth());
 		m.setDepsForvalue(instruction.getDef(), vars);

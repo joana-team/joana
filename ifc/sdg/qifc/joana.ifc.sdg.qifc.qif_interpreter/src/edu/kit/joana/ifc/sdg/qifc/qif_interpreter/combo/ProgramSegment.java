@@ -9,22 +9,34 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGraph;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ProgramSegment extends Segment<Program> implements DotGraph {
 
-	public ProgramSegment(Program p) {
-		super();
-		this.level = 0;
-		this.parent = null;
-		this.programPart = p;
-		this.children = new ArrayList<>();
-		this.outputs = new ArrayList<>();
-		this.arrayOutputs = new ArrayList<>();
-		this.arrayInputs = Collections.emptyMap();
-
-		this.children = segment(
+	public static ProgramSegment create(Program p) {
+		ProgramSegment programPart = skeleton(p);
+		programPart.children = programPart.segment(
 				CFGUtil.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry()));
+		return programPart;
+	}
+
+	private ProgramSegment() {
+		super();
+	}
+
+	public static ProgramSegment skeleton(Program p) {
+		ProgramSegment seg = new ProgramSegment();
+		seg.level = 0;
+		seg.parent = null;
+		seg.programPart = p;
+		seg.children = new ArrayList<>();
+		seg.outputs = new ArrayList<>();
+		seg.arrayOutputs = new ArrayList<>();
+		seg.arrayInputs = Collections.emptyMap();
+		return seg;
 	}
 
 	@Override public State computeSATDeps(State state, Method m, SATVisitor sv) {
@@ -46,19 +58,23 @@ public class ProgramSegment extends Segment<Program> implements DotGraph {
 	}
 
 	@Override public String getLabel() {
-		return "Program";
+		return this.rank + "\n" + "Program\n" + this.dynAnaFeasible;
 	}
 
 	@Override public DotNode getRoot() {
 		return this;
 	}
 
-	@Override public List<DotNode> getNodes() {
-		return this.getNodesRec(new ArrayList<>(Collections.singletonList(this)));
+	@Override public Set<DotNode> getNodes() {
+		return this.getNodesRec(new HashSet<>(Collections.singletonList(this)));
 	}
 
 	@Override public String getName() {
-		return programPart.getClassName() + "_Segmentation";
+		String label = programPart.getClassName() + "_seg";
+		if (this.collapsed) {
+			label += "_collapsed";
+		}
+		return label;
 	}
 
 }

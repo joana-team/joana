@@ -9,19 +9,22 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 public class Config {
 
 	// default values
-	private static final int DEFAULT_LOOP_UNROLLING_MAX = 16;
-	private static final int DEFAULT_RECURSION_DEPTH_MAX = 16;
+	public static final int DEFAULT_LOOP_UNROLLING_MAX = 16;
+	public static final int DEFAULT_RECURSION_DEPTH_MAX = 16;
+	public static final int DEFAULT_METHOD_DEPTH_MAX = 16;
 
 	private int loopUnrollingMax;
 	private int recDepthMax;
+	private int methodDepthMax;
 
-	private Config() {
-		this.loopUnrollingMax = DEFAULT_LOOP_UNROLLING_MAX;
-		this.recDepthMax = DEFAULT_RECURSION_DEPTH_MAX;
+	public Config(int loopMax, int recMax, int methodMax) {
+		this.loopUnrollingMax = loopMax;
+		this.recDepthMax = recMax;
+		this.methodDepthMax = methodMax;
 	}
 
 	public static Config defaultConfig() {
-		return new Config();
+		return new Config(DEFAULT_LOOP_UNROLLING_MAX, DEFAULT_RECURSION_DEPTH_MAX, DEFAULT_METHOD_DEPTH_MAX);
 	}
 
 	public Config setLoopUnrollingMax(int limit) {
@@ -40,5 +43,9 @@ public class Config {
 
 	public int recDepthMax() {
 		return this.recDepthMax;
+	}
+
+	public int methodDepthMax() {
+		return this.methodDepthMax;
 	}
 }

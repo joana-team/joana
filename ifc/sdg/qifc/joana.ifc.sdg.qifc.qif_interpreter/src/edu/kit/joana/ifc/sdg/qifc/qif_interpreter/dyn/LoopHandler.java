@@ -6,6 +6,7 @@ import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
@@ -31,8 +32,8 @@ public class LoopHandler {
 	 * @param sa   StaticAnalysis object that is responsible for analysing the whole program
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
-	public static LoopBody analyze(Method m, BasicBlock head, SATAnalysis sa, LoopBody base) {
-		int loopUnrollingMax = m.getProg().getConfig().loopUnrollingMax();
+	public static LoopBody analyze(Method m, BasicBlock head, SATAnalysis sa, LoopBody base, Environment env) {
+		int loopUnrollingMax = env.config.loopUnrollingMax();
 
 		base.computeLoopCondition();
 		extractDeps(m, head, base);
@@ -61,8 +62,8 @@ public class LoopHandler {
 			}
 
 			if (b.isLoopHeader() && !b.equals(head)) {
-				LoopBody l = LoopHandler.analyze(m, b, sa,
-						m.getLoops().stream().filter(loop -> loop.getHead().equals(b)).findFirst().get());
+				LoopBody l = LoopHandler
+						.analyze(m, b, sa, m.getLoops().stream().filter(loop -> loop.getHead().equals(b)).findFirst().get(), env);
 				m.addLoop(l);
 				toVisit.addAll(
 						b.succs().stream().filter(succ -> !l.getBlocks().contains(succ)).collect(Collectors.toList()));

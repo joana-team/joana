@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ErrorHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.JavacException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
@@ -55,6 +56,8 @@ public class InitStage implements IStage {
 		}
 		Logger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
 		DotGrapher.configureDest(env.args.outputDirectory);
+
+		env.config = new Config(env.args.loopMax, env.args.recMax, env.args.methodMax);
 
 		// get classname via filename
 		String className = FilenameUtils.getBaseName(programPath);

@@ -56,7 +56,7 @@ public class SATAnalysis {
 	}
 
 	public int computeSATDeps(Method m) {
-		SATVisitor sv = new SATVisitor(this);
+		SATVisitor sv = new SATVisitor(this, env);
 
 		computeSATDeps(m, sv);
 		return sv.getVisitedInstructions();
@@ -94,7 +94,7 @@ public class SATAnalysis {
 
 			if (b.hasRelevantCF()) {
 				sv.visitBlock(m, b, -1);
-				LoopHandler.analyze(m, b, this, l);
+				LoopHandler.analyze(m, b, this, l, env);
 			}
 
 			// add all after-loop successors, but skip the dummy blocks

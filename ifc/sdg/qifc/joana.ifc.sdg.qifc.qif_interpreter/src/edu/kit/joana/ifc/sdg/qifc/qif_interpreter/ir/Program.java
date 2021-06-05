@@ -11,7 +11,6 @@ import edu.kit.joana.api.sdg.SDGFormalParameter;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -30,7 +29,6 @@ public class Program extends ProgramPart {
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
 	private final Map<String, Method> methods;
-	private Config config;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana) {
 		this.sdgProg = sdgProg;
@@ -41,7 +39,6 @@ public class Program extends ProgramPart {
 		this.ana = ana;
 		this.methods = new HashMap<>();
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
-		this.config = Config.defaultConfig();
 	}
 
 	/**
@@ -122,13 +119,5 @@ public class Program extends ProgramPart {
 
 	public IFCAnalysis getAna() {
 		return ana;
-	}
-
-	public Config getConfig() {
-		return config;
-	}
-
-	public void setConfig(Config config) {
-		this.config = config;
 	}
 }

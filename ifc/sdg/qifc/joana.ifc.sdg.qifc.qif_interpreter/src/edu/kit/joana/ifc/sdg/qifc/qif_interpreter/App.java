@@ -63,7 +63,9 @@ public class App {
 		@Parameter(names = "--run", description = "Run the program without performing any analysis") public boolean onlyRun = false;
 		@Parameter(names = "--dump-graphs", description = "Dump graphs created by JOANA") public boolean dumpGraphs = false;
 		@Parameter(description = "A program for the interpreter to execute, plus optionally the result of a previous static analysis", validateWith = Args.class, converter = Args.class) public List<String> inputFiles = new ArrayList<>();
-
+		@Parameter(names = "--loopUnrollingLimit", description = "Set the limit for loop unrolling until analysis switches to static") public int loopMax = Config.DEFAULT_LOOP_UNROLLING_MAX;
+		@Parameter(names = "--recursionLimit", description = "Set the limit for recursion until analysis switches to static") public int recMax = Config.DEFAULT_RECURSION_DEPTH_MAX;
+		@Parameter(names = "--methodDepthLimit", description = "Set the limit for nested method calls until analysis switches to static") public int methodMax = Config.DEFAULT_METHOD_DEPTH_MAX;
 		@Parameter(names = "--args", description = "Arguments for running the input program", variableArity = true) public List<String> args = new ArrayList<>();
 
 		@Parameter(names = "--workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) public String workingDir = System

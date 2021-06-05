@@ -8,6 +8,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
@@ -17,6 +18,7 @@ import java.util.stream.IntStream;
 public class SATVisitor implements SSAInstruction.IVisitor {
 	public static final String OUTPUT_FUNCTION = "edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out.print(I)V";
 
+	private final Environment env;
 	private final SATAnalysis SATAnalysis;
 	private boolean containsOutOfScopeInstruction;
 	private SSAInstruction outOfScopeInstruction;
@@ -52,8 +54,9 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				.getEntryMethod().equals(m)) && !(i instanceof SSAGotoInstruction);
 	}
 
-	public SATVisitor(SATAnalysis SATAnalysis) {
+	public SATVisitor(SATAnalysis SATAnalysis, Environment env) {
 		this.SATAnalysis = SATAnalysis;
+		this.env = env;
 		this.containsOutOfScopeInstruction = false;
 		this.visitedInstructions = 0;
 	}
@@ -204,7 +207,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				} else {
 					handler = new InvocationHandler();
 				}
-				handler.analyze(m.getProg().getMethod(calleeId));
+				handler.analyze(m.getProg().getMethod(calleeId), env);
 			}
 
 			if (instruction.getNumberOfDefs() > 0) {

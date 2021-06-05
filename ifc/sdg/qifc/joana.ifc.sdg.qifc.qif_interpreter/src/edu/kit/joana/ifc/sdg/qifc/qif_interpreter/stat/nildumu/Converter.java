@@ -38,7 +38,8 @@ public class Converter {
 	private Context context;
 
 	public Map<Integer, Parser.InputVariableDeclarationNode> inputs;
-	public static Map<LoopBody, NildumuProgram.LoopMethod> loopMethods;
+	public static Map<String, NildumuProgram.ConvertedLoopMethod> loopMethods;
+	public static Map<String, NildumuProgram.ConvertedMethod> methods;
 	public static Map<SSAArrayStoreInstruction, Integer> arrayVarIndices;
 
 	public Converter() {
@@ -47,6 +48,7 @@ public class Converter {
 		this.inputs = new HashMap<>();
 		arrayVarIndices = new HashMap<>();
 		loopMethods = new HashMap<>();
+		methods = new HashMap<>();
 	}
 
 	public Converter(Context context) {
@@ -84,8 +86,8 @@ public class Converter {
 	 * @param l loopBody object
 	 * @return pair that contains the generated method and a variableDeclarationNode for the loop results
 	 */
-	public NildumuProgram.LoopMethod convertLoop(LoopBody l) {
-		NildumuProgram.LoopMethod result = new NildumuProgram.LoopMethod();
+	public NildumuProgram.ConvertedLoopMethod convertLoop(LoopBody l) {
+		NildumuProgram.ConvertedLoopMethod result = new NildumuProgram.ConvertedLoopMethod();
 		result.iMethod = l.getOwner();
 
 		// get names for all the variables used ready
@@ -184,8 +186,10 @@ public class Converter {
 		Parser.BlockNode body = convertMethodBody(m, params);
 		Type returnType = m.getReturnType().nildumuType();
 		Parser.GlobalVariablesNode globals = new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>());
+		methods.put(m.identifierNoSpecialCharacters(), new NildumuProgram.ConvertedMethod(m, body.statementNodes));
 		return new Parser.MethodNode(DUMMY_LOCATION, methodName(m.identifier()), returnType,
 				new Parser.ParametersNode(DUMMY_LOCATION, new ArrayList<>(params.values())), body, globals);
+
 	}
 
 	private List<Parser.StatementNode> parseConstantValues(Method m) {
@@ -220,8 +224,8 @@ public class Converter {
 		if (b.isLoopHeader()) {
 			LoopBody loop = b.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().idx() == b.idx())
 					.findFirst().get();
-			NildumuProgram.LoopMethod convertedMethod = convertLoop(loop);
-			loopMethods.put(loop, convertedMethod);
+			NildumuProgram.ConvertedLoopMethod convertedMethod = convertLoop(loop);
+			loopMethods.put(methodName(loop), convertedMethod);
 			converted.add(convertedMethod.call);
 			varDecls.putAll(convertedMethod.returnDefs);
 			toConvert.removeAll(loop.getBlocks());

@@ -207,6 +207,18 @@ public abstract class Value {
 			return this.asPropFormula;
 		}
 
+		public BitLatticeValue[] fromFormula(Formula[] formulas) {
+			return Arrays.stream(formulas).map(f -> {
+				if (f.isConstantFormula() && f.equals(LogicUtil.ff.constant(true))) {
+					return ONE;
+				} else if (f.isConstantFormula() && f.equals(LogicUtil.ff.constant(false))) {
+					return ZERO;
+				} else {
+					return UNKNOWN;
+				}
+			}).toArray(BitLatticeValue[]::new);
+		}
+
 		public static BitLatticeValue[] defaultUnknown(int length) {
 			BitLatticeValue[] res = new BitLatticeValue[length];
 			Arrays.fill(res, UNKNOWN);

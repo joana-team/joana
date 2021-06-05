@@ -15,11 +15,11 @@ import java.util.stream.IntStream;
 public class LoopConversionVisitor extends ConversionVisitor {
 
 	LoopBody l;
-	NildumuProgram.LoopMethod res;
+	NildumuProgram.ConvertedLoopMethod res;
 	final Set<Integer> alreadyDefined;
 
 	public LoopConversionVisitor(Converter conv, Method m, Map<Integer, Parser.ParameterNode> parameterToNode,
-			LoopBody l, NildumuProgram.LoopMethod res) {
+			LoopBody l, NildumuProgram.ConvertedLoopMethod res) {
 		super(conv, m, parameterToNode);
 		this.l = l;
 		this.res = res;

@@ -1,7 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
 import com.ibm.wala.util.collections.Pair;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import nildumu.Context;
 import nildumu.MinCut;
@@ -34,9 +33,11 @@ public class NildumuProgram {
 	// public Parser.ProgramNode ast;
 	public NildumuOptions options;
 	public Parser.ProgramNode ast;
-	public Map<LoopBody, LoopMethod> loopMethods;
+	public Map<String, ConvertedLoopMethod> loopMethods;
+	public Map<String, ConvertedMethod> methods;
 
-	public NildumuProgram(Parser.ProgramNode p, NildumuOptions options, Map<LoopBody, LoopMethod> loopMethods) {
+	public NildumuProgram(Parser.ProgramNode p, NildumuOptions options, Map<String, ConvertedLoopMethod> loopMethods,
+			Map<String, ConvertedMethod> methods) {
 		this.options = options;
 		this.context = Processor.process(p.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
 		//Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = context.computeLeakage(MinCut.usedAlgo);
@@ -45,7 +46,7 @@ public class NildumuProgram {
 		this.loopMethods = loopMethods;
 	}
 
-	public static class LoopMethod {
+	public static class ConvertedLoopMethod {
 		public ArrayList<Parser.StatementNode> loopBody;
 		public Method iMethod;
 		Parser.MethodNode method;
@@ -68,6 +69,18 @@ public class NildumuProgram {
 			return Arrays.stream(params).mapToObj(
 					i -> Pair.make(Converter.varName(i, iMethod), iMethod.getValue(i).getType().nildumuType()))
 					.collect(Collectors.toList());
+		}
+	}
+
+	public static class ConvertedMethod {
+		public Method original;
+		public List<Parser.StatementNode> methodBody;
+		public int[] params;
+
+		public ConvertedMethod(Method m, List<Parser.StatementNode> body) {
+			this.original = m;
+			this.params = Arrays.copyOfRange(m.getIr().getParameterValueNumbers(), 1, m.getParamNum());
+			this.methodBody = body;
 		}
 	}
 }

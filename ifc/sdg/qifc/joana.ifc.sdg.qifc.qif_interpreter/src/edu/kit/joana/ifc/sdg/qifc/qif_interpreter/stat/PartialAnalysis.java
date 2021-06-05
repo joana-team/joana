@@ -12,7 +12,7 @@ public class PartialAnalysis {
 
 	Environment env;
 
-	public int analyze(LoopBody l, NildumuProgram.LoopMethod loopMethod) {
+	public int analyze(LoopBody l, NildumuProgram.ConvertedLoopMethod loopMethod) {
 		Converter c = new Converter(env.nProgram.context);
 		List<Parser.StatementNode> inputs = c.convertToSecretInput(loopMethod.params, loopMethod.iMethod);
 		List<Parser.StatementNode> outputs = c.convertToPublicOutput(loopMethod.returnVars, loopMethod.iMethod);

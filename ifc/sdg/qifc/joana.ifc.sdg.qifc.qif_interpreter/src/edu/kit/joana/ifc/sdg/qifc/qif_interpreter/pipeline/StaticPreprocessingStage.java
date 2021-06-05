@@ -38,7 +38,7 @@ public class StaticPreprocessingStage implements IStage {
 		}
 
 		assert p != null;
-		env.nProgram = new NildumuProgram(p, options, Converter.loopMethods);
+		env.nProgram = new NildumuProgram(p, options, Converter.loopMethods, Converter.methods);
 
 		Parser.MethodInvocationNode n = (Parser.MethodInvocationNode) env.nProgram.context.nodes().stream()
 				.filter(node -> node instanceof Parser.MethodInvocationNode).findFirst().get();

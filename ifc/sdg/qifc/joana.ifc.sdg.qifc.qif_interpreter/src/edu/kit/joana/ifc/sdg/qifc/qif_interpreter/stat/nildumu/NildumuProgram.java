@@ -2,17 +2,12 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import nildumu.Context;
-import nildumu.MinCut;
-import nildumu.Parser;
-import nildumu.Processor;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import nildumu.*;
 import nildumu.mih.MethodInvocationHandler;
 import nildumu.typing.Type;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,10 +35,44 @@ public class NildumuProgram {
 			Map<String, ConvertedMethod> methods) {
 		this.options = options;
 		this.context = Processor.process(p.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
-		//Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = context.computeLeakage(MinCut.usedAlgo);
-		//System.out.println("Leakage: " + leakageResult.get(Lattices.BasicSecLattice.LOW).maxFlow);
 		this.ast = p;
 		this.loopMethods = loopMethods;
+		this.methods = methods;
+	}
+
+	public double computeMethodCallCC(Method caller, Method m, int[] args) {
+		Parser.ProgramNode methodProgram = fromMethod(caller, m, args);
+		Context methodContext = Processor
+				.process(methodProgram.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
+		Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = methodContext.computeLeakage(MinCut.usedAlgo);
+		return leakageResult.get(Lattices.BasicSecLattice.LOW).maxFlow;
+	}
+
+	public Parser.ProgramNode fromMethod(Method caller, Method m, int[] args) {
+		Converter c = new Converter();
+		ConvertedMethod base = methods.get(m.identifierNoSpecialCharacters());
+
+		Map<Integer, String> inputLiterals = new HashMap<>();
+		for (int i = 0; i < args.length; i++) {
+			inputLiterals.put(m.getIr().getParameter(i + 1),
+					Value.BitLatticeValue.toStringLiteral(caller.getValue(args[i])));
+		}
+		List<Parser.StatementNode> inVars = c
+				.convertToSecretInput(Arrays.copyOfRange(m.getIr().getParameterValueNumbers(), 1, m.getParamNum()), m,
+						inputLiterals);
+		String varname = Converter.varName();
+		ReplacementVisitor rv = new ReplacementVisitor(varname, m);
+		Parser.BlockNode replacedReturns = new Parser.BlockNode(Converter.DUMMY_LOCATION, base.methodBody);
+		replacedReturns.accept(rv);
+		Parser.OutputVariableDeclarationNode output = new Parser.OutputVariableDeclarationNode(Converter.DUMMY_LOCATION,
+				"o_ " + varname, m.getReturnType().nildumuType(),
+				new Parser.VariableAccessNode(Converter.DUMMY_LOCATION, varname), "l");
+		Parser.ProgramNode methodProgram = new Parser.ProgramNode(context);
+		methodProgram.addGlobalStatements(inVars);
+		methodProgram.addGlobalStatement(Converter.varDecl(varname, m.getReturnType().nildumuType()));
+		methodProgram.addGlobalStatements(replacedReturns.statementNodes);
+		methodProgram.addGlobalStatement(output);
+		return methodProgram;
 	}
 
 	public static class ConvertedLoopMethod {

@@ -9,7 +9,7 @@ public class RecursiveFunctionInvocationHandler implements IInvocationHandler {
 		callee.finishedAnalysis();
 		SATAnalysis sa = new SATAnalysis(env);
 		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.RecursiveFunctionSATVisitor sv = new RecursiveFunctionSATVisitor(
-				sa, callee);
+				sa, callee, env);
 		sa.computeSATDeps(callee, sv);
 		return callee;
 	}

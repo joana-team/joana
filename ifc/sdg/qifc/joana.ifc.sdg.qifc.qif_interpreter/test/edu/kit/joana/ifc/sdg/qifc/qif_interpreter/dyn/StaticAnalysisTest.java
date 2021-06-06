@@ -1,18 +1,8 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 class StaticAnalysisTest {
 
+	/*
 	@Test void condExprTest() throws IOException, InterruptedException, InvalidClassFileException {
 		Program p = TestUtils.build("IfinLoop");
 
@@ -35,5 +25,7 @@ class StaticAnalysisTest {
 			System.out.println(i + " " + Arrays.toString(p.getEntryMethod().getDepsForValue(i)));
 		}
 	}
+
+	 */
 
 }

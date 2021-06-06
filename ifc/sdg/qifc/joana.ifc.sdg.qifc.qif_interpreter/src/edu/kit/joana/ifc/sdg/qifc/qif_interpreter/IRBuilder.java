@@ -17,6 +17,7 @@ import edu.kit.joana.ifc.sdg.graph.SDGSerializer;
 import edu.kit.joana.ifc.sdg.graph.slicer.graph.threads.MHPAnalysis;
 import edu.kit.joana.ifc.sdg.mhpoptimization.MHPType;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.util.Stubs;
@@ -39,11 +40,12 @@ public class IRBuilder {
 	private CallGraph cg;
 	private SDGConfig config;
 	private IFCAnalysis ana;
+	private Environment env;
 
-
-	public IRBuilder(String classFilePath, String className) {
+	public IRBuilder(String classFilePath, String className, Environment env) {
 		this.classFile = new File(classFilePath);
 		this.className = className;
+		this.env = env;
 	}
 
 	public void createBaseSDGConfig() {
@@ -104,6 +106,6 @@ public class IRBuilder {
 	}
 
 	public Program getProgram() {
-		return new Program(sdgProg, this.sdg, this.className, builder, cg, this.ana);
+		return new Program(sdgProg, this.sdg, this.className, builder, cg, this.ana, this.env);
 	}
 }

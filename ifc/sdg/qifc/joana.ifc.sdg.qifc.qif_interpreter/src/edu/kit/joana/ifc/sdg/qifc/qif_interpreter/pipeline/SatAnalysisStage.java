@@ -7,7 +7,7 @@ public class SatAnalysisStage implements IStage {
 	private boolean success = false;
 
 	@Override public Environment execute(Environment env) {
-		SATAnalysis sa = new SATAnalysis(env.iProgram);
+		SATAnalysis sa = new SATAnalysis(env);
 		sa.computeSATDeps();
 		success = true;
 		return env;

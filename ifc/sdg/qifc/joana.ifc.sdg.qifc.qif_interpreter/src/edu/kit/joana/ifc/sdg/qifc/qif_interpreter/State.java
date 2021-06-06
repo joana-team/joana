@@ -5,6 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LinearSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.ProgramSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.Segment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Program;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
@@ -24,18 +25,18 @@ public class State {
 
 	public BasicBlock next;
 
-	private State(Environment env) {
+	private State(Environment env, Method m) {
 		Program p = env.iProgram;
 		visited = new ArrayList<>();
-		toVisit = CFGUtil.topological(p.getEntryMethod().getCFG().getBlocks(), p.getEntryMethod().getCFG().entry());
-		next = p.getEntryMethod().getCFG().entry();
+		toVisit = CFGUtil.topological(m.getCFG().getBlocks(), m.getCFG().entry());
+		next = m.getCFG().entry();
 		this.currentSegment = new Stack<>();
 		this.currentSegment.push(Pair.make(0, env.segments));
 		advance();
 	}
 
-	public static State init(Environment env) {
-		return new State(env);
+	public static State init(Environment env, Method m) {
+		return new State(env, m);
 	}
 
 	// updates the currentSegment stack to match {@code next}

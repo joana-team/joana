@@ -48,6 +48,7 @@ public class Int extends Value {
 	private Formula[] initDeps() {
 		Formula[] defaultInit = new Formula[Type.INTEGER.bitwidth()];
 		Arrays.fill(defaultInit, LogicUtil.ff.constant(false));
+		this.setDefaultInit(true);
 		return defaultInit;
 	}
 

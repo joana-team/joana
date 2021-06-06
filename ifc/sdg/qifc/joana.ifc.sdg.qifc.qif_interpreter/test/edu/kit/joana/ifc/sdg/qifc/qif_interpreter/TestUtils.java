@@ -32,10 +32,10 @@ public class TestUtils {
 	}
 
 	public static Program build(String fileName) throws IOException, InterruptedException {
-		compile(testFilePath+fileName+".java");
+		compile(testFilePath + fileName + ".java");
 
 		// create SDG
-		IRBuilder builder = new IRBuilder(path(fileName), fileName);
+		IRBuilder builder = new IRBuilder(path(fileName), fileName, null);
 		builder.createBaseSDGConfig();
 		try {
 			builder.buildAndKeepBuilder();

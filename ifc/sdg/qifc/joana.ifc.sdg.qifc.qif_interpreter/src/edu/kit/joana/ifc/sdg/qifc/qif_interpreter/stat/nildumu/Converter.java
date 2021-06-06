@@ -277,25 +277,30 @@ public class Converter {
 	}
 
 	public List<Parser.StatementNode> convertToSecretInput(int[] valNums, Method m) {
+		return convertToSecretInput(valNums, m, new HashMap<>());
+	}
+
+	public List<Parser.StatementNode> convertToSecretInput(int[] valNums, Method m, Map<Integer, String> assign) {
 		List<Parser.StatementNode> inputs = new ArrayList<>();
 		for (int valNum : valNums) {
-			if (m.getValue(valNum).getType().equals(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER)) {
+			if (!m.getValue(valNum).isArrayType()) {
 				Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
 						varName(valNum, m), m.getValue(valNum).getType().nildumuType(),
-						new Parser.IntegerLiteralNode(DUMMY_LOCATION,
-								Lattices.ValueLattice.get().parse(unknownLiteral(options.intWidth))), "h");
+						new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get()
+								.parse(assign.getOrDefault(valNum, unknownLiteral(options.intWidth)))), "h");
 				inputs.add(decl);
 
 			} else {
-				assert (m.getValue(valNum).isArrayType());
 				Array<? extends Value> arr = (Array<? extends Value>) m.getValue(valNum);
 				inputs.add(varDecl(varName(valNum, m), arr.getType().nildumuType()));
-
+				String[] assignToElement = assign.getOrDefault(valNum, Value.BitLatticeValue.toStringLiteral(
+						Value.BitLatticeValue.defaultUnknown(arr.length(), arr.elementType().bitwidth()))).split("_");
+				assert (assignToElement.length == arr.length());
 				for (int i = 0; i < arr.length(); i++) {
 					String varname = varName();
 					Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
 							varname, arr.elementType().nildumuType(), new Parser.IntegerLiteralNode(DUMMY_LOCATION,
-							Lattices.ValueLattice.get().parse(unknownLiteral(options.intWidth))), "h");
+							Lattices.ValueLattice.get().parse(assignToElement[i])), "h");
 					inputs.add(decl);
 					inputs.add(new Parser.ArrayAssignmentNode(DUMMY_LOCATION, varName(valNum, m),
 							new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get().parse(i)),

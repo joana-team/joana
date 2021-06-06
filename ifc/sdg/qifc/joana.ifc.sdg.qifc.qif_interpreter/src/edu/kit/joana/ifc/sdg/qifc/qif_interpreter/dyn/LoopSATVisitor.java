@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Array;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
@@ -28,8 +29,8 @@ public class LoopSATVisitor extends SATVisitor {
 		this.l = l;
 	}
 
-	public LoopSATVisitor(SATAnalysis SATAnalysis, LoopBody l) {
-		super(SATAnalysis);
+	public LoopSATVisitor(SATAnalysis SATAnalysis, LoopBody l, Environment env) {
+		super(SATAnalysis, env);
 		this.l = l;
 		Map<Integer, Formula[]> initals = new HashMap<>();
 		l.getOwner().getProgramValues().forEach((i, v) -> initals.put(i, v.getDeps()));

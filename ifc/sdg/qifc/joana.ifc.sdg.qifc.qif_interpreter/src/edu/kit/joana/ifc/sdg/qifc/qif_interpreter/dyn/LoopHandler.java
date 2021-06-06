@@ -40,7 +40,7 @@ public class LoopHandler {
 		List<Integer> visited = new ArrayList<>();
 		Queue<BasicBlock> toVisit = new ArrayDeque<>();
 
-		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopSATVisitor sv = new LoopSATVisitor(sa, base);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopSATVisitor sv = new LoopSATVisitor(sa, base, env);
 
 		// here we safe all blocks that are successors of blocks that end in a conditional jump out of the loop
 		List<BasicBlock> breakSuccessors = new ArrayList<>();

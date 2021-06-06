@@ -7,6 +7,7 @@ import org.logicng.formulas.Variable;
 
 import java.util.Arrays;
 import java.util.Stack;
+import java.util.stream.IntStream;
 
 /**
  * Subclasses represent values of a specific type.
@@ -23,6 +24,7 @@ public abstract class Value {
 	private boolean leaked;
 	private boolean isConstant;
 	private boolean influencesLeak;
+	private boolean isDefaultInit;
 	private boolean isParameter;
 
 	public Value(int valNum) {
@@ -32,6 +34,7 @@ public abstract class Value {
 		this.influencesLeak = true;
 		this.val = new Stack<>();
 		this.isParameter = false;
+		this.isDefaultInit = false;
 	}
 
 	public void addVars(Variable[] vars) {
@@ -146,6 +149,7 @@ public abstract class Value {
 
 	public void setDeps(Formula[] deps) {
 		this.deps = deps;
+		this.isDefaultInit = false;
 	}
 
 	@Override public String toString() {
@@ -194,6 +198,10 @@ public abstract class Value {
 
 	public abstract boolean[] getConstantBits();
 
+	public void setDefaultInit(boolean b) {
+		this.isDefaultInit = b;
+	}
+
 	public enum BitLatticeValue {
 		ZERO(LogicUtil.ff.constant(false)), ONE(LogicUtil.ff.constant(true)), UNKNOWN(null);
 
@@ -207,7 +215,7 @@ public abstract class Value {
 			return this.asPropFormula;
 		}
 
-		public BitLatticeValue[] fromFormula(Formula[] formulas) {
+		public static BitLatticeValue[] fromFormula(Formula[] formulas) {
 			return Arrays.stream(formulas).map(f -> {
 				if (f.isConstantFormula() && f.equals(LogicUtil.ff.constant(true))) {
 					return ONE;
@@ -219,10 +227,47 @@ public abstract class Value {
 			}).toArray(BitLatticeValue[]::new);
 		}
 
+		public static String toStringLiteral(Formula[] f) {
+			return toStringLiteral(fromFormula(f));
+		}
+
+		public static String toStringLiteral(BitLatticeValue[] bits) {
+			return "0b" + Arrays.stream(bits).map(b -> {
+				switch (b) {
+				case ZERO:
+					return "0";
+				case ONE:
+					return "1";
+				default:
+					return "u";
+				}
+			}).reduce("", (s, str) -> s + str);
+		}
+
 		public static BitLatticeValue[] defaultUnknown(int length) {
 			BitLatticeValue[] res = new BitLatticeValue[length];
 			Arrays.fill(res, UNKNOWN);
 			return res;
+		}
+
+		public static BitLatticeValue[][] defaultUnknown(int arrayLength, int elementWidth) {
+			return IntStream.range(0, arrayLength).mapToObj(i -> defaultUnknown(elementWidth))
+					.toArray(BitLatticeValue[][]::new);
+		}
+
+		public static String toStringLiteral(BitLatticeValue[][] array) {
+			return Arrays.stream(array).map(BitLatticeValue::toStringLiteral).reduce("", (s, t) -> s + "_" + t);
+		}
+
+		public static String toStringLiteral(Value v) {
+			if (v.isArrayType()) {
+				return toStringLiteral(Arrays.stream(((Array<? extends Value>) v).getValueDependencies())
+						.map(BitLatticeValue::fromFormula).toArray(BitLatticeValue[][]::new));
+			} else {
+				return (!v.isDefaultInit) ?
+						toStringLiteral(v.getDeps()) :
+						toStringLiteral(defaultUnknown(v.getWidth()));
+			}
 		}
 	}
 
@@ -236,5 +281,9 @@ public abstract class Value {
 
 	public boolean dynAnalysisNecessary(Method m) {
 		return this.influencesLeak && !this.isEffectivelyConstant(m);
+	}
+
+	public boolean isDefaultInit() {
+		return this.isDefaultInit;
 	}
 }

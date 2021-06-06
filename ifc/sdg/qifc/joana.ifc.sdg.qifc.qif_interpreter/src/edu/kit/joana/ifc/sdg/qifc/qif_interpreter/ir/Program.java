@@ -12,6 +12,7 @@ import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
@@ -21,6 +22,7 @@ import java.util.*;
 
 public class Program extends ProgramPart {
 
+	private final Environment env;
 	private final SDGProgram sdgProg;
 	private final SDG sdg;
 	private final String className;
@@ -30,7 +32,8 @@ public class Program extends ProgramPart {
 	private final Method entryMethod;
 	private final Map<String, Method> methods;
 
-	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana) {
+	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana,
+			Environment env) {
 		this.sdgProg = sdgProg;
 		this.sdg = sdg;
 		this.className = className;
@@ -39,6 +42,7 @@ public class Program extends ProgramPart {
 		this.ana = ana;
 		this.methods = new HashMap<>();
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
+		this.env = env;
 	}
 
 	/**
@@ -113,11 +117,15 @@ public class Program extends ProgramPart {
 		this.methods.put(method.identifier(), method);
 	}
 
-	public Collection<Method> getMethods() {
-		return this.methods.values();
+	public List<Method> getMethods() {
+		return new ArrayList<>(this.methods.values());
 	}
 
 	public IFCAnalysis getAna() {
 		return ana;
+	}
+
+	public Environment getEnv() {
+		return env;
 	}
 }

@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Variable;
 
@@ -13,8 +14,8 @@ public class RecursiveFunctionSATVisitor extends SATVisitor {
 
 	private final Method m;
 
-	public RecursiveFunctionSATVisitor(SATAnalysis SATAnalysis, Method m) {
-		super(SATAnalysis);
+	public RecursiveFunctionSATVisitor(SATAnalysis SATAnalysis, Method m, Environment env) {
+		super(SATAnalysis, env);
 		this.m = m;
 	}
 

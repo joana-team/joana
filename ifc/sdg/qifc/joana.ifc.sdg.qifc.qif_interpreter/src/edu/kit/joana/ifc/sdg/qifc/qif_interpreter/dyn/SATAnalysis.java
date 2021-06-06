@@ -70,7 +70,7 @@ public class SATAnalysis {
 		ImplicitIFVisitor imIFVisitor = new ImplicitIFVisitor();
 		imIFVisitor.compute(m.getCFG());
 
-		State state = State.init(env);
+		State state = State.init(env, m);
 		state.toVisit.add(state.next);
 
 		try {

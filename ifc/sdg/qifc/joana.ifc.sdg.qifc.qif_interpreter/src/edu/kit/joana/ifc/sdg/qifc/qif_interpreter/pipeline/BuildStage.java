@@ -22,7 +22,7 @@ public class BuildStage implements IStage {
 		InitStage.InitResult data = (InitStage.InitResult) env.lastStage;
 
 		// create SDG
-		builder = new IRBuilder(data.classFilePath, data.className);
+		builder = new IRBuilder(data.classFilePath, data.className, env);
 		builder.createBaseSDGConfig();
 		try {
 			builder.buildAndKeepBuilder();

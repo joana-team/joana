@@ -40,7 +40,7 @@ public class Converter {
 	public Map<Integer, Parser.InputVariableDeclarationNode> inputs;
 	public static Map<String, NildumuProgram.ConvertedLoopMethod> loopMethods;
 	public static Map<String, NildumuProgram.ConvertedMethod> methods;
-	public static Map<SSAArrayStoreInstruction, Integer> arrayVarIndices;
+	public static Map<Pair<Method, SSAArrayStoreInstruction>, Integer> arrayVarIndices;
 
 	public Converter() {
 		this.options = NildumuOptions.DEFAULT;
@@ -186,10 +186,11 @@ public class Converter {
 		Parser.BlockNode body = convertMethodBody(m, params);
 		Type returnType = m.getReturnType().nildumuType();
 		Parser.GlobalVariablesNode globals = new Parser.GlobalVariablesNode(DUMMY_LOCATION, new HashMap<>());
-		methods.put(m.identifierNoSpecialCharacters(), new NildumuProgram.ConvertedMethod(m, body.statementNodes));
-		return new Parser.MethodNode(DUMMY_LOCATION, methodName(m.identifier()), returnType,
+		Parser.MethodNode complete = new Parser.MethodNode(DUMMY_LOCATION, methodName(m.identifier()), returnType,
 				new Parser.ParametersNode(DUMMY_LOCATION, new ArrayList<>(params.values())), body, globals);
-
+		methods.put(m.identifierNoSpecialCharacters(),
+				new NildumuProgram.ConvertedMethod(m, body.statementNodes, complete));
+		return complete;
 	}
 
 	private List<Parser.StatementNode> parseConstantValues(Method m) {
@@ -283,32 +284,66 @@ public class Converter {
 	public List<Parser.StatementNode> convertToSecretInput(int[] valNums, Method m, Map<Integer, String> assign) {
 		List<Parser.StatementNode> inputs = new ArrayList<>();
 		for (int valNum : valNums) {
-			if (!m.getValue(valNum).isArrayType()) {
-				Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
-						varName(valNum, m), m.getValue(valNum).getType().nildumuType(),
-						new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get()
-								.parse(assign.getOrDefault(valNum, unknownLiteral(options.intWidth)))), "h");
-				inputs.add(decl);
-
-			} else {
-				Array<? extends Value> arr = (Array<? extends Value>) m.getValue(valNum);
-				inputs.add(varDecl(varName(valNum, m), arr.getType().nildumuType()));
-				String[] assignToElement = assign.getOrDefault(valNum, Value.BitLatticeValue.toStringLiteral(
-						Value.BitLatticeValue.defaultUnknown(arr.length(), arr.elementType().bitwidth()))).split("_");
-				assert (assignToElement.length == arr.length());
-				for (int i = 0; i < arr.length(); i++) {
-					String varname = varName();
-					Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
-							varname, arr.elementType().nildumuType(), new Parser.IntegerLiteralNode(DUMMY_LOCATION,
-							Lattices.ValueLattice.get().parse(assignToElement[i])), "h");
-					inputs.add(decl);
+			if (m.getValue(valNum).isArrayType()) {
+				Array<? extends Value> arr = m.getArray(valNum);
+				inputs.add(new Parser.VariableDeclarationNode(DUMMY_LOCATION, varName(valNum, m),
+						arr.getType().nildumuType()));
+				String[] assignToElements = Arrays.copyOfRange(assign.getOrDefault(valNum, Value.BitLatticeValue
+						.toStringLiteral(
+								Value.BitLatticeValue.defaultUnknown(arr.length(), arr.elementType().bitwidth())))
+						.split("_"), 1, arr.length() + 1);
+				for (int i = 0; i < assignToElements.length; i++) {
+					String newVar = varName();
+					inputs.add(convertToSecretInput(newVar, m, assignToElements[i]));
 					inputs.add(new Parser.ArrayAssignmentNode(DUMMY_LOCATION, varName(valNum, m),
 							new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get().parse(i)),
-							variableAccess(varname)));
+							variableAccess(newVar)));
 				}
+			} else {
+				inputs.add(convertToSecretInput(varName(valNum, m), m, assign.getOrDefault(valNum, Value.BitLatticeValue
+						.toStringLiteral(
+								Value.BitLatticeValue.defaultUnknown(m.getValue(valNum).getType().bitwidth())))));
 			}
 		}
 		return inputs;
+	}
+
+	private Parser.StatementNode convertToSecretInput(String valNum, Method m, String assign) {
+		if (assign.contains("u")) {
+			return new Parser.InputVariableDeclarationNode(DUMMY_LOCATION, valNum,
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
+					new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get().parse(assign)), "h");
+		} else {
+			return new Parser.VariableDeclarationNode(DUMMY_LOCATION, valNum,
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
+					new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get().parse(assign)));
+		}
+		/*
+		if (!m.getValue(valNum).isArrayType()) {
+			Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
+					varName(valNum, m), m.getValue(valNum).getType().nildumuType(),
+					new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get()
+							.parse(assign)), "h");
+			inputs.add(decl);
+		} else {
+			Array<? extends Value> arr = (Array<? extends Value>) m.getValue(valNum);
+			inputs.add(varDecl(varName(valNum, m), arr.getType().nildumuType()));
+			String[] assignToElement = Arrays.copyOfRange(assign.split("_"), 1, arr.length() + 1);
+			assert (assignToElement.length == arr.length());
+			for (int i = 0; i < arr.length(); i++) {
+				String varname = varName();
+				Parser.InputVariableDeclarationNode decl = new Parser.InputVariableDeclarationNode(DUMMY_LOCATION,
+						varname, arr.elementType().nildumuType(), new Parser.IntegerLiteralNode(DUMMY_LOCATION,
+						Lattices.ValueLattice.get().parse(assignToElement[i])), "h");
+				inputs.add(decl);
+				inputs.add(new Parser.ArrayAssignmentNode(DUMMY_LOCATION, varName(valNum, m),
+						new Parser.IntegerLiteralNode(DUMMY_LOCATION, Lattices.ValueLattice.get().parse(i)),
+						variableAccess(varname)));
+			}
+		}
+		return inputs;
+
+		 */
 	}
 
 	private String unknownLiteral(int length) {
@@ -328,22 +363,30 @@ public class Converter {
 	}
 
 	public List<Parser.StatementNode> convertToPublicOutput(int[] returnVars, Method m) {
+		String[] varnames = Arrays.stream(returnVars).mapToObj(i -> varName(i, m)).toArray(String[]::new);
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[] types = Arrays.stream(returnVars)
+				.mapToObj(i -> m.getValue(i).getType())
+				.toArray(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[]::new);
+		return convertToPublicOutput(varnames, types);
+	}
+
+	public List<Parser.StatementNode> convertToPublicOutput(String[] varNames,
+			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[] types) {
 		List<Parser.StatementNode> outputs = new ArrayList<>();
-		for (int valNum : returnVars) {
-			if (m.getValue(valNum).getType().equals(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER)) {
+		for (int i = 0; i < varNames.length; i++) {
+			if (types[i].nildumuType().isInt()) {
 				Parser.OutputVariableDeclarationNode out = new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION,
-						varName(), m.getValue(valNum).getType().nildumuType(), variableAccess(varName(valNum, m)), "l");
+						varName(), types[i].nildumuType(), variableAccess(varNames[i]), "l");
 				outputs.add(out);
 			} else {
-				assert (m.getValue(valNum).isArrayType());
-				Array<? extends Value> arr = (Array<? extends Value>) m.getValue(valNum);
-				for (int i = 0; i < arr.length(); i++) {
+				assert (types[i].equals(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.ARRAY));
+				for (int j = 0; j < types[i].bitwidth(); j++) {
 					String varname = varName();
 					outputs.add(new Parser.OutputVariableDeclarationNode(DUMMY_LOCATION, varname,
-							arr.elementType().nildumuType(),
-							new Parser.BracketedAccessOperatorNode(variableAccess(varName(arr.getValNum(), m)),
+							edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.INTEGER.nildumuType(),
+							new Parser.BracketedAccessOperatorNode(variableAccess(varNames[i]),
 									new Parser.IntegerLiteralNode(DUMMY_LOCATION,
-											Lattices.ValueLattice.get().parse(i))), "l"));
+											Lattices.ValueLattice.get().parse(j))), "l"));
 				}
 			}
 		}

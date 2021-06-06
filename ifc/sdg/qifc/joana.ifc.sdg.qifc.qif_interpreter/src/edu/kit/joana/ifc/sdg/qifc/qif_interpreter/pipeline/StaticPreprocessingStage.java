@@ -51,13 +51,16 @@ public class StaticPreprocessingStage implements IStage {
 			for (Map.Entry<Integer, Value> e : m.getProgramValues().entrySet()) {
 
 				if (e.getValue().isArrayType()) {
-					for (Map.Entry<SSAArrayStoreInstruction, Integer> i : Converter.arrayVarIndices.entrySet()) {
-						List<String> varNames = Converter.arrayVarName(i.getKey().getArrayRef(), m, i.getValue());
+					for (Map.Entry<Pair<Method, SSAArrayStoreInstruction>, Integer> i : Converter.arrayVarIndices
+							.entrySet()) {
+						if (!i.getKey().fst.equals(m))
+							continue;
+						List<String> varNames = Converter.arrayVarName(i.getKey().snd.getArrayRef(), m, i.getValue());
 						int elementWidth = ((Array<? extends Value>) e.getValue()).elementType().bitwidth();
 						Value.BitLatticeValue[][] bitMask = varNames.stream().map(varName -> createBitMask(elementWidth,
 								env.nProgram.context.getVariableValue(varName)))
 								.toArray(Value.BitLatticeValue[][]::new);
-						m.getArray(i.getKey().getArrayRef()).addConstantBitMask(i.getKey(), bitMask);
+						m.getArray(i.getKey().snd.getArrayRef()).addConstantBitMask(i.getKey().snd, bitMask);
 					}
 				} else {
 					Value.BitLatticeValue[] bitMask = createBitMask(e.getValue().getWidth(),

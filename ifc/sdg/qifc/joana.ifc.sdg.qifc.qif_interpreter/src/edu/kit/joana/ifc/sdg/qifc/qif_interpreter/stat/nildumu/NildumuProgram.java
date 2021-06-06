@@ -63,16 +63,25 @@ public class NildumuProgram {
 		String varname = Converter.varName();
 		ReplacementVisitor rv = new ReplacementVisitor(varname, m);
 		Parser.BlockNode replacedReturns = new Parser.BlockNode(Converter.DUMMY_LOCATION, base.methodBody);
-		replacedReturns.accept(rv);
-		Parser.OutputVariableDeclarationNode output = new Parser.OutputVariableDeclarationNode(Converter.DUMMY_LOCATION,
-				"o_ " + varname, m.getReturnType().nildumuType(),
-				new Parser.VariableAccessNode(Converter.DUMMY_LOCATION, varname), "l");
+		replacedReturns = (Parser.BlockNode) replacedReturns.accept(rv);
+		List<Parser.StatementNode> outDecls = c.convertToPublicOutput(new String[] { varname },
+				new edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[] { m.getReturnType() });
 		Parser.ProgramNode methodProgram = new Parser.ProgramNode(context);
 		methodProgram.addGlobalStatements(inVars);
 		methodProgram.addGlobalStatement(Converter.varDecl(varname, m.getReturnType().nildumuType()));
 		methodProgram.addGlobalStatements(replacedReturns.statementNodes);
-		methodProgram.addGlobalStatement(output);
+		methodProgram.addGlobalStatements(outDecls);
+		this.addMethodsAndLoopMethods(methodProgram);
 		return methodProgram;
+	}
+
+	void addMethodsAndLoopMethods(Parser.ProgramNode program) {
+		for (ConvertedMethod m : this.methods.values()) {
+			program.addMethod(m.complete);
+		}
+		for (ConvertedLoopMethod m : this.loopMethods.values()) {
+			program.addMethod(m.method);
+		}
 	}
 
 	public static class ConvertedLoopMethod {
@@ -102,14 +111,16 @@ public class NildumuProgram {
 	}
 
 	public static class ConvertedMethod {
+		public Parser.MethodNode complete;
 		public Method original;
 		public List<Parser.StatementNode> methodBody;
 		public int[] params;
 
-		public ConvertedMethod(Method m, List<Parser.StatementNode> body) {
+		public ConvertedMethod(Method m, List<Parser.StatementNode> body, Parser.MethodNode complete) {
 			this.original = m;
 			this.params = Arrays.copyOfRange(m.getIr().getParameterValueNumbers(), 1, m.getParamNum());
 			this.methodBody = body;
+			this.complete = complete;
 		}
 	}
 }

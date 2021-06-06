@@ -11,7 +11,7 @@ public class ArrayParam {
 
 	public int f(int h) {
 		int[] a = new int[1];
-		a[0] = 1;
+		a[0] = h;
 		int l = add(a, h);
 		Out.print(l);
 		return 0;
@@ -21,4 +21,3 @@ public class ArrayParam {
 		return x[0] + y;
 	}
 }
-

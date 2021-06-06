@@ -5,7 +5,7 @@ import nildumu.Parser;
 
 import java.util.List;
 
-public class ReplacementVisitor implements Parser.StatementVisitor<Object> {
+public class ReplacementVisitor implements Parser.StatementVisitor<Parser.StatementNode> {
 
 	String var;
 	Method m;
@@ -15,91 +15,83 @@ public class ReplacementVisitor implements Parser.StatementVisitor<Object> {
 		this.m = m;
 	}
 
-	@Override public Object visit(Parser.StatementNode statementNode) {
-		return null;
+	@Override public Parser.StatementNode visit(Parser.StatementNode statementNode) {
+		return statementNode;
 	}
 
-	@Override public Object visit(Parser.VariableAssignmentNode assignment) {
-		return Parser.StatementVisitor.super.visit(assignment);
+	@Override public Parser.StatementNode visit(Parser.VariableAssignmentNode assignment) {
+		return assignment;
 	}
 
-	@Override public Object visit(Parser.MultipleVariableAssignmentNode assignment) {
-		return Parser.StatementVisitor.super.visit(assignment);
+	@Override public Parser.StatementNode visit(Parser.MultipleVariableAssignmentNode assignment) {
+		return assignment;
 	}
 
-	@Override public Object visit(Parser.VariableDeclarationNode variableDeclaration) {
-		return Parser.StatementVisitor.super.visit(variableDeclaration);
+	@Override public Parser.StatementNode visit(Parser.VariableDeclarationNode variableDeclaration) {
+		return variableDeclaration;
 	}
 
-	@Override public Object visit(Parser.ArrayAssignmentNode variableDeclaration) {
-		return Parser.StatementVisitor.super.visit(variableDeclaration);
+	@Override public Parser.StatementNode visit(Parser.ArrayAssignmentNode variableDeclaration) {
+		return variableDeclaration;
 	}
 
-	@Override public Object visit(Parser.OutputVariableDeclarationNode outputDecl) {
-		return Parser.StatementVisitor.super.visit(outputDecl);
+	@Override public Parser.StatementNode visit(Parser.OutputVariableDeclarationNode outputDecl) {
+		return outputDecl;
 	}
 
-	@Override public Object visit(Parser.AppendOnlyVariableDeclarationNode appendDecl) {
-		return Parser.StatementVisitor.super.visit(appendDecl);
+	@Override public Parser.StatementNode visit(Parser.AppendOnlyVariableDeclarationNode appendDecl) {
+		return appendDecl;
 	}
 
-	@Override public Object visit(Parser.InputVariableDeclarationNode inputDecl) {
-		return Parser.StatementVisitor.super.visit(inputDecl);
+	@Override public Parser.StatementNode visit(Parser.InputVariableDeclarationNode inputDecl) {
+		return inputDecl;
 	}
 
-	@Override public Object visit(Parser.TmpInputVariableDeclarationNode inputDecl) {
-		return Parser.StatementVisitor.super.visit(inputDecl);
+	@Override public Parser.StatementNode visit(Parser.TmpInputVariableDeclarationNode inputDecl) {
+		return inputDecl;
 	}
 
-	@Override public Object visit(Parser.BlockNode block) {
-		block.statementNodes.replaceAll(n -> {
-			if (n instanceof Parser.ReturnStatementNode) {
-				return new Parser.VariableAssignmentNode(Converter.DUMMY_LOCATION, this.var,
-						((Parser.ReturnStatementNode) n).expression);
-			} else {
-				return n;
-			}
-		});
-		return null;
+	@Override public Parser.StatementNode visit(Parser.BlockNode block) {
+		return new Parser.BlockNode(block.location, visitChildren(block));
 	}
 
-	@Override public Object visit(Parser.ConditionalStatementNode condStatement) {
-		visitChildren(condStatement);
-		return null;
+	@Override public Parser.StatementNode visit(Parser.ConditionalStatementNode condStatement) {
+		return condStatement;
 	}
 
-	@Override public Object visit(Parser.IfStatementNode ifStatement) {
-		ifStatement.ifBlock.accept(this);
-		ifStatement.elseBlock.accept(this);
-		return null;
+	@Override public Parser.StatementNode visit(Parser.IfStatementNode ifStatement) {
+		return new Parser.IfStatementNode(ifStatement.location, ifStatement.conditionalExpression,
+				visit(ifStatement.ifBlock), (ifStatement.elseBlock == null) ?
+				new Parser.EmptyStatementNode(ifStatement.location) :
+				visit(ifStatement.elseBlock));
 	}
 
-	@Override public Object visit(Parser.IfStatementEndNode ifEndStatement) {
-		return null;
+	@Override public Parser.StatementNode visit(Parser.IfStatementEndNode ifEndStatement) {
+		return ifEndStatement;
 	}
 
-	@Override public Object visit(Parser.WhileStatementNode whileStatement) {
-		whileStatement.body.accept(this);
-		return null;
+	@Override public Parser.StatementNode visit(Parser.WhileStatementNode whileStatement) {
+		return new Parser.WhileStatementNode(whileStatement.location, whileStatement.getPreCondVarAss(),
+				whileStatement.conditionalExpression, visit(whileStatement.body));
 	}
 
-	@Override public Object visit(Parser.WhileStatementEndNode whileEndStatement) {
-		return Parser.StatementVisitor.super.visit(whileEndStatement);
+	@Override public Parser.StatementNode visit(Parser.WhileStatementEndNode whileEndStatement) {
+		return whileEndStatement;
 	}
 
-	@Override public Object visit(Parser.LoopInterruptionNode loopInterruptionNode) {
-		return Parser.StatementVisitor.super.visit(loopInterruptionNode);
+	@Override public Parser.StatementNode visit(Parser.LoopInterruptionNode loopInterruptionNode) {
+		return loopInterruptionNode;
 	}
 
-	@Override public Object visit(Parser.ExpressionStatementNode expressionStatement) {
-		return Parser.StatementVisitor.super.visit(expressionStatement);
+	@Override public Parser.StatementNode visit(Parser.ExpressionStatementNode expressionStatement) {
+		return expressionStatement;
 	}
 
-	@Override public Object visit(Parser.ReturnStatementNode returnStatement) {
-		return Parser.StatementVisitor.super.visit(returnStatement);
+	@Override public Parser.StatementNode visit(Parser.ReturnStatementNode returnStatement) {
+		return new Parser.VariableAssignmentNode(Converter.DUMMY_LOCATION, this.var, returnStatement.expression);
 	}
 
-	@Override public List<Object> visitChildren(Parser.MJNode node) {
+	@Override public List<Parser.StatementNode> visitChildren(Parser.MJNode node) {
 		return Parser.StatementVisitor.super.visitChildren(node);
 	}
 

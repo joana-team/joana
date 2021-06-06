@@ -54,7 +54,7 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 		stmts.add(arrayAssignmentNode);
 
 		int arrayVarIdx = arrayVarIdxCounter.getOrDefault(instruction.getArrayRef(), 1);
-		Converter.arrayVarIndices.put(instruction, arrayVarIdx);
+		Converter.arrayVarIndices.put(Pair.make(m, instruction), arrayVarIdx);
 		arrayVarIdxCounter.put(instruction.getArrayRef(), arrayVarIdx + 1);
 	}
 

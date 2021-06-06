@@ -1,13 +1,16 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.TestUtils;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.IStage;
 import nildumu.Parser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,68 +74,126 @@ class NildumuProgramTest {
 				+ "int v__10;\n" + "v__5 = (v__2 & 1);\n" + "if ((v__5 != 0))\n" + "  {\n" + "    v__8 = (v__2 & -2);\n"
 				+ "    v__10 = Recursion_rec_I_I(v__8);\n" + "    x0 = v__10;\n" + "  } \n" + "else\n" + "  {\n"
 				+ "    x0 = 0;\n" + "  }\n" + "l output int x1 = x0;");
+		exprected.put("mLoop_f_I_I_2",
+				"use_sec basic;\n" + "bit_width 16;\n" + "(int) mLoop_f_I_I_2(int v__8, int v__2, int v__6){\n"
+						+ "  if (!(v__2 <= v__8))\n" + "    {\n" + "      int v__4 = 0;\n" + "      int v__5 = 1;\n"
+						+ "      int v__7;\n" + "      v__7 = (v__8 + 1);\n"
+						+ "      v__8 = *mLoop_f_I_I_2(v__7, v__2, v__6);\n" + "    }\n" + "  return (v__8,);\n" + "}\n"
+						+ "h input int v__8 = 0buuuuuuuuuuuuuuuu;\n" + "h input int v__2 = 0buuuuuuuuuuuuuuuu;\n"
+						+ "int v__6 = 1;\n" + "int x0;\n" + "int v__4 = 0;\n" + "int v__5 = 1;\n" + "int v__7;\n"
+						+ "v__7 = (v__8 + 1);\n" + "l output int x1 = v__7;\n" + "l output int x2 = v__2;\n"
+						+ "l output int x3 = v__6;");
 	}
 
 	@Test void methodProgramTest_Call() {
-		methodProgramTest("Call", new int[] { 2, 2 });
+		methodProgramTest("Call");
 	}
 
 	@Test void methodProgramTest_ArrayParam() {
-		methodProgramTest("ArrayParam", new int[] { 5, 2 });
+		methodProgramTest("ArrayParam");
 	}
 
 	@Test void methodProgramTest_ArrayReturn() {
-		methodProgramTest("ArrayReturn", new int[] { 2 });
+		methodProgramTest("ArrayReturn");
 	}
 
 	@Test void methodProgramTest_MultipleReturn() {
-		methodProgramTest("MultipleReturns", new int[] { 2 });
+		methodProgramTest("MultipleReturns");
 	}
 
 	@Test void methodProgramTest_Recursion() {
-		methodProgramTest("Recursion", new int[] { 2 });
+		methodProgramTest("Recursion");
 	}
 
 	@Test void cc_Call() {
-		partialCCTest("Call", new int[] { 2, 2 }, 16.0);
+		partialCCTest("Call", 16.0);
 	}
 
 	@Test void cc_ArrayParam() {
-		partialCCTest("ArrayParam", new int[] { 5, 2 }, 16.0);
+		partialCCTest("ArrayParam", 16.0);
 	}
 
 	@Test void cc_ArrayReturn() {
-		partialCCTest("ArrayReturn", new int[] { 2 }, 1.0);
+		partialCCTest("ArrayReturn", 1.0);
 	}
 
 	@Test void cc_MultipleReturn() {
-		partialCCTest("MultipleReturns", new int[] { 2 }, 2);
+		partialCCTest("MultipleReturns", 2);
 	}
 
 	@Test void cc_Recursion() {
-		partialCCTest("Recursion", new int[] { 2 }, 0.0);
+		partialCCTest("Recursion", 0.0);
 	}
 
-	void methodProgramTest(String testcase, int[] callArgs) {
+	Parser.ProgramNode methodProgramTest(String testcase) {
 		App.Args args = TestUtils.getDummyArgs(testcase);
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(args, IStage.Stage.SAT_ANALYSIS);
+
+		SSAInvokeInstruction i = (SSAInvokeInstruction) Arrays
+				.stream(pipeline.env.iProgram.getEntryMethod().getIr().getInstructions())
+				.filter(instruction -> instruction instanceof SSAInvokeInstruction).findFirst().get();
 
 		Parser.ProgramNode res = pipeline.env.nProgram
-				.fromMethod(pipeline.env.iProgram.getMethods().get(0), pipeline.env.iProgram.getMethods().get(1),
-						callArgs);
+				.fromMethod(pipeline.env.iProgram.getMethods().get(0), pipeline.env.iProgram.getMethods().get(1), i,
+						new HashMap<>());
 		System.out.println(res.toPrettyString());
 		Assertions.assertEquals(exprected.get(testcase), res.toPrettyString());
+		return res;
 	}
 
-	void partialCCTest(String testcase, int[] callArgs, double expected) {
+	void partialCCTest(String testcase, double expected) {
 		App.Args args = TestUtils.getDummyArgs(testcase);
 		AnalysisPipeline pipeline = new AnalysisPipeline();
 		pipeline.runPipelineUntil(args, IStage.Stage.SAT_ANALYSIS);
 
-		double res = pipeline.env.nProgram.computeMethodCallCC(pipeline.env.iProgram.getMethods().get(0),
-				pipeline.env.iProgram.getMethods().get(1), callArgs);
-		Assertions.assertEquals(expected, res);
+		SSAInvokeInstruction i = (SSAInvokeInstruction) Arrays
+				.stream(pipeline.env.iProgram.getEntryMethod().getIr().getInstructions())
+				.filter(instruction -> instruction instanceof SSAInvokeInstruction).findFirst().get();
+
+		Parser.ProgramNode res = pipeline.env.nProgram
+				.fromMethod(pipeline.env.iProgram.getMethods().get(0), pipeline.env.iProgram.getMethods().get(1), i,
+						new HashMap<>());
+
+		double cc = pipeline.env.nProgram.computeCC(res);
+		Assertions.assertEquals(expected, cc);
 	}
 
+	@Test void loopTest_Loop() {
+		loopProgramTest("Loop", new HashMap<>());
+	}
+
+	@Test void ccTest_Loop() {
+		ccTest("Loop", new HashMap<>(), 16.0);
+	}
+
+	@Test void loopTest_ArrayLoop() {
+		loopProgramTest("ArrayLoop", new HashMap<>());
+	}
+
+	@Test void loopTest_Break() {
+		loopProgramTest("Break", new HashMap<>());
+	}
+
+	void loopProgramTest(String testcase, Map<Integer, String> inputs) {
+		App.Args args = TestUtils.getDummyArgs(testcase);
+		AnalysisPipeline pipeline = new AnalysisPipeline();
+		pipeline.runPipelineUntil(args, IStage.Stage.SAT_ANALYSIS);
+
+		LoopBody loop = pipeline.env.iProgram.getEntryMethod().getLoops().get(0);
+		Parser.ProgramNode res = pipeline.env.nProgram.fromLoop(loop, pipeline.env.iProgram.getEntryMethod(), inputs);
+		System.out.println(Converter.methodName(loop));
+		System.out.println(res.toPrettyString());
+		Assertions.assertEquals(exprected.get(Converter.methodName(loop)), res.toPrettyString());
+	}
+
+	@Test void ccTest(String testcase, Map<Integer, String> inputs, double expected) {
+		App.Args args = TestUtils.getDummyArgs(testcase);
+		AnalysisPipeline pipeline = new AnalysisPipeline();
+		pipeline.runPipelineUntil(args, IStage.Stage.SAT_ANALYSIS);
+
+		LoopBody loop = pipeline.env.iProgram.getEntryMethod().getLoops().get(0);
+		double res = pipeline.env.nProgram.computeCC(loop, inputs);
+		Assertions.assertEquals(expected, res);
+	}
 }

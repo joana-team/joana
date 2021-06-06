@@ -89,6 +89,7 @@ public class Converter {
 	public NildumuProgram.ConvertedLoopMethod convertLoop(LoopBody l) {
 		NildumuProgram.ConvertedLoopMethod result = new NildumuProgram.ConvertedLoopMethod();
 		result.iMethod = l.getOwner();
+		result.loop = l;
 
 		// get names for all the variables used ready
 		List<Integer> usedValsForParams = l.getAllUses();

@@ -348,4 +348,9 @@ public class LoopBody extends ProgramPart {
 	public Formula getJumpOutOnlyLoopCondition() {
 		return this.jumpOut;
 	}
+
+	public BiMap<Integer, Integer> getResultMapping() {
+		return resultMapping;
+	}
+
 }

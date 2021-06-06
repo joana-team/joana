@@ -108,14 +108,6 @@ public class SATAnalysis {
 		} else {
 
 			sv.visitBlock(m, b, -1);
-
-			for (BasicBlock succ : b.succs()) {
-				State finalState = state;
-				if (succ.isLoopHeader() || succ.preds().stream()
-						.allMatch(pred -> finalState.visited.contains(pred.idx()))) {
-					state.toVisit.add(succ);
-				}
-			}
 		}
 		computeSATDeps(state, m, sv);
 	}

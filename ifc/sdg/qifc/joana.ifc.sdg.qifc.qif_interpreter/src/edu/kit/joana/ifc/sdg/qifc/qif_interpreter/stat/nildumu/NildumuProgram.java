@@ -1,14 +1,16 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import nildumu.*;
 import nildumu.mih.MethodInvocationHandler;
 import nildumu.typing.Type;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * wrapper for Nildumu representation of program (or program parts respectively) + additional information about inputs 7 outputs we might have from previous analyses on the program
@@ -40,51 +42,88 @@ public class NildumuProgram {
 		this.methods = methods;
 	}
 
-	public double computeMethodCallCC(Method caller, Method m, int[] args) {
-		Parser.ProgramNode methodProgram = fromMethod(caller, m, args);
+	public double computeCC(Parser.ProgramNode p) {
+		Context methodContext = Processor
+				.process(p.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
+		Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = methodContext.computeLeakage(MinCut.usedAlgo);
+		return leakageResult.get(Lattices.BasicSecLattice.LOW).maxFlow;
+	}
+
+	public double computeCC(LoopBody l, Map<Integer, String> inputs) {
+		Parser.ProgramNode methodProgram = fromLoop(l, l.getOwner(), inputs);
 		Context methodContext = Processor
 				.process(methodProgram.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
 		Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = methodContext.computeLeakage(MinCut.usedAlgo);
 		return leakageResult.get(Lattices.BasicSecLattice.LOW).maxFlow;
 	}
 
-	public Parser.ProgramNode fromMethod(Method caller, Method m, int[] args) {
+	public Parser.ProgramNode fromMethod(Method caller, Method m, SSAInvokeInstruction i, Map<Integer, String> inputs) {
 		Converter c = new Converter();
 		ConvertedMethod base = methods.get(m.identifierNoSpecialCharacters());
 
-		Map<Integer, String> inputLiterals = new HashMap<>();
-		for (int i = 0; i < args.length; i++) {
-			inputLiterals.put(m.getIr().getParameter(i + 1),
-					Value.BitLatticeValue.toStringLiteral(caller.getValue(args[i])));
-		}
-		List<Parser.StatementNode> inVars = c
-				.convertToSecretInput(Arrays.copyOfRange(m.getIr().getParameterValueNumbers(), 1, m.getParamNum()), m,
-						inputLiterals);
-		String varname = Converter.varName();
-		ReplacementVisitor rv = new ReplacementVisitor(varname, m);
-		Parser.BlockNode replacedReturns = new Parser.BlockNode(Converter.DUMMY_LOCATION, base.methodBody);
-		replacedReturns = (Parser.BlockNode) replacedReturns.accept(rv);
-		List<Parser.StatementNode> outDecls = c.convertToPublicOutput(new String[] { varname },
-				new edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[] { m.getReturnType() });
-		Parser.ProgramNode methodProgram = new Parser.ProgramNode(context);
-		methodProgram.addGlobalStatements(inVars);
-		methodProgram.addGlobalStatement(Converter.varDecl(varname, m.getReturnType().nildumuType()));
-		methodProgram.addGlobalStatements(replacedReturns.statementNodes);
-		methodProgram.addGlobalStatements(outDecls);
-		this.addMethodsAndLoopMethods(methodProgram);
-		return methodProgram;
+		int[] args = IntStream.range(1, i.getNumberOfUses()).map(i::getUse).toArray();
+		List<Parser.StatementNode> stmts = c.convertToSecretInput(args, caller, inputs);
+
+		stmts.add(Converter.varDecl(Converter.varName(i.getDef(), caller), m.getReturnType().nildumuType()));
+		stmts.add(Converter.assignment(Converter.varName(i.getDef(), caller),
+				new Parser.MethodInvocationNode(Converter.DUMMY_LOCATION, base.complete, Converter.arguments(
+						Arrays.stream(args).mapToObj(j -> Converter.varName(j, caller))
+								.collect(Collectors.toList())))));
+
+		stmts.addAll(c.convertToPublicOutput(new String[] { Converter.varName(i.getDef(), caller) },
+				new edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[] { m.getReturnType() }));
+
+		Parser.ProgramNode p = new Parser.ProgramNode(context);
+		p.addGlobalStatements(stmts);
+		this.addMethodsAndLoopMethods(p, new ArrayList<>());
+		return p;
 	}
 
-	void addMethodsAndLoopMethods(Parser.ProgramNode program) {
+	public Parser.ProgramNode fromLoop(LoopBody l, Method m, Map<Integer, String> inputLiterals) {
+		Converter c = new Converter();
+		ConvertedLoopMethod loopMethod = loopMethods.get(Converter.methodName(l));
+
+		List<Parser.StatementNode> stmts = c.convertToSecretInput(loopMethod.callArgs, m, inputLiterals);
+		String[] outputVars = Arrays.stream(loopMethod.recCallArgs).mapToObj(i -> Converter.varName())
+				.toArray(String[]::new);
+		IntStream.range(0, outputVars.length).forEach(i -> stmts
+				.add(Converter.varDecl(outputVars[i], m.getValue(loopMethod.recCallArgs[i]).getType().nildumuType())));
+
+		Parser.MethodNode singleRun = loopMethod.singleRun();
+		stmts.add(new Parser.MultipleVariableAssignmentNode(Converter.DUMMY_LOCATION, outputVars,
+				new Parser.UnpackOperatorNode(new Parser.MethodInvocationNode(Converter.DUMMY_LOCATION, singleRun.name,
+						Converter.arguments(Arrays.stream(loopMethod.callArgs).mapToObj(i -> Converter.varName(i, m))
+								.collect(Collectors.toList()))))));
+
+		edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[] returnTypes = Arrays.stream(loopMethod.recCallArgs)
+				.mapToObj(i -> m.getValue(i).getType())
+				.toArray(edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type[]::new);
+
+		stmts.addAll(c.convertToPublicOutput(outputVars, returnTypes));
+
+		Parser.ProgramNode p = new Parser.ProgramNode(context);
+		p.addGlobalStatements(stmts);
+		p.addMethod(singleRun);
+		this.addMethodsAndLoopMethods(p, Collections.singletonList(singleRun.name));
+		return p;
+	}
+
+	void addMethodsAndLoopMethods(Parser.ProgramNode program, List<String> exclude) {
 		for (ConvertedMethod m : this.methods.values()) {
-			program.addMethod(m.complete);
+			if (!exclude.contains(m.complete.name)) {
+				program.addMethod(m.complete);
+			}
+
 		}
 		for (ConvertedLoopMethod m : this.loopMethods.values()) {
-			program.addMethod(m.method);
+			if (!exclude.contains(m.method.name)) {
+				program.addMethod(m.method);
+			}
 		}
 	}
 
 	public static class ConvertedLoopMethod {
+		LoopBody loop;
 		public ArrayList<Parser.StatementNode> loopBody;
 		public Method iMethod;
 		Parser.MethodNode method;
@@ -107,6 +146,19 @@ public class NildumuProgram {
 			return Arrays.stream(params).mapToObj(
 					i -> Pair.make(Converter.varName(i, iMethod), iMethod.getValue(i).getType().nildumuType()))
 					.collect(Collectors.toList());
+		}
+
+		Parser.MethodNode singleRun() {
+			Parser.BlockNode body = new Parser.BlockNode(Converter.DUMMY_LOCATION, loopBody);
+			List<Type> returnTypes = Arrays.stream(recCallArgs)
+					.mapToObj(i -> iMethod.getValue(i).getType().nildumuType()).collect(Collectors.toList());
+			Parser.ReturnStatementNode ret = new Parser.ReturnStatementNode(Converter.DUMMY_LOCATION,
+					Arrays.stream(recCallArgs).mapToObj(i -> Converter.variableAccess(Converter.varName(i, iMethod)))
+							.collect(Collectors.toList()));
+			body.add(ret);
+			return new Parser.MethodNode(Converter.DUMMY_LOCATION, Converter.methodName(loop),
+					edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type.nTypes.getOrCreateTupleType(returnTypes),
+					method.parameters, body, new Parser.GlobalVariablesNode(Converter.DUMMY_LOCATION, new HashMap<>()));
 		}
 	}
 

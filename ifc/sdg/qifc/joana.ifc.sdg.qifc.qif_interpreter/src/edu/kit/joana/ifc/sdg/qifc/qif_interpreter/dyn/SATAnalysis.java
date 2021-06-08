@@ -1,7 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LoopSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -71,7 +70,7 @@ public class SATAnalysis {
 		imIFVisitor.compute(m.getCFG());
 
 		State state = State.init(env, m);
-		state.toVisit.add(state.next);
+		state.toVisit.add(state.current);
 
 		try {
 			computeSATDeps(state, m, sv);
@@ -89,8 +88,6 @@ public class SATAnalysis {
 
 		if (b.isLoopHeader()) {
 			LoopBody l = m.getLoops().stream().filter(loop -> loop.getHead().idx() == b.idx()).findFirst().get();
-			LoopSegment newSegment = new LoopSegment(l, state.currentSegment());
-			state = newSegment.dynamic(state);
 
 			if (b.hasRelevantCF()) {
 				sv.visitBlock(m, b, -1);

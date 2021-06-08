@@ -8,9 +8,11 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LoopSegment extends Segment<LoopBody> {
 
@@ -32,7 +34,9 @@ public class LoopSegment extends Segment<LoopBody> {
 	}
 
 	@Override public void finalize() {
-
+		this.inputs = this.inputs.keySet().stream()
+				.collect(Collectors.toMap(i -> i, i -> programPart.getBeforeLoop(i)));
+		this.outputs = new ArrayList<>(this.programPart.getResultMapping().values());
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {

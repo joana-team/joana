@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSAReturnInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -9,8 +10,10 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MethodSegment extends Segment<Method> {
 
@@ -34,7 +37,12 @@ public class MethodSegment extends Segment<Method> {
 	}
 
 	@Override public void finalize() {
-
+		this.inputs = programPart.getProgramValues().keySet().stream()
+				.filter(e -> programPart.getValue(e).isParameter())
+				.collect(Collectors.toMap(i -> i, i -> programPart.getDepsForValue(i)));
+		this.outputs = Arrays.stream(this.programPart.getIr().getInstructions())
+				.filter(i -> i instanceof SSAReturnInstruction).map(i -> ((SSAReturnInstruction) i).getResult())
+				.collect(Collectors.toList());
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {

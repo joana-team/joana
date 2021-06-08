@@ -304,6 +304,24 @@ public class BasicBlock implements DotNode {
 		return instructions.stream().filter(SSAInstruction::hasDef).anyMatch(i -> i.getDef() == valNum);
 	}
 
+	public List<Integer> getPrimitiveBlockDefs() {
+		return this.instructions.stream().filter(SSAInstruction::hasDef).map(SSAInstruction::getDef)
+				.filter(i -> !this.g.getMethod().getValue(i).isArrayType()).collect(Collectors.toList());
+	}
+
+	public List<Integer> getPrimitiveBlockUses() {
+		Set<Integer> uses = new HashSet<>();
+		this.instructions.forEach(i -> {
+			for (int j = 0; j < i.getNumberOfUses(); j++) {
+				Value v = this.getCFG().getMethod().getValue(i.getUse(j));
+				if (!v.isArrayType()) {
+					uses.add(v.getValNum());
+				}
+			}
+		});
+		return new ArrayList<>(uses);
+	}
+
 	public int getTrueTarget() {
 		assert (this.splitsControlFlow());
 		int instructionIdx = ((SSAConditionalBranchInstruction) this.getWalaBasicBlock().getLastInstruction())

@@ -9,7 +9,7 @@ import java.util.Collections;
 
 public enum Type {
 
-	INTEGER(16), ARRAY(16), CUSTOM(-1);
+	INTEGER(3), ARRAY(3), CUSTOM(-1);
 
 	private final int bitWidth;
 	public static final Types nTypes = new Types();

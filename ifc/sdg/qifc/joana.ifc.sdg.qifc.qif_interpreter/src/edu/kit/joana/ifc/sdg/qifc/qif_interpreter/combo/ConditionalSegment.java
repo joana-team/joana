@@ -61,7 +61,7 @@ public class ConditionalSegment extends Segment<ProgramPart.Container> {
 	}
 
 	@Override public State computeSATDeps(State state, Method m, SATVisitor sv) {
-		assert (this.owns(state.next));
+		assert (this.owns(state.current));
 		state = this.getIfBranch().computeSATDeps(state, m, sv);
 		state = this.getElseBranch().computeSATDeps(state, m, sv);
 		return state;

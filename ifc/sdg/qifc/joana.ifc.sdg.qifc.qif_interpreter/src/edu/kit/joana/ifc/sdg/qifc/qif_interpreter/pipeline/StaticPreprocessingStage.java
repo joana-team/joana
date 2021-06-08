@@ -12,9 +12,11 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuOptions;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.NildumuProgram;
 import nildumu.Lattices;
 import nildumu.Parser;
-import nildumu.mih.MethodInvocationHandler;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class StaticPreprocessingStage implements IStage {
 
@@ -39,13 +41,6 @@ public class StaticPreprocessingStage implements IStage {
 
 		assert p != null;
 		env.nProgram = new NildumuProgram(p, options, Converter.loopMethods, Converter.methods);
-
-		Parser.MethodInvocationNode n = (Parser.MethodInvocationNode) env.nProgram.context.nodes().stream()
-				.filter(node -> node instanceof Parser.MethodInvocationNode).findFirst().get();
-		Lattices.Bit b = Lattices.BitLattice.get().create(Lattices.B.U);
-		MethodInvocationHandler.MethodReturnValue retVal = env.nProgram.context.methodInvocationHandler()
-				.analyze(env.nProgram.context, n, Collections.singletonList(new Lattices.Value(Arrays.asList(b, b, b))),
-						new HashMap<>());
 
 		for (Method m : env.iProgram.getMethods()) {
 			for (Map.Entry<Integer, Value> e : m.getProgramValues().entrySet()) {

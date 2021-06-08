@@ -291,7 +291,6 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 				if (!target.isVoid()) {
 					returnVal = target.getValue(target.getReturnValue()).getVal();
 					returnType = target.getValue(target.getReturnValue()).getType();
-
 				}
 				target.resetValues();
 				if (returnVal != null) {

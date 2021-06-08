@@ -64,7 +64,13 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 
 	public abstract boolean owns(BasicBlock block);
 
-	public abstract void finalize();
+	// find in- and output values of the segment
+	public void finalize() {
+		if (this.children.isEmpty())
+			return;
+		this.inputs = this.children.get(0).inputs;
+		this.outputs = this.children.get(this.children.size() - 1).outputs;
+	}
 
 	/**
 	 * segments the provided list of blocks

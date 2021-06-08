@@ -9,6 +9,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 
@@ -28,8 +29,17 @@ public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 		return this.programPart.blocks.contains(block);
 	}
 
-	public void finalize() {
+	@Override public void finalize() {
+		Set<Integer> inputCandidates = new HashSet<>();
+		Method m = this.entry.getCFG().getMethod();
+		this.getBlocks().forEach(b -> inputCandidates.addAll(b.getPrimitiveBlockUses()));
+		this.inputs = inputCandidates.stream().filter(i -> !m.getValue(i).isConstant())
+				.collect(Collectors.toMap(i -> i, m::getDepsForValue));
 
+		Set<Integer> outputCandidates = new HashSet<>();
+		this.getBlocks().forEach(b -> outputCandidates.addAll(b.getPrimitiveBlockDefs()));
+		this.outputs = outputCandidates.stream().filter(i -> m.getValue(i).influencesLeak())
+				.collect(Collectors.toList());
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {

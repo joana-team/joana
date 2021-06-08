@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -13,8 +14,10 @@ import java.util.Set;
 
 public class MethodSegment extends Segment<Method> {
 
-	public MethodSegment(Method m, Segment<? extends ProgramPart> parent) {
+	public MethodSegment(Method m, Segment<? extends ProgramPart> parent, SSAInvokeInstruction instruction) {
 		super(m, parent);
+
+		m.addSegment(instruction, this);
 
 		if (this.level < 5) {
 			this.children = segment(

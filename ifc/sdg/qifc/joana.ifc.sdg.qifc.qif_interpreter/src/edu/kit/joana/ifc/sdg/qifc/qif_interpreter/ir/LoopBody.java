@@ -6,6 +6,7 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LoopSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.DecisionTree;
@@ -20,6 +21,7 @@ import java.util.*;
 public class LoopBody extends ProgramPart {
 
 	private final int level;
+	private LoopSegment segment;
 	private final Map<Integer, Formula[]> in;
 	private final Map<Integer, Formula[]> beforeLoop;
 	private final Map<Integer, Formula[]> out;
@@ -353,4 +355,11 @@ public class LoopBody extends ProgramPart {
 		return resultMapping;
 	}
 
+	public LoopSegment getSegment() {
+		return segment;
+	}
+
+	public void setSegment(LoopSegment segment) {
+		this.segment = segment;
+	}
 }

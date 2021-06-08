@@ -20,6 +20,7 @@ public class LoopSegment extends Segment<LoopBody> {
 		toSegment.remove(this.programPart.getHead());
 		this.children = segment(toSegment);
 		this.inputs = loop.getIn();
+		loop.setSegment(this);
 	}
 
 	@Override public State computeSATDeps(State state, Method m, SATVisitor sv) {

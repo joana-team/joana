@@ -2,12 +2,14 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.ssa.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.ConditionalSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.LinearSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import org.logicng.formulas.Formula;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,8 +18,9 @@ public class BasicBlock implements DotNode {
 	private static final Map<Integer, BasicBlock> dummies = new HashMap<>();
 	private static int dummyCtr = -2;
 
-	private final SSACFG.BasicBlock walaBBlock;
+	@Nullable private final SSACFG.BasicBlock walaBBlock;
 	private LinearSegment segment;
+	@Nullable private ConditionalSegment condSegment;
 	private final CFG g;
 	private final List<SSAInstruction> instructions;
 	private IFTreeNode ifTree;
@@ -33,7 +36,7 @@ public class BasicBlock implements DotNode {
 	/**
 	 * expression used for conditional jump to successor expressed as SAT formula.
 	 */
-	private Formula condExpr;
+	@Nullable private Formula condExpr;
 	private int replacedPredIdx;
 
 	private boolean hasRelevantCF;
@@ -394,5 +397,13 @@ public class BasicBlock implements DotNode {
 
 	public void setSegment(LinearSegment segment) {
 		this.segment = segment;
+	}
+
+	@Nullable public ConditionalSegment getCondSegment() {
+		return condSegment;
+	}
+
+	public void setCondSegment(@Nullable ConditionalSegment condSegment) {
+		this.condSegment = condSegment;
 	}
 }

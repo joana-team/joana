@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -98,8 +99,10 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				cond.rank = numChildren++;
 				linear = startNewSegment(unclaimed, cond, linear, segments);
 			} else if (curr.hasMethodCall()) {
+				SSAInvokeInstruction instruction = (SSAInvokeInstruction) curr.instructions().stream()
+						.filter(i -> i instanceof SSAInvokeInstruction).findFirst().get();
 				linear.rank = numChildren++;
-				MethodSegment method = new MethodSegment(curr.getCallee(), this);
+				MethodSegment method = new MethodSegment(curr.getCallee(), this, instruction);
 				method.rank = numChildren++;
 				linear = startNewSegment(unclaimed, method, linear, segments);
 			}

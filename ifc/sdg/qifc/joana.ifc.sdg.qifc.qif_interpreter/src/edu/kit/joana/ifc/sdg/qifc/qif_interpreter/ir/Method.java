@@ -8,6 +8,7 @@ import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.MethodSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.LoopHandler;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
@@ -36,6 +37,7 @@ public class Method extends ProgramPart {
 	private SDGMethod sdgMethod;
 	private CGNode cg;
 	private CFG cfg;
+	private Map<SSAInvokeInstruction, MethodSegment> segments;
 	private final Map<Integer, Value> programValues;
 	private List<LoopBody> loops;
 	private final Map<Integer, List<Pair<Formula[], Formula>>> phiValPossibilities;
@@ -512,5 +514,17 @@ public class Method extends ProgramPart {
 	public List<SSAInstruction> instructions() {
 		return Arrays.stream(this.getCFG().getWalaCFG().getInstructions()).filter(Objects::nonNull)
 				.collect(Collectors.toList());
+	}
+
+	public Map<SSAInvokeInstruction, MethodSegment> getSegments() {
+		return segments;
+	}
+
+	public void setSegments(Map<SSAInvokeInstruction, MethodSegment> segments) {
+		this.segments = segments;
+	}
+
+	public void addSegment(SSAInvokeInstruction i, MethodSegment methodSegment) {
+		this.segments.put(i, methodSegment);
 	}
 }

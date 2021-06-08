@@ -25,6 +25,7 @@ public class ConditionalSegment extends Segment<ProgramPart.Container> {
 		this.createBranch(split, ifBranch, 0);
 		this.createBranch(split, elseBranch, 1);
 		this.children.forEach(c -> this.programPart.blocks.addAll((((ProgramPart.Container) c.programPart).blocks)));
+		split.setCondSegment(this);
 	}
 
 	@Override public boolean owns(BasicBlock block) {

@@ -101,6 +101,10 @@ public class LoopHandler {
 		extractOutDeps(base);
 		computeRuns(base, m, loopUnrollingMax);
 
+		if (!base.getSegment().dynAnaFeasible) {
+			return base;
+		}
+
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
 		base.lastRun().getPrimitive().keySet().forEach(i -> m.setDepsForvalue(i, base.lastRun().getPrimitive(i)));
 		for (int i = loopUnrollingMax - 2; i >= 0; i--) {

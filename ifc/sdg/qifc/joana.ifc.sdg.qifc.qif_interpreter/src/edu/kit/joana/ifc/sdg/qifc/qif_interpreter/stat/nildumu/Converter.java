@@ -107,7 +107,7 @@ public class Converter {
 		IntStream.range(0, phiMap.size()).forEach(i -> result.params[i] = phiMap.get(i).getLeft());
 
 		result.recCallArgs = result.callArgs.clone();
-		IntStream.range(0, phiMap.size()).forEach(i -> result.callArgs[i] = phiMap.get(i).getRight());
+		IntStream.range(0, phiMap.size()).forEach(i -> result.recCallArgs[i] = phiMap.get(i).getRight());
 
 		result.returnVars = ArrayUtils.addAll(phiMap.stream().mapToInt(Triple::getLeft).toArray(),
 				l.getAllWrittenToArrays().stream().mapToInt(i -> i).toArray());

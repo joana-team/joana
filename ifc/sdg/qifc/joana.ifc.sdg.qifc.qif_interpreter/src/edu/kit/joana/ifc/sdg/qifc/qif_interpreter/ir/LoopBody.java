@@ -277,7 +277,7 @@ public class LoopBody extends ProgramPart {
 	public List<Triple<Integer, Integer, Integer>> phiMapping() {
 		List<Triple<Integer, Integer, Integer>> phiMap = new ArrayList<>();
 
-		int inLoopPredNum = (this.hasBlock(this.getHead().preds().get(0).idx())) ? 1 : 0;
+		int inLoopPredNum = (this.hasBlock(this.getHead().preds().get(0).idx())) ? 0 : 1;
 
 		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction).forEach(phi -> phiMap
 				.add(Triple.triple(phi.getDef(), phi.getUse(1 - inLoopPredNum), phi.getUse(inLoopPredNum))));

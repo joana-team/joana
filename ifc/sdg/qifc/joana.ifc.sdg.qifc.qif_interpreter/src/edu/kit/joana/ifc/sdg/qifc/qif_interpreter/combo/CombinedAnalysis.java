@@ -103,5 +103,4 @@ public class CombinedAnalysis {
 
 		return Pair.make(f, priority);
 	}
-
 }

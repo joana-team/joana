@@ -92,6 +92,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				LoopSegment loop = new LoopSegment(
 						curr.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().equals(finalCurr))
 								.findFirst().get(), this);
+				loop.dynAnaFeasible = false; // temporary for testing
 				loop.rank = numChildren++;
 				linear = startNewSegment(unclaimed, loop, linear, segments);
 			} else if (curr.isCondHeader()) {
@@ -105,7 +106,6 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				linear.rank = numChildren++;
 				MethodSegment method = new MethodSegment(curr.getCallee(), this, instruction,
 						curr.getCFG().getMethod());
-				method.dynAnaFeasible = false; // temporary for testing
 				method.rank = numChildren++;
 				linear = startNewSegment(unclaimed, method, linear, segments);
 			}

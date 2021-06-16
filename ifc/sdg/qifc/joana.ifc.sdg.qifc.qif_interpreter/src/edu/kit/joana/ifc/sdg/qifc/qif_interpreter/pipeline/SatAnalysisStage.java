@@ -4,7 +4,6 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.CombinedAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 
 import java.util.Arrays;
 
@@ -23,7 +22,6 @@ public class SatAnalysisStage implements IStage {
 						.getSignature().equals(SATVisitor.OUTPUT_FUNCTION)).findFirst().get();
 		double cc = ca.channelCap(leak);
 		System.out.println("Channel capacity: " + cc);
-		DotGrapher.exportGraph(env.segments);
 
 		success = true;
 		return env;

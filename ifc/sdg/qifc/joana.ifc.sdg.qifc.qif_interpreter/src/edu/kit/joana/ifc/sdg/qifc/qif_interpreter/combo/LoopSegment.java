@@ -6,13 +6,13 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu.Converter;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
+import nildumu.Parser;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class LoopSegment extends Segment<LoopBody> implements IStaticAnalysisSegment {
 
@@ -52,6 +52,11 @@ public class LoopSegment extends Segment<LoopBody> implements IStaticAnalysisSeg
 	}
 
 	@Override public double channelCap(Environment env) {
-		return 0;
+		Map<Integer, String> ins = new HashMap<>();
+		for (int i : env.nProgram.loopMethods.get(Converter.methodName(this.programPart)).callArgs) {
+			ins.put(i, Value.BitLatticeValue.toStringLiteral(this.programPart.getOwner().getValue(i)));
+		}
+		Parser.ProgramNode p = env.nProgram.fromLoop(this.programPart, this.programPart.getOwner(), ins);
+		return env.nProgram.computeCC(p);
 	}
 }

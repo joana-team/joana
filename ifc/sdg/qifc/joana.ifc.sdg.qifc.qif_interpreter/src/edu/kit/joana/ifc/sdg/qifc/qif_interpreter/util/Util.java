@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 public class Util {
@@ -58,5 +59,15 @@ public class Util {
 			}
 		}
 		return first.get();
+	}
+
+	public static int[] removeDuplicates(int[] array) {
+		Set<Integer> asSet = new HashSet<>();
+		Arrays.stream(array).forEach(asSet::add);
+		List<Integer> asList = new ArrayList<>(asSet);
+		int[] noDups = new int[asSet.size()];
+		IntStream.range(0, noDups.length).forEach(i -> noDups[i] = asList.get(i));
+
+		return noDups;
 	}
 }

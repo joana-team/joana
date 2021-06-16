@@ -5,6 +5,7 @@ import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import nildumu.*;
 import nildumu.mih.MethodInvocationHandler;
 import nildumu.typing.Type;
@@ -86,7 +87,8 @@ public class NildumuProgram {
 		Converter c = new Converter();
 		ConvertedLoopMethod loopMethod = loopMethods.get(Converter.methodName(l));
 
-		List<Parser.StatementNode> stmts = c.convertToSecretInput(loopMethod.callArgs, m, inputLiterals);
+		List<Parser.StatementNode> stmts = c
+				.convertToSecretInput(Util.removeDuplicates(loopMethod.callArgs), m, inputLiterals);
 		String[] outputVars = Arrays.stream(loopMethod.recCallArgs).mapToObj(i -> Converter.varName())
 				.toArray(String[]::new);
 		IntStream.range(0, outputVars.length).forEach(i -> stmts
@@ -132,7 +134,7 @@ public class NildumuProgram {
 		Parser.MethodNode method;
 		Map<Integer, Parser.VariableDeclarationNode> returnDefs;
 		Parser.MultipleVariableAssignmentNode call;
-		int[] callArgs;
+		public int[] callArgs;
 		public int[] params;
 		int[] recCallArgs;
 		public int[] returnVars;

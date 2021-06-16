@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -39,11 +40,17 @@ public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 
 		Set<Integer> outputCandidates = new HashSet<>();
 		this.getBlocks().forEach(b -> outputCandidates.addAll(b.getPrimitiveBlockDefs()));
+		if (this.getBlocks().stream().anyMatch(b -> !b.isDummy() && b.getWalaBasicBlock().isEntryBlock())) {
+			outputCandidates.addAll(m.getProgramValues().keySet().stream().filter(i -> m.getValue(i).isParameter())
+					.collect(Collectors.toList()));
+		}
 		this.outputs = outputCandidates.stream()
 				.filter(i -> m.getValue(i).influencesLeak() && !(m.getDef(i) instanceof SSAInvokeInstruction))
-				.collect(Collectors.toList());
+				.filter(i -> !(m.getDef(i) instanceof SSAPhiInstruction && BasicBlock
+						.getBBlockForInstruction(m.getDef(i), m.getCFG()).isLoopHeader())).collect(Collectors.toList());
 
 		this.inputs.removeAll(this.outputs);
+
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {

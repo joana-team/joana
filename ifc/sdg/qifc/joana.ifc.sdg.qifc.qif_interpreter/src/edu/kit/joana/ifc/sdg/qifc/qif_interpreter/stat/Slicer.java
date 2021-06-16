@@ -62,6 +62,12 @@ public class Slicer {
 				//System.out.println("PDG: " + method.identifier());
 				//printSlice(slice);
 				for (PDGNode node : slice) {
+
+					if (node.getKind().equals(PDGNode.Kind.FORMAL_IN)) { // parameter
+						int paramIdx = Integer.parseInt(node.getLabel().split(" ")[1]);
+						neededDefs.put(Pair.make(method, m.getIr().getParameter(paramIdx)), true);
+					}
+
 					SSAInstruction instruction = method.instruction(node);
 					if (instruction != null && instruction.hasDef()) {
 						neededDefs.put(Pair.make(method, instruction.getDef()), true);

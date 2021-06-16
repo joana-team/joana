@@ -4,11 +4,13 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import nildumu.*;
 import nildumu.mih.MethodInvocationHandler;
 import nildumu.typing.Type;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -17,7 +19,7 @@ import java.util.stream.IntStream;
  */
 public class NildumuProgram {
 
-	private static final String handler = "handler=inlining;maxrec=32;bot=summary";
+	public static final String handler = "handler=inlining;maxrec=32;bot=summary";
 	public static boolean transformPlus = false;
 
 	public static final int TRANSFORM_PLUS = 0b01;
@@ -43,6 +45,7 @@ public class NildumuProgram {
 	}
 
 	public double computeCC(Parser.ProgramNode p) {
+		Logger.log(Level.INFO, "Nildumu invocation for: \n" + p.toPrettyString());
 		Context methodContext = Processor
 				.process(p.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
 		Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = methodContext.computeLeakage(MinCut.usedAlgo);
@@ -61,8 +64,8 @@ public class NildumuProgram {
 		Converter c = new Converter();
 		ConvertedMethod base = methods.get(m.identifierNoSpecialCharacters());
 
-		int[] args = IntStream.range(1, i.getNumberOfUses()).map(i::getUse).toArray();
-		List<Parser.StatementNode> stmts = c.convertToSecretInput(args, caller, inputs);
+		int[] args = Arrays.copyOfRange(m.getIr().getParameterValueNumbers(), 1, m.getParamNum());
+		List<Parser.StatementNode> stmts = c.convertToSecretInput(args, m, inputs);
 
 		stmts.add(Converter.varDecl(Converter.varName(i.getDef(), caller), m.getReturnType().nildumuType()));
 		stmts.add(Converter.assignment(Converter.varName(i.getDef(), caller),

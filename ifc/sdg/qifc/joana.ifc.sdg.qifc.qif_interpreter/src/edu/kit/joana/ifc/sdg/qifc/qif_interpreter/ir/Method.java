@@ -69,6 +69,7 @@ public class Method extends ProgramPart {
 		this.phiValPossibilities = new HashMap<>();
 		this.recursionDepth = -1;
 		this.depsAnalyzed = false;
+		this.segments = new HashMap<>();
 	}
 
 	public Method(MethodReference ref, Program p) {

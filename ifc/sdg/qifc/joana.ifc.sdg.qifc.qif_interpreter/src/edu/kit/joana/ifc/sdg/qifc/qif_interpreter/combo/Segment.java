@@ -22,19 +22,16 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 	public Segment<? extends ProgramPart> parent;
 	public List<Segment<? extends ProgramPart>> children;
 
-	public Map<Integer, Formula[]> inputs;
-	public Map<Integer, Formula[][]> arrayInputs;
-
+	public List<Integer> inputs;
 	public List<Integer> outputs;
-	public List<Integer> arrayOutputs;
 
 	public BasicBlock entry;
 
-	boolean dynAnaFeasible;
+	public boolean dynAnaFeasible;
 	boolean hasStatAnaChild;
 	boolean collapsed;
 
-	int channelCapacity;
+	double channelCapacity;
 	Formula executionCondition;
 
 	public Segment(T t, Segment<? extends ProgramPart> parent) {
@@ -43,10 +40,8 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 		this.level = parent.level + 1;
 		this.parent = parent;
 		this.children = new ArrayList<>();
-		this.inputs = new HashMap<>();
-		this.arrayInputs = new HashMap<>();
+		this.inputs = new ArrayList<>();
 		this.outputs = new ArrayList<>();
-		this.arrayOutputs = new ArrayList<>();
 		this.dynAnaFeasible = this.level < 3;
 		this.collapsed = false;
 		this.rank = 0;
@@ -76,7 +71,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 	 * segments the provided list of blocks
 	 * <p>
 	 * Segmentation rules:
-	 * - Loop Header + Cond HEader belong to preceding LinearSegment
+	 * - Loop Header + Cond Header belong to preceding LinearSegment
 	 * - Block that contains MethodCall belongs to preceding LinearStatement
 	 *
 	 * @param unclaimed blocks that have not been assigned to a segment yet
@@ -108,12 +103,14 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				SSAInvokeInstruction instruction = (SSAInvokeInstruction) curr.instructions().stream()
 						.filter(i -> i instanceof SSAInvokeInstruction).findFirst().get();
 				linear.rank = numChildren++;
-				MethodSegment method = new MethodSegment(curr.getCallee(), this, instruction);
+				MethodSegment method = new MethodSegment(curr.getCallee(), this, instruction,
+						curr.getCFG().getMethod());
+				method.dynAnaFeasible = false; // temporary for testing
 				method.rank = numChildren++;
 				linear = startNewSegment(unclaimed, method, linear, segments);
 			}
 		}
-		if (!linear.children.isEmpty()) {
+		if (!linear.programPart.blocks.isEmpty()) {
 			linear.rank = numChildren;
 			segments.add(linear);
 		}
@@ -159,33 +156,6 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 
 	}
 
-	public void collapse() {
-		List<Segment<? extends ProgramPart>> collapsed = new ArrayList<>();
-		List<Segment<? extends ProgramPart>> canCollapse = new ArrayList<>();
-		for (Segment<? extends ProgramPart> child : this.children) {
-			child.collapse();
-			if (!child.hasStatAnaChild()) {
-				canCollapse.add(child);
-			} else {
-				if (!canCollapse.isEmpty()) {
-					collapsed.add(createWithChildren(canCollapse, this));
-				}
-
-				canCollapse = new ArrayList<>();
-				collapsed.add(child);
-			}
-		}
-		if (!canCollapse.isEmpty()) {
-			collapsed.add(createWithChildren(canCollapse, this));
-		}
-
-		if (collapsed.size() == 1) {
-			this.children = collapsed.get(0).children;
-		} else {
-			this.children = collapsed;
-		}
-		this.collapsed = true;
-	}
 
 	public boolean hasStatAnaChild() {
 		return !this.dynAnaFeasible || this.children.stream().anyMatch(Segment::hasStatAnaChild);

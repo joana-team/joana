@@ -7,18 +7,25 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
+import nildumu.Parser;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class MethodSegment extends Segment<Method> {
+public class MethodSegment extends Segment<Method> implements IStaticAnalysisSegment {
 
-	public MethodSegment(Method m, Segment<? extends ProgramPart> parent, SSAInvokeInstruction instruction) {
+	SSAInvokeInstruction call;
+	Method caller;
+
+	public MethodSegment(Method m, Segment<? extends ProgramPart> parent, SSAInvokeInstruction instruction,
+			Method caller) {
 		super(m, parent);
+		this.call = instruction;
+		this.caller = caller;
 
 		m.addSegment(instruction, this);
 
@@ -38,8 +45,7 @@ public class MethodSegment extends Segment<Method> {
 
 	@Override public void finalize() {
 		this.inputs = programPart.getProgramValues().keySet().stream()
-				.filter(e -> programPart.getValue(e).isParameter())
-				.collect(Collectors.toMap(i -> i, i -> programPart.getDepsForValue(i)));
+				.filter(e -> programPart.getValue(e).isParameter()).collect(Collectors.toList());
 		this.outputs = Arrays.stream(this.programPart.getIr().getInstructions())
 				.filter(i -> i instanceof SSAReturnInstruction).map(i -> ((SSAReturnInstruction) i).getResult())
 				.collect(Collectors.toList());
@@ -51,5 +57,14 @@ public class MethodSegment extends Segment<Method> {
 
 	@Override public String getLabel() {
 		return this.rank + "\n" + "Method " + this.programPart.identifier() + "\n" + this.dynAnaFeasible;
+	}
+
+	@Override public double channelCap(Environment env) {
+		Map<Integer, String> args = new HashMap<>();
+		IntStream.range(1, this.call.getNumberOfUses()).forEach(i -> args.put(this.programPart.getIr().getParameter(i),
+				Value.BitLatticeValue.toStringLiteral(caller.getValue(call.getUse(i)))));
+
+		Parser.ProgramNode p = env.nProgram.fromMethod(this.caller, this.programPart, call, args);
+		return env.nProgram.computeCC(p);
 	}
 }

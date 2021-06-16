@@ -313,6 +313,9 @@ public class BasicBlock implements DotNode {
 		Set<Integer> uses = new HashSet<>();
 		this.instructions.forEach(i -> {
 			for (int j = 0; j < i.getNumberOfUses(); j++) {
+				if (i instanceof SSAInvokeInstruction && (j == 0 || ((SSAInvokeInstruction) i).getDeclaredTarget()
+						.getSignature().equals(SATVisitor.OUTPUT_FUNCTION)))
+					continue;
 				Value v = this.getCFG().getMethod().getValue(i.getUse(j));
 				if (!v.isArrayType()) {
 					uses.add(v.getValNum());

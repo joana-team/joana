@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -30,24 +31,23 @@ public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 	}
 
 	@Override public void finalize() {
+		this.entry = this.programPart.blocks.get(0);
 		Set<Integer> inputCandidates = new HashSet<>();
 		Method m = this.entry.getCFG().getMethod();
 		this.getBlocks().forEach(b -> inputCandidates.addAll(b.getPrimitiveBlockUses()));
-		this.inputs = inputCandidates.stream().filter(i -> !m.getValue(i).isConstant())
-				.collect(Collectors.toMap(i -> i, m::getDepsForValue));
+		this.inputs = inputCandidates.stream().filter(i -> !m.getValue(i).isConstant()).collect(Collectors.toList());
 
 		Set<Integer> outputCandidates = new HashSet<>();
 		this.getBlocks().forEach(b -> outputCandidates.addAll(b.getPrimitiveBlockDefs()));
-		this.outputs = outputCandidates.stream().filter(i -> m.getValue(i).influencesLeak())
+		this.outputs = outputCandidates.stream()
+				.filter(i -> m.getValue(i).influencesLeak() && !(m.getDef(i) instanceof SSAInvokeInstruction))
 				.collect(Collectors.toList());
+
+		this.inputs.removeAll(this.outputs);
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {
 		return new HashSet(this.programPart.blocks);
-	}
-
-	@Override public void collapse() {
-		// do nothing
 	}
 
 	public void addBlock(BasicBlock b) {

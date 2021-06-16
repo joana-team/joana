@@ -11,6 +11,7 @@ public class Call {
 
 	public int f(int h) {
 		int l = -1;
+		h |= 1;
 		l = add(l, h);
 		Out.print(l);
 		return 0;

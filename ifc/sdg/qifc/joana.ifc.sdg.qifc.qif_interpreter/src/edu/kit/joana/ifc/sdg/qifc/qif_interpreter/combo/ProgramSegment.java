@@ -30,12 +30,11 @@ public class ProgramSegment extends Segment<Program> implements DotGraph {
 	public static ProgramSegment skeleton(Program p) {
 		ProgramSegment seg = new ProgramSegment();
 		seg.level = 0;
+		seg.dynAnaFeasible = true;
 		seg.parent = null;
 		seg.programPart = p;
 		seg.children = new ArrayList<>();
 		seg.outputs = new ArrayList<>();
-		seg.arrayOutputs = new ArrayList<>();
-		seg.arrayInputs = Collections.emptyMap();
 		return seg;
 	}
 

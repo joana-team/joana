@@ -6,22 +6,22 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.CFGUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public class LoopSegment extends Segment<LoopBody> {
+public class LoopSegment extends Segment<LoopBody> implements IStaticAnalysisSegment {
 
 	public LoopSegment(LoopBody loop, Segment<? extends ProgramPart> parent) {
 		super(loop, parent);
 		List<BasicBlock> toSegment = CFGUtil.topological(this.getBlocks(), this.programPart.getHead());
 		toSegment.remove(this.programPart.getHead());
 		this.children = segment(toSegment);
-		this.inputs = loop.getIn();
+		this.inputs = new ArrayList<>(loop.getIn().keySet());
 		loop.setSegment(this);
 	}
 
@@ -34,8 +34,7 @@ public class LoopSegment extends Segment<LoopBody> {
 	}
 
 	@Override public void finalize() {
-		this.inputs = this.inputs.keySet().stream()
-				.collect(Collectors.toMap(i -> i, i -> programPart.getBeforeLoop(i)));
+		this.inputs = new ArrayList<>(this.programPart.getIn().keySet());
 		this.outputs = new ArrayList<>(this.programPart.getResultMapping().values());
 	}
 
@@ -50,5 +49,9 @@ public class LoopSegment extends Segment<LoopBody> {
 
 	@Override public String getLabel() {
 		return this.rank + "\n" + "Loop " + this.programPart.getHead().idx() + "\n" + this.dynAnaFeasible;
+	}
+
+	@Override public double channelCap(Environment env) {
+		return 0;
 	}
 }

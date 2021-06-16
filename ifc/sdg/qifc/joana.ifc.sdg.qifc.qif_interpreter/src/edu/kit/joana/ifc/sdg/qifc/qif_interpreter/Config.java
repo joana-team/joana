@@ -11,7 +11,7 @@ public class Config {
 	// default values
 	public static final int DEFAULT_LOOP_UNROLLING_MAX = 16;
 	public static final int DEFAULT_RECURSION_DEPTH_MAX = 16;
-	public static final int DEFAULT_METHOD_DEPTH_MAX = 16;
+	public static final int DEFAULT_METHOD_DEPTH_MAX = 2;
 
 	private int loopUnrollingMax;
 	private int recDepthMax;

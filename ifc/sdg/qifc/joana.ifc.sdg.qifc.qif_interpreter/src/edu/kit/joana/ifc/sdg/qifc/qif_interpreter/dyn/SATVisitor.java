@@ -4,6 +4,7 @@ import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.MethodSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
@@ -199,6 +200,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 	@Override public void visitInvoke(SSAInvokeInstruction instruction) {
 		if (!instruction.getCallSite().getDeclaredTarget().getSignature().equals(OUTPUT_FUNCTION)) {
+
 			String calleeId = instruction.getDeclaredTarget().getSignature();
 			IInvocationHandler handler;
 			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed()) {
@@ -211,24 +213,45 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			}
 
 			if (instruction.getNumberOfDefs() > 0) {
-
 				Method callee = m.getProg().getMethod(instruction.getDeclaredTarget().getSignature());
+				MethodSegment seg = callee.getSegments().get(instruction);
 				Type returnType = callee.getReturnType();
 
-				if (returnType.equals(Type.ARRAY)) {
-					try {
-						Array arr = Array.newArray(callee.getReturnElementType(), instruction.getDef(), false);
-						arr.setValueDependencies(((IReturnValue<Formula[][]>)callee.getReturn()).getReturnValueForCallSite(instruction, m));
-						m.addValue(instruction.getDef(), arr);
-					} catch (UnexpectedTypeException e) {
-						e.printStackTrace();
-					}
-
+				if (seg.dynAnaFeasible) {
+					setReturnValueDeps(callee, returnType, instruction);
 				} else {
-					m.setDepsForvalue(instruction.getDef(), (Formula[]) callee.getReturnValueForCall(instruction, m));
+					setReturnValueVars(callee, returnType, instruction);
 				}
-
 			}
+		}
+	}
+
+	private void setReturnValueDeps(Method callee, Type returnType, SSAInvokeInstruction instruction) {
+		if (returnType.equals(Type.ARRAY)) {
+			try {
+				Array arr = Array.newArray(callee.getReturnElementType(), instruction.getDef(), false);
+				arr.setValueDependencies(
+						((IReturnValue<Formula[][]>) callee.getReturn()).getReturnValueForCallSite(instruction, m));
+				m.addValue(instruction.getDef(), arr);
+			} catch (UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
+
+		} else {
+			m.setDepsForvalue(instruction.getDef(), (Formula[]) callee.getReturnValueForCall(instruction, m));
+		}
+	}
+
+	private void setReturnValueVars(Method callee, Type returnType, SSAInvokeInstruction instruction) {
+		if (returnType.equals(Type.ARRAY)) {
+			try {
+				Array arr = Array.newArray(callee.getReturnElementType(), instruction.getDef(), true);
+				m.addValue(instruction.getDef(), arr);
+			} catch (UnexpectedTypeException e) {
+				e.printStackTrace();
+			}
+		} else {
+			m.setDepsForvalue(instruction.getDef(), LogicUtil.createVars(instruction.getDef(), returnType.bitwidth()));
 		}
 	}
 

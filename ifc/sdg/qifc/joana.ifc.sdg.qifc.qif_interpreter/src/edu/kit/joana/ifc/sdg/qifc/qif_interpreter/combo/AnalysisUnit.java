@@ -2,13 +2,13 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGraph;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class AnalysisUnit implements DotNode {
 
@@ -35,7 +35,11 @@ public class AnalysisUnit implements DotNode {
 		this.usedMC = usedMC;
 		this.blocks = new HashSet<>();
 		this.segments.forEach(s -> blocks.addAll(s.getBlocks()));
-		this.collectiveOutputValues = collectiveOuts();
+		if (usedMC) {
+			this.collectiveOutputValues = collectiveOuts();
+		} else {
+			collectiveOutputValues = new ArrayList<>();
+		}
 	}
 
 	public AnalysisUnit(List<Segment<? extends ProgramPart>> segments, Method m) {
@@ -47,25 +51,32 @@ public class AnalysisUnit implements DotNode {
 	}
 
 	private List<Integer> collectiveOuts() {
-		Method m = segments.get(0).programPart.getMethod();
 		List<Integer> outs = new ArrayList<>();
 		for (Segment<? extends ProgramPart> s : segments) {
+			s.finalize();
 			outs.addAll(s.outputs);
 		}
 
 		// remove if value is not used anywhere outside of the segments
-		outs.removeIf(i -> blocks.containsAll(m.getValue(i).useBlocks()));
+		outs.removeIf(i -> blocks.containsAll(top.getValue(i).useBlocks()));
 
 		Segment<? extends ProgramPart> tail = segments.stream().max(Comparator.comparingInt(s -> s.rank)).get();
 		BasicBlock segmentEnd = tail.getBlocks().stream().max(Comparator.comparingInt(b -> b.idx())).get();
 
 		// special case: following segment is call or loop
 		if (segmentEnd.isLoopHeader()) {
-			collectiveOutputValues.addAll(m.getLoop(segmentEnd).get().phiToBeforeLoop().values());
-		} else if (!segmentEnd.isDummy() && segmentEnd.getWalaBasicBlock()
-				.getLastInstruction() instanceof SSAInvokeInstruction) {
+			outs.addAll(top.getLoop(segmentEnd).get().phiToBeforeLoop().values());
+		} else if (!segmentEnd.isDummy() && !segmentEnd.getWalaBasicBlock().isExitBlock() && segmentEnd
+				.getWalaBasicBlock().getLastInstruction() instanceof SSAInvokeInstruction
+				&& !((SSAInvokeInstruction) segmentEnd.getWalaBasicBlock().getLastInstruction()).getDeclaredTarget()
+				.getSignature().equals(SATVisitor.OUTPUT_FUNCTION)) {
 			SSAInvokeInstruction call = (SSAInvokeInstruction) segmentEnd.getWalaBasicBlock().getLastInstruction();
-			IntStream.range(0, call.getNumberOfUses()).forEach(i -> collectiveOutputValues.add(call.getUse(i)));
+			int bound = call.getNumberOfUses();
+			for (int i = 1; i < bound; i++) {
+				if (!top.getValue(call.getUse(i)).isConstant() && top.getValue(call.getUse(i)).influencesLeak()) {
+					outs.add(call.getUse(i));
+				}
+			}
 		}
 
 		return outs;

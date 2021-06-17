@@ -12,7 +12,7 @@ public class Call2 {
 	public int f(int h) {
 		int l = -1;
 		h |= 1;
-		int k = h | -1;
+		int k = -1;
 		l = add(l, h);
 		l |= k;
 		Out.print(l);

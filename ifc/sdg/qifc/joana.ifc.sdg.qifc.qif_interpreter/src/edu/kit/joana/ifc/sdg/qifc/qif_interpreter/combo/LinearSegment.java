@@ -10,6 +10,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,10 +45,16 @@ public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 			outputCandidates.addAll(m.getProgramValues().keySet().stream().filter(i -> m.getValue(i).isParameter())
 					.collect(Collectors.toList()));
 		}
-		this.outputs = outputCandidates.stream()
-				.filter(i -> m.getValue(i).influencesLeak() && !(m.getDef(i) instanceof SSAInvokeInstruction))
-				.filter(i -> !(m.getDef(i) instanceof SSAPhiInstruction && BasicBlock
-						.getBBlockForInstruction(m.getDef(i), m.getCFG()).isLoopHeader())).collect(Collectors.toList());
+		List<Integer> list = new ArrayList<>();
+		for (Integer i : outputCandidates) {
+			if (m.getValue(i).influencesLeak() && !(m.getDef(i) instanceof SSAInvokeInstruction)) {
+				if (!(m.getDef(i) instanceof SSAPhiInstruction && BasicBlock
+						.getBBlockForInstruction(m.getDef(i), m.getCFG()).isLoopHeader())) {
+					list.add(i);
+				}
+			}
+		}
+		this.outputs = list;
 
 		this.inputs.removeAll(this.outputs);
 

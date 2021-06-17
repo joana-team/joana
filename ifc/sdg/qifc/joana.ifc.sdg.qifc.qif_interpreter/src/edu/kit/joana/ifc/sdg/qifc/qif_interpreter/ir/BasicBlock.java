@@ -12,6 +12,7 @@ import org.logicng.formulas.Formula;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class BasicBlock implements DotNode {
 
@@ -426,5 +427,10 @@ public class BasicBlock implements DotNode {
 
 	public void setCondSegment(@Nullable ConditionalSegment condSegment) {
 		this.condSegment = condSegment;
+	}
+
+	public boolean uses(int valNum) {
+		return this.instructions.stream()
+				.anyMatch(i -> IntStream.range(0, i.getNumberOfUses()).anyMatch(j -> i.getUse(j) == valNum));
 	}
 }

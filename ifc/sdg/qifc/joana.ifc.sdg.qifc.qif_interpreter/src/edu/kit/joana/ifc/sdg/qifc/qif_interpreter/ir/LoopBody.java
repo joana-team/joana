@@ -264,10 +264,18 @@ public class LoopBody extends ProgramPart {
 	}
 
 	public Map<Integer, Integer> phiToInsideLoop() {
-		Map<Integer, Integer> outMap = new HashMap<>();
-
 		int predNum = (this.hasBlock(this.getHead().preds().get(0).idx())) ? 0 : 1;
+		return phiMap(predNum);
+	}
 
+	public Map<Integer, Integer> phiToBeforeLoop() {
+		int predNum = (this.hasBlock(this.getHead().preds().get(0).idx())) ? 1 : 0;
+		return phiMap(predNum);
+
+	}
+
+	private Map<Integer, Integer> phiMap(int predNum) {
+		Map<Integer, Integer> outMap = new HashMap<>();
 		this.head.instructions().stream().filter(i -> i instanceof SSAPhiInstruction)
 				.forEach(phi -> outMap.put(phi.getDef(), phi.getUse(predNum)));
 		return outMap;
@@ -361,5 +369,9 @@ public class LoopBody extends ProgramPart {
 
 	public void setSegment(LoopSegment segment) {
 		this.segment = segment;
+	}
+
+	@Override public Method getMethod() {
+		return this.owner;
 	}
 }

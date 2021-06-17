@@ -165,6 +165,10 @@ public class Method extends ProgramPart {
 		}
 	}
 
+	public Optional<LoopBody> getLoop(BasicBlock head) {
+		return this.loops.stream().filter(l -> l.getHead().equals(head)).findFirst();
+	}
+
 	private void initValues() {
 		for (BasicBlock b : CFGUtil.topological(cfg.getBlocks(), cfg.entry())) {
 			b.instructions().forEach(i -> {
@@ -178,6 +182,10 @@ public class Method extends ProgramPart {
 					this.getProgramValues().get(i.getUse(0)).leak();
 				}
 			});
+		}
+		for (Map.Entry<Integer, Value> e : this.programValues.entrySet()) {
+			e.getValue().setUseBlocks(
+					this.getCFG().getBlocks().stream().filter(b -> b.uses(e.getKey())).collect(Collectors.toList()));
 		}
 	}
 
@@ -527,5 +535,9 @@ public class Method extends ProgramPart {
 
 	public void addSegment(SSAInvokeInstruction i, MethodSegment methodSegment) {
 		this.segments.put(i, methodSegment);
+	}
+
+	@Override public Method getMethod() {
+		return this;
 	}
 }

@@ -5,7 +5,9 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Stack;
 import java.util.stream.IntStream;
 
@@ -21,6 +23,7 @@ public abstract class Value {
 	private final Stack<Pair<Integer, Object>> val;
 	private Formula[] deps;
 	private Variable[] vars;
+	private List<BasicBlock> useBlocks;
 	private boolean leaked;
 	private boolean isConstant;
 	private boolean influencesLeak;
@@ -202,6 +205,10 @@ public abstract class Value {
 		this.isDefaultInit = b;
 	}
 
+	public List<BasicBlock> useBlocks() {
+		return new ArrayList<>();
+	}
+
 	public enum BitLatticeValue {
 		ZERO(LogicUtil.ff.constant(false)), ONE(LogicUtil.ff.constant(true)), UNKNOWN(null);
 
@@ -285,5 +292,9 @@ public abstract class Value {
 
 	public boolean isDefaultInit() {
 		return this.isDefaultInit;
+	}
+
+	public void setUseBlocks(List<BasicBlock> useBlocks) {
+		this.useBlocks = useBlocks;
 	}
 }

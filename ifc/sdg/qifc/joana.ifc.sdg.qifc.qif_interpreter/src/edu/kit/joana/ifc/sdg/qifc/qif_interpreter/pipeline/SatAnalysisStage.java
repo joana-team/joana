@@ -20,7 +20,7 @@ public class SatAnalysisStage implements IStage {
 				.stream(env.iProgram.getEntryMethod().getIr().getInstructions())
 				.filter(i -> i instanceof SSAInvokeInstruction && ((SSAInvokeInstruction) i).getDeclaredTarget()
 						.getSignature().equals(SATVisitor.OUTPUT_FUNCTION)).findFirst().get();
-		double cc = ca.channelCap(leak);
+		double cc = ca.channelCap(leak, env.iProgram.getEntryMethod());
 		System.out.println("Channel capacity: " + cc);
 
 		success = true;

@@ -128,4 +128,8 @@ public class Program extends ProgramPart {
 	public Environment getEnv() {
 		return env;
 	}
+
+	@Override public Method getMethod() {
+		return this.getEntryMethod();
+	}
 }

@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
@@ -26,46 +27,52 @@ public class CombinedAnalysis {
 		this.env = environment;
 	}
 
-	public double channelCap(SSAInvokeInstruction leak) {
+	public double channelCap(SSAInvokeInstruction leak, Method m) {
 		BasicBlock leakBlock = BasicBlock.getBBlockForInstruction(leak, env.iProgram.getEntryMethod().getCFG());
-		return combined(env.segments, leak.getUse(0), leakBlock);
+		double cc = combined(env.segments, leak.getUse(0), leakBlock, m);
+		DotGrapher.exportGraph(AnalysisUnit.asGraph());
+		return cc;
 	}
 
-	private double combined(Segment<? extends ProgramPart> top, int leaked, BasicBlock leakBlock) {
+	private double combined(Segment<? extends ProgramPart> top, int leaked, BasicBlock leakBlock, Method m) {
 		double channelCap = Integer.MAX_VALUE;
+		AnalysisUnit coll = new AnalysisUnit(m);
 
 		if (!top.dynAnaFeasible) {
-			return stat((IStaticAnalysisSegment) top);
+			double statCC = stat((IStaticAnalysisSegment) top);
+			coll.finish(false);
+			coll.cc = statCC;
+			return statCC;
 		}
 
-		List<Segment<? extends ProgramPart>> collectiveDyn = new ArrayList<>();
-
 		for (Segment<? extends ProgramPart> child : top.children) {
+
 			if (child.owns(leakBlock)) {
-				collectiveDyn.add(child);
-				double segmentCC = dyn(collectiveDyn, leaked, leakBlock);
-				channelCap = Math.min(segmentCC, channelCap);
+				coll.addSegment(child);
+				double segmentCC = dyn(coll, leaked, leakBlock);
+				return Math.min(segmentCC, channelCap);
 			}
 
 			if (child.hasStatAnaChild()) {
-				double segmentCC = dyn(collectiveDyn, leaked, leakBlock);
+				double segmentCC = dyn(coll, leaked, leakBlock);
 				channelCap = Math.min(segmentCC, channelCap);
-				channelCap = Math.min(combined(child, leaked, leakBlock), channelCap);
-				collectiveDyn = new ArrayList<>();
+				channelCap = Math.min(combined(child, leaked, leakBlock, child.programPart.getMethod()), channelCap);
+				coll = new AnalysisUnit(m);
 			} else {
-				collectiveDyn.add(child);
+				coll.addSegment(child);
 			}
 		}
 		return channelCap;
 	}
 
-	private double dyn(List<Segment<? extends ProgramPart>> segments, int leaked, BasicBlock leakBlock) {
-		segments.forEach(Segment::finalize);
-		List<Integer> outs = (segments.stream().anyMatch(s -> s.owns(leakBlock))) ?
-				Collections.singletonList(leaked) :
-				collectiveOuts(segments);
+	private double dyn(AnalysisUnit as, int leaked, BasicBlock leakBlock) {
+		as.finish(true);
 
-		Pair<Formula, List<Variable>> cc = ccFormula(outs, leakBlock.getCFG().getMethod());
+		List<Integer> valsForMC = (as.blocks.contains(leakBlock)) ?
+				Collections.singletonList(leaked) :
+				as.collectiveOutputValues;
+
+		Pair<Formula, List<Variable>> cc = ccFormula(valsForMC, leakBlock.getCFG().getMethod());
 		ApproxMC mc = new ApproxMC(env.args.outputDirectory);
 		int models = Integer.MAX_VALUE;
 		try {
@@ -74,15 +81,9 @@ public class CombinedAnalysis {
 			e.printStackTrace();
 		}
 
-		return Math.log(models) / Math.log(2);
-	}
-
-	private List<Integer> collectiveOuts(List<Segment<? extends ProgramPart>> segments) {
-		List<Integer> outs = new ArrayList<>();
-		for (Segment<? extends ProgramPart> s : segments) {
-			outs.addAll(s.outputs);
-		}
-		return outs;
+		double cap = Math.log(models) / Math.log(2);
+		as.cc = cap;
+		return cap;
 	}
 
 	private double stat(IStaticAnalysisSegment segment) {

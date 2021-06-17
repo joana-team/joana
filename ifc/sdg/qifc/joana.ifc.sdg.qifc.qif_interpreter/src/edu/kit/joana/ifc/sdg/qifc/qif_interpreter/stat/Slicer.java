@@ -63,11 +63,6 @@ public class Slicer {
 				//printSlice(slice);
 				for (PDGNode node : slice) {
 
-					if (node.getKind().equals(PDGNode.Kind.FORMAL_IN)) { // parameter
-						int paramIdx = Integer.parseInt(node.getLabel().split(" ")[1]);
-						neededDefs.put(Pair.make(method, m.getIr().getParameter(paramIdx)), true);
-					}
-
 					SSAInstruction instruction = method.instruction(node);
 					if (instruction != null && instruction.hasDef()) {
 						neededDefs.put(Pair.make(method, instruction.getDef()), true);
@@ -113,7 +108,7 @@ public class Slicer {
 
 		for (Method m : p.getMethods()) {
 			neededDefs.putAll(m.getProgramValues().keySet().stream()
-					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> false)));
+					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> m.getValue(i).isParameter())));
 			neededCF.putAll(m.getCFG().getBlocks().stream().filter(BasicBlock::splitsControlFlow).map(BasicBlock::idx)
 					.collect(Collectors.toMap(i -> Pair.make(m, i), i -> false)));
 		}

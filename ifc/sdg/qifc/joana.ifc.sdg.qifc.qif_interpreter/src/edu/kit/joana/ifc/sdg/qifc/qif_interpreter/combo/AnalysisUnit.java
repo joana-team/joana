@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
+import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -65,7 +66,20 @@ public class AnalysisUnit implements DotNode {
 
 		// special case: following segment is call or loop
 		if (segmentEnd.isLoopHeader()) {
-			outs.addAll(top.getLoop(segmentEnd).get().phiToBeforeLoop().values());
+			top.getLoop(segmentEnd).get().phiToBeforeLoop().values().forEach(i -> {
+				if (!top.getValue(i).isConstant()) {
+					outs.add(i);
+				}
+			});
+			SSAConditionalBranchInstruction cond = (SSAConditionalBranchInstruction) segmentEnd.getWalaBasicBlock()
+					.getLastInstruction();
+			int bound = cond.getNumberOfUses();
+			for (int i = 0; i < bound; i++) {
+				if (!top.getValue(cond.getUse(i)).isConstant() && top.getValue(cond.getUse(i)).influencesLeak()
+						&& !segmentEnd.ownsValue(cond.getUse(i))) {
+					outs.add(cond.getUse(i));
+				}
+			}
 		} else if (!segmentEnd.isDummy() && !segmentEnd.getWalaBasicBlock().isExitBlock() && segmentEnd
 				.getWalaBasicBlock().getLastInstruction() instanceof SSAInvokeInstruction
 				&& !((SSAInvokeInstruction) segmentEnd.getWalaBasicBlock().getLastInstruction()).getDeclaredTarget()

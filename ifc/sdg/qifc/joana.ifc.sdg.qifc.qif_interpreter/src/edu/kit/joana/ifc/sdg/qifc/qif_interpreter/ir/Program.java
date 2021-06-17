@@ -12,6 +12,7 @@ import edu.kit.joana.api.sdg.SDGMethod;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.TempValue;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
@@ -31,6 +32,7 @@ public class Program extends ProgramPart {
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
 	private final Map<String, Method> methods;
+	private final List<TempValue> temporaries;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana,
 			Environment env) {
@@ -43,6 +45,7 @@ public class Program extends ProgramPart {
 		this.methods = new HashMap<>();
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
 		this.env = env;
+		this.temporaries = new ArrayList<>();
 	}
 
 	/**
@@ -56,8 +59,21 @@ public class Program extends ProgramPart {
 		return callsToMethod.stream().anyMatch(c -> c.getOwningMethod().getSignature().getMethodName().equals("main"));
 	}
 
+	public void addTemporaryValue(TempValue t) {
+		this.temporaries.add(t);
+	}
+
+	public void addTemporaryValue(Collection<TempValue> collection) {
+		this.temporaries.addAll(collection);
+	}
+
+	public List<TempValue> getTempValues() {
+		return this.temporaries;
+	}
+
 	public String getLevelForParam(SDGMethod method, int param) {
-		SDGFormalParameter paramNode = method.getParameters().stream().filter(p -> p.getIndex() == param).findAny().get();
+		SDGFormalParameter paramNode = method.getParameters().stream().filter(p -> p.getIndex() == param).findAny()
+				.get();
 		Optional<IFCAnnotation> annotation = this.ana.getSources().stream()
 				.filter(a -> a.getProgramPart().equals(paramNode)).findAny();
 

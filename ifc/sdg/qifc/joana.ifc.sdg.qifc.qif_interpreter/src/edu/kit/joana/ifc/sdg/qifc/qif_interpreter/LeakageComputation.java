@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.TempValue;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
@@ -45,6 +46,7 @@ public class LeakageComputation {
 				leakedValue.getDepForBit(i) :
 				LogicUtil.ff.not(leakedValue.getDepForBit(i))).reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
 		res = addPhiDepsRec(res, -1);
+		res = m.getProg().getTempValues().stream().map(TempValue::asFormula).reduce(res, LogicUtil.ff::and);
 		return res;
 	}
 

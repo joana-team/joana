@@ -9,10 +9,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -101,17 +98,21 @@ public class LoopHandler {
 		extractOutDeps(base);
 		computeRuns(base, m, loopUnrollingMax);
 
-		if (!base.getSegment().dynAnaFeasible) {
-			return base;
-		}
-
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
-		base.lastRun().getPrimitive().keySet().forEach(i -> m.setDepsForvalue(i, base.lastRun().getPrimitive(i)));
+		Map<Integer, TempValue> tempValues = new HashMap<>();
+		base.lastRun().getPrimitive().keySet()
+				.forEach(i -> tempValues.put(i, new TempValue(i, m, base.lastRun().getPrimitive(i))));
 		for (int i = loopUnrollingMax - 2; i >= 0; i--) {
 			LoopIteration run = base.getRun(i);
-			base.getIn().keySet().forEach(j -> m.setDepsForvalue(j, LogicUtil
-					.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), m.getDepsForValue(j))));
+			base.getIn().keySet().forEach(j -> tempValues.get(j).setReal(LogicUtil
+					.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), tempValues.get(j).real)));
 		}
+
+		Formula valueRestriction = IntStream.range(0, base.getSimulatedIterationNum())
+				.mapToObj(i -> base.getRun(i).getJumpOutAfterThisIteration())
+				.reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or);
+		tempValues.values().forEach(t -> t.valueRestriction = valueRestriction);
+		m.getProg().addTemporaryValue(tempValues.values());
 
 		// same thing, but for arrays
 		for (int i : base.getPlaceholderArrays().keySet()) {

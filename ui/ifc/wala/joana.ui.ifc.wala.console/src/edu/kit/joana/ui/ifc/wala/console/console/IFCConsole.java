@@ -3222,7 +3222,7 @@ public class IFCConsole {
 			implements ImprovedCLI.ClassPathEnabled, ImprovedCLI.EntryPointEnabled, ImprovedCLI.SinksAndSourcesEnabled,
 			ImprovedCLI.SetValueEnabled, ImprovedCLI.BuildSDGEnabled, ImprovedCLI.RunAnalysisEnabled<AnalysisObject>, ImprovedCLI.ClassSinksEnabled,
 			ImprovedCLI.DeclassificationEnabled, ImprovedCLI.OptimizationEnabled, ImprovedCLI.SDGOptionsEnabled, ImprovedCLI.RunEnabled<AnalysisObject>,
-			ImprovedCLI.ExportSDGEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ViewEnabled {
+			ImprovedCLI.ExportSDGEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ViewEnabled, ImprovedCLI.LoadSDGEnabled {
 
 		Map<AnnotationType, Set<IFCAnnotation>> annotationsPerType = new HashMap<>();
 		List<SDGClass> sinkClasses = new ArrayList<>();
@@ -3545,6 +3545,10 @@ public class IFCConsole {
 
 		@Override public SDG getSDG() {
 			return IFCConsole.this.getSDG();
+		}
+
+		@Override public boolean loadSDG(Path file) {
+			return IFCConsole.this.loadSDG(file.toString(), IFCConsole.this.getMHPType());
 		}
 	}
 

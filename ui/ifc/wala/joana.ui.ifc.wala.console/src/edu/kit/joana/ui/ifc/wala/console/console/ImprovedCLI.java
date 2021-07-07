@@ -36,6 +36,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
@@ -169,6 +170,27 @@ public class ImprovedCLI {
         return exit(state.buildSDG());
       }
       return 0;
+    }
+  }
+
+  public interface LoadSDGEnabled {
+
+    boolean loadSDG(Path file);
+  }
+
+  @Command(name = "loadSDG", description = "Load the SDG from a file")
+  static class LoadSDGCommand implements Callable<Integer> {
+
+    @ParentCommand CliCommands parent;
+
+    @State
+    LoadSDGEnabled state;
+
+    @Parameters(description = "SDG file", paramLabel = "FILE")
+    Path file;
+
+    @Override public Integer call() {
+      return exit(state.loadSDG(file));
     }
   }
 

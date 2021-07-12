@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
@@ -92,7 +93,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				LoopSegment loop = new LoopSegment(
 						curr.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().equals(finalCurr))
 								.findFirst().get(), this);
-				loop.dynAnaFeasible = false; // temporary for testing
+				loop.dynAnaFeasible = Config.loopOnlyDyn; // temporary for testing
 				loop.rank = numChildren++;
 				linear = startNewSegment(unclaimed, loop, linear, segments);
 			} else if (curr.isCondHeader()) {

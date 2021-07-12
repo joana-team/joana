@@ -3,13 +3,14 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.types.TypeReference;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import nildumu.typing.Types;
 
 import java.util.Collections;
 
 public enum Type {
 
-	INTEGER(16), ARRAY(3), CUSTOM(-1);
+	INTEGER(Config.bitwidth), ARRAY(3), CUSTOM(-1);
 
 	private final int bitWidth;
 	public static final Types nTypes = new Types();

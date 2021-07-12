@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
+import com.ibm.wala.shrikeBT.IShiftInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.util.collections.Pair;
@@ -59,11 +60,11 @@ public class ConversionVisitor extends SSAInstruction.Visitor {
 	}
 
 	@Override public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-		IBinaryOpInstruction.Operator op = (IBinaryOpInstruction.Operator) instruction.getOperator();
+		IBinaryOpInstruction.IOperator iOp = instruction.getOperator();
 
 		Parser.LexerTerminal terminal = null;
 		try {
-			terminal = Converter.LexerTerminal.of(op);
+			terminal = (iOp instanceof IBinaryOpInstruction.Operator) ? Converter.LexerTerminal.of((IBinaryOpInstruction.Operator) iOp): Converter.LexerTerminal.of((IShiftInstruction.Operator) iOp);
 		} catch (ConversionException e) {
 			e.printStackTrace();
 		}

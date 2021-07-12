@@ -1,0 +1,8 @@
+use_sec basic;
+bit_width 3;
+
+h input int h = 0buuu;
+int l = 1 & h;
+int k = 3 & h;
+l output int x1 = k;
+l output int x2 = l;

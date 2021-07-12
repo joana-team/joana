@@ -19,6 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * Class to encapsulate the combined (nildumu + sat-based) analysis for the channel capacity
+ */
 public class CombinedAnalysis {
 
 	Environment env;
@@ -27,16 +30,34 @@ public class CombinedAnalysis {
 		this.env = environment;
 	}
 
+	/**
+	 * Returns the channel capacity of the value leaked in {@code leak}
+	 * @param leak instruction that leaks the value in question
+	 * @param m Method containing the leaking instruction
+	 * @return channel capacity
+	 */
 	public double channelCap(SSAInvokeInstruction leak, Method m) {
 		BasicBlock leakBlock = BasicBlock.getBBlockForInstruction(leak, env.iProgram.getEntryMethod().getCFG());
-		double cc = combined(env.segments, leak.getUse(0), leakBlock, m);
+
+		AnalysisUnit coll = new AnalysisUnit(m);
+
+		double cc = combined(env.segments, leak.getUse(0), leakBlock, m, coll);
 		DotGrapher.exportGraph(AnalysisUnit.asGraph());
 		return cc;
 	}
 
-	private double combined(Segment<? extends ProgramPart> top, int leaked, BasicBlock leakBlock, Method m) {
+	/**
+	 * Performs the combined analysis
+	 *
+	 * @param top Parent of all segments to be analysed
+	 * @param leaked value number of the leaked value
+	 * @param leakBlock basic block where the value is leaked
+	 * @param m Method containing the leak
+	 * @param coll
+	 * @return
+	 */
+	private double combined(Segment<? extends ProgramPart> top, int leaked, BasicBlock leakBlock, Method m, AnalysisUnit coll) {
 		double channelCap = Integer.MAX_VALUE;
-		AnalysisUnit coll = new AnalysisUnit(m);
 
 		if (!top.dynAnaFeasible) {
 			double statCC = stat((IStaticAnalysisSegment) top);
@@ -56,8 +77,9 @@ public class CombinedAnalysis {
 			if (child.hasStatAnaChild()) {
 				double segmentCC = dyn(coll, leaked, leakBlock);
 				channelCap = Math.min(segmentCC, channelCap);
-				channelCap = Math.min(combined(child, leaked, leakBlock, child.programPart.getMethod()), channelCap);
+				channelCap = Math.min(combined(child, leaked, leakBlock, child.programPart.getMethod(), new AnalysisUnit(m)), channelCap);
 				coll = new AnalysisUnit(m);
+
 			} else {
 				coll.addSegment(child);
 			}
@@ -65,16 +87,60 @@ public class CombinedAnalysis {
 		return channelCap;
 	}
 
+	/*
+		special case: conditional segment, since its children are not analysed sequentially, but in parallel
+	 */
+	private double combined(ConditionalSegment top, int leaked, BasicBlock leakBlock, Method m, AnalysisUnit coll) {
+		double channelCap = Integer.MAX_VALUE;
+
+		double ifCC = Double.MAX_VALUE;
+		double elseCC = Double.MAX_VALUE;
+
+		// if-branch
+		ContainerSegment ifBranch = top.getIfBranch();
+		if (ifBranch.dynAnaFeasible) {
+			AnalysisUnit ifUnit = new AnalysisUnit(m);
+			ifUnit.addSegment(ifBranch);
+			ifUnit.additionalCond = top.branchCondition;
+			ifCC = dyn(ifUnit, leaked, leakBlock);
+		} else {
+			ifCC = combined(ifBranch, leaked, leakBlock, m, new AnalysisUnit(m));
+		}
+
+		// else-branch
+		ContainerSegment elseBranch = top.getIfBranch();
+		if (ifBranch.dynAnaFeasible) {
+			AnalysisUnit elseUnit = new AnalysisUnit(m);
+			elseUnit.addSegment(ifBranch);
+			elseUnit.additionalCond = top.branchCondition;
+			elseCC = dyn(elseUnit, leaked, leakBlock);
+		} else {
+			elseCC = combined(elseBranch, leaked, leakBlock, m, new AnalysisUnit(m));
+		}
+
+		return ifCC + elseCC;
+	}
+
 	private double dyn(AnalysisUnit as, int leaked, BasicBlock leakBlock) {
 		as.finish(true);
+
+		// only dummy blocks? this unit has no influence on channel capacity overall!
+		if (as.blocks.stream().allMatch(BasicBlock::isDummy)) {
+			return Integer.MAX_VALUE;
+		}
 
 		List<Integer> valsForMC = (as.blocks.contains(leakBlock)) ?
 				Collections.singletonList(leaked) :
 				as.collectiveOutputValues;
 
-		Pair<Formula, List<Variable>> cc = ccFormula(valsForMC, leakBlock.getCFG().getMethod());
+		Pair<Formula, List<Variable>> cc = ccFormula(valsForMC, leakBlock.getCFG().getMethod(), as);
+
+		if (as.additionalCond != null) {
+			cc = Pair.make(LogicUtil.ff.and(as.additionalCond, cc.fst), cc.snd);
+		}
+
 		ApproxMC mc = new ApproxMC(env.args.outputDirectory);
-		int models = Integer.MAX_VALUE;
+		long models = Integer.MAX_VALUE;
 		try {
 			models = mc.estimateModelCount(cc.fst, cc.snd);
 		} catch (IOException | InterruptedException e) {
@@ -90,8 +156,8 @@ public class CombinedAnalysis {
 		return segment.channelCap(env);
 	}
 
-	private Pair<Formula, List<Variable>> ccFormula(List<Integer> leaked, Method m) {
-		Formula f = LogicUtil.ff.constant(true);
+	private Pair<Formula, List<Variable>> ccFormula(List<Integer> leaked, Method m, AnalysisUnit as) {
+		Formula f = as.additionalCond;
 		List<Variable> priority = new ArrayList<>();
 
 		for (Integer i : leaked) {
@@ -101,7 +167,6 @@ public class CombinedAnalysis {
 			f = IntStream.range(0, deps.length).mapToObj(j -> LogicUtil.ff.equivalence(deps[j], newVars[j]))
 					.reduce(f, LogicUtil.ff::and);
 		}
-
 		return Pair.make(f, priority);
 	}
 }

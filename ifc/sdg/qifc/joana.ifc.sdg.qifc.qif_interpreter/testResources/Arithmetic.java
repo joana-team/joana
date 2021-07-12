@@ -1,5 +1,8 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
+// channel capacity 0
+// output value always 2
+
 public class Arithmetic {
 
 	public static void main(String[] args) {

@@ -1,9 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.stat.nildumu;
 
-import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
-import com.ibm.wala.shrikeBT.IComparisonInstruction;
-import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
-import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
+import com.ibm.wala.shrikeBT.*;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.collections.Pair;
@@ -395,6 +392,18 @@ public class Converter {
 	}
 
 	public static class LexerTerminal {
+
+		public static Parser.LexerTerminal of (IShiftInstruction.Operator op) throws ConversionException {
+			switch (op) {
+			case SHL:
+				return Parser.LexerTerminal.LEFT_SHIFT;
+			case SHR:
+			case USHR:
+				return Parser.LexerTerminal.RIGHT_SHIFT;
+			default:
+				throw new ConversionException(op);
+			}
+		}
 
 		public static Parser.LexerTerminal of(IBinaryOpInstruction.Operator op) throws ConversionException {
 			switch (op) {

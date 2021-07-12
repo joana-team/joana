@@ -243,6 +243,10 @@ public class LogicUtil {
 		return sat.sat();
 	}
 
+	public static Formula isEqual(Formula[] a, Formula[] b) {
+		return IntStream.range(0, a.length).mapToObj(i -> ff.equivalence(a[i], b[i])).reduce(ff.constant(true), ff::and);
+	}
+
 	/**
 	 * Writes a given formula's internal data structure as a dimacs file.  Must only be called with a formula which is in CNF.
 	 *
@@ -344,6 +348,18 @@ public class LogicUtil {
 	public static Formula[][] applySubstitution(Formula[][] f, Substitution s) {
 		Formula[][] res = new Formula[f.length][f[0].length];
 		IntStream.range(0, res.length).forEach(i -> res[i] = applySubstitution(f[i], s));
+		return res;
+	}
+
+	public static Formula[] shl(Formula[] op1, Formula[] op2) {
+		Formula[] res = new Formula[op1.length];
+		for (int i = 0; i < op1.length; i++) {
+			res[i] = ff.constant(false);
+			for (int j = 0; j < Type.INTEGER.bitwidth(); j++) {
+				Formula shiftVal = (i + j) > Type.INTEGER.bitwidth() - 1 ? ff.constant(false) :  op1[(i + j)];
+				res[i] = ternaryOp(isEqual(asFormulaArray(twosComplement(j, Type.INTEGER.bitwidth())), op2), shiftVal, res[i]);
+			}
+		}
 		return res;
 	}
 }

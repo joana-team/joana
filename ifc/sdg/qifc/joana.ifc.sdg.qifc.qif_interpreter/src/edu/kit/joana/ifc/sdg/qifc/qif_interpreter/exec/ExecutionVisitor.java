@@ -1,8 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 
-import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
-import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
-import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
+import com.ibm.wala.shrikeBT.*;
 import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.LeakageComputation;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
@@ -112,41 +110,55 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		Integer op1 = (Integer) operands[0].getVal();
 		Integer op2 = (Integer) operands[1].getVal();
 
-		IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
+		Object def = null;
+		
+		if (instruction.getOperator() instanceof IShiftInstruction.Operator) {
+			switch ((IShiftInstruction.Operator) instruction.getOperator()) {
+				case SHL:
+					def = op1 << op2;
+					break;
+				case SHR:
+					def = op1 >> op2;
+					break;
+			}
+		} else {
 
-		assert (op1 != null);
-		assert (op2 != null);
+			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
 
-		Object def;
-		switch (operator) {
-		case ADD:
-			def = IntegerArithmetic.add(op1, op2);
-			break;
-		case SUB:
-			def = IntegerArithmetic.sub(op1, op2);
-			break;
-		case MUL:
-			def = IntegerArithmetic.mult(op1, op2);
-			break;
-		case DIV:
-			def = IntegerArithmetic.div(op1, op2);
-			break;
-		case REM:
-			def = IntegerArithmetic.mod(op1, op2);
-			break;
-		case AND:
-			def = op1 & op2;
-			break;
-		case OR:
-			def = op1 | op2;
-			break;
-		case XOR:
-			def = op1 ^ op2;
-			break;
-		default:
-			throw new IllegalStateException("Unexpected value: " + operator);
+			assert (op1 != null);
+			assert (op2 != null);
+
+			switch (operator) {
+			case ADD:
+				def = IntegerArithmetic.add(op1, op2);
+				break;
+			case SUB:
+				def = IntegerArithmetic.sub(op1, op2);
+				break;
+			case MUL:
+				def = IntegerArithmetic.mult(op1, op2);
+				break;
+			case DIV:
+				def = IntegerArithmetic.div(op1, op2);
+				break;
+			case REM:
+				def = IntegerArithmetic.mod(op1, op2);
+				break;
+			case AND:
+				def = op1 & op2;
+				break;
+			case OR:
+				def = op1 | op2;
+				break;
+			case XOR:
+				def = op1 ^ op2;
+				break;
+			default:
+				throw new IllegalStateException("Unexpected value: " + operator);
+			}
 		}
-		setDefValue(instruction, Type.getResultType(operator, operands[0].getType(), operands[1].getType()), def);
+		assert(def != null);
+		setDefValue(instruction, Type.INTEGER, def);
 	}
 
 	@Override public void visitUnaryOp(SSAUnaryOpInstruction instruction) {

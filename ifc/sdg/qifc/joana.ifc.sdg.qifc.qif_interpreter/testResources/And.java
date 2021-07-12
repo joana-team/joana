@@ -1,5 +1,6 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
+// channel capacity: maximum --> every possible value can appear as output
 public class And {
 
 	public  static void main(String[] args) {

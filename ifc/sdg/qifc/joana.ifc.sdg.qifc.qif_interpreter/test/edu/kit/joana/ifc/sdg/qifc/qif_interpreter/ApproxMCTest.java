@@ -22,7 +22,7 @@ class ApproxMCTest {
 
 	@Test void invokeTest() throws IOException, InterruptedException {
 		ApproxMC approxMC = new ApproxMC();
-		int res = approxMC.invokeApproxMC("testResources/mc/1.cnf", null);
+		long res = approxMC.invokeApproxMC("testResources/mc/1.cnf", null);
 		assertEquals(3, res);
 		res = approxMC.invokeApproxMC("testResources/mc/2.cnf", null);
 		assertEquals(5, res);
@@ -37,7 +37,7 @@ class ApproxMCTest {
 		Formula f = LogicUtil.ff.and(LogicUtil.ff.equivalence(y1, x), LogicUtil.ff.equivalence(y2, x),
 				LogicUtil.ff.or(z, LogicUtil.ff.not(z)));
 		ApproxMC approxMC = new ApproxMC();
-		int res = approxMC.estimateModelCount(f, Arrays.asList(y1, y2));
+		long res = approxMC.estimateModelCount(f, Arrays.asList(y1, y2));
 		assertEquals(2, res);
 	}
 

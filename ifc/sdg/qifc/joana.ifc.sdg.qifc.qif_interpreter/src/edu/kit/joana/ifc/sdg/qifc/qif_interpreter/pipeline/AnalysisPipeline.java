@@ -27,9 +27,9 @@ public class AnalysisPipeline {
 		while (stages.getLast() != until) {
 			stages.pollLast();
 		}
-		if (args.onlyRun) {
+		if (false) {
 			stages.remove(IStage.Stage.STATIC_PREPROCESSING);
-			stages.remove(IStage.Stage.SAT_ANALYSIS);
+			//stages.remove(IStage.Stage.SAT_ANALYSIS);
 		}
 		return stages;
 	}

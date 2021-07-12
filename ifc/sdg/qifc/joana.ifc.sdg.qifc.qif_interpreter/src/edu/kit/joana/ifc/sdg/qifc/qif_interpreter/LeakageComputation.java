@@ -70,10 +70,10 @@ public class LeakageComputation {
 
 	public void compute(String outputDirectory) throws UnexpectedTypeException, IOException, InterruptedException {
 		Formula count = createCountingFormula();
-		int modelCount;
+		long modelCount;
 
 		if (hVars.stream().noneMatch(count::containsVariable)) {
-			modelCount = (int) Math.pow(2, hVars.size());
+			modelCount = (long) Math.pow(2, hVars.size());
 		} else {
 			ApproxMC approxMC = new ApproxMC(outputDirectory);
 			modelCount = approxMC.estimateModelCount(count, hVars);

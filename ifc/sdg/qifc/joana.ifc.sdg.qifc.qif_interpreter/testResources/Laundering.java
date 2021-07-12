@@ -11,10 +11,18 @@ public class Laundering {
 
 	public int f(int h) {
 		int l = 0;
+
+
 		while (l != h) {
 			l++;
 		}
+
+
+		l = l & 1;
 		Out.print(l);
+
+
+
 		return l;
 	}
 }

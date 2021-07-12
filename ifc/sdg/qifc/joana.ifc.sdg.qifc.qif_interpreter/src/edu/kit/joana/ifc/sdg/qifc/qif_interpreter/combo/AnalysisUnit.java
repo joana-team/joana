@@ -8,9 +8,15 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGraph;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotNode;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import org.logicng.formulas.Formula;
 
 import java.util.*;
 
+/**
+ * Represents a section of a program (= collection of segments) that are analysed together i nte combined analysis
+ * The combined analysis calculates the channel capacity for the analysisunit either by using nildumu or using the sat-based analysis
+ */
 public class AnalysisUnit implements DotNode {
 
 	private static int ID_CNT = 0;
@@ -19,6 +25,7 @@ public class AnalysisUnit implements DotNode {
 	public int id;
 	public boolean usedMC;
 	public Method top;
+	public Formula additionalCond;
 	public List<Segment<? extends ProgramPart>> segments;
 	public Set<BasicBlock> blocks;
 	public List<Integer> collectiveOutputValues;
@@ -48,6 +55,7 @@ public class AnalysisUnit implements DotNode {
 		this.segments = segments;
 		this.id = ID_CNT++;
 		this.top = m;
+		this.additionalCond = LogicUtil.ff.constant(true);
 		allSegments.add(this);
 	}
 

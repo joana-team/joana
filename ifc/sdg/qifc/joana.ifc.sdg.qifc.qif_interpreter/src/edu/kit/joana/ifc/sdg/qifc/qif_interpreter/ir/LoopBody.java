@@ -35,6 +35,7 @@ public class LoopBody extends ProgramPart {
 	private final Set<BasicBlock> blocks;
 	private final List<BasicBlock> breaks;
 	private Formula jumpOut;
+	private Formula evaluatedIterations;
 
 	public LoopBody(Method owner, BasicBlock head) {
 		this.level = owner.getCFG().getLevel(head);
@@ -49,6 +50,7 @@ public class LoopBody extends ProgramPart {
 		this.breaks = findBreaks();
 		this.placeholderArrays = new HashMap<>();
 		this.placeholderArrayVars = new HashMap<>();
+		this.evaluatedIterations = LogicUtil.ff.constant(false);
 	}
 
 	public void computeLoopCondition() {
@@ -145,6 +147,7 @@ public class LoopBody extends ProgramPart {
 		res.setJumpOutAfterThisIteration(LogicUtil.applySubstitution(this.getJumpOut(), substituteOutputs));
 		res.setJumpOutOnlyLoopCondition(LogicUtil.applySubstitution(this.jumpOut, substituteOutputs));
 
+		this.evaluatedIterations = LogicUtil.ff.or(this.evaluatedIterations, res.getJumpOutAfterThisIteration());
 		return res;
 	}
 

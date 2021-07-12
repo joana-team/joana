@@ -55,9 +55,7 @@ public class LinearSegment extends Segment<ProgramPart.LinearProgramPart> {
 			}
 		}
 		this.outputs = list;
-
 		this.inputs.removeAll(this.outputs);
-
 	}
 
 	@Override public Set<BasicBlock> getBlocks() {

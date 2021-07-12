@@ -42,7 +42,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 		this.children = new ArrayList<>();
 		this.inputs = new ArrayList<>();
 		this.outputs = new ArrayList<>();
-		this.dynAnaFeasible = this.level < 3;
+		this.dynAnaFeasible = true;
 		this.collapsed = false;
 		this.rank = 0;
 	}
@@ -107,7 +107,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				MethodSegment method = new MethodSegment(curr.getCallee(), this, instruction,
 						curr.getCFG().getMethod());
 				method.rank = numChildren++;
-				method.dynAnaFeasible = false; // temporary for testing
+				method.dynAnaFeasible = true; // temporary for testing
 				linear = startNewSegment(unclaimed, method, linear, segments);
 			}
 		}

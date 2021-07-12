@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
+import com.ibm.wala.shrikeBT.IShiftInstruction;
 import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.MethodSegment;
@@ -366,47 +367,57 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		int def = instruction.getDef();
 
-		IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
+
 		Formula[] defForm = null;
-		switch (operator) {
-		case SUB:
-			if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 0) {
-				defForm = op1;
-			} else {
-				defForm = LogicUtil.sub(op1, op2);
+
+		if (instruction.getOperator() instanceof IShiftInstruction.Operator) {
+			switch ((IShiftInstruction.Operator) instruction.getOperator()) {
+			case SHL:
+				defForm = LogicUtil.shl(op1, op2);
 			}
-			break;
-		case ADD:
-			if (LogicUtil.isConstant(op1) && LogicUtil.numericValue(op1) == 0) {
-				defForm = op2;
-			} else if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 0) {
-				defForm = op1;
-			} else {
-				defForm = LogicUtil.add(op1, op2);
+		} else {
+			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
+			switch (operator) {
+			case SUB:
+				if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 0) {
+					defForm = op1;
+				} else {
+					defForm = LogicUtil.sub(op1, op2);
+				}
+				break;
+			case ADD:
+				if (LogicUtil.isConstant(op1) && LogicUtil.numericValue(op1) == 0) {
+					defForm = op2;
+				} else if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 0) {
+					defForm = op1;
+				} else {
+					defForm = LogicUtil.add(op1, op2);
+				}
+				break;
+			case MUL:
+				if (LogicUtil.isConstant(op1) && LogicUtil.numericValue(op1) == 1) {
+					defForm = op2;
+				} else if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 1) {
+					defForm = op1;
+				} else {
+					defForm = LogicUtil.mult(op1, op2);
+				}
+				break;
+			case DIV:
+			case REM:
+				break;
+			case AND:
+				defForm = LogicUtil.and(op1, op2);
+				break;
+			case OR:
+				defForm = LogicUtil.or(op1, op2);
+				break;
+			case XOR:
+				defForm = LogicUtil.xor(op1, op2);
+				break;
 			}
-			break;
-		case MUL:
-			if (LogicUtil.isConstant(op1) && LogicUtil.numericValue(op1) == 1) {
-				defForm = op2;
-			} else if (LogicUtil.isConstant(op2) && LogicUtil.numericValue(op2) == 1) {
-				defForm = op1;
-			} else {
-				defForm = LogicUtil.mult(op1, op2);
-			}
-			break;
-		case DIV:
-		case REM:
-			break;
-		case AND:
-			defForm = LogicUtil.and(op1, op2);
-			break;
-		case OR:
-			defForm = LogicUtil.or(op1, op2);
-			break;
-		case XOR:
-			defForm = LogicUtil.xor(op1, op2);
-			break;
 		}
+
 		assert defForm != null;
 		m.setDepsForvalue(def, defForm);
 	}

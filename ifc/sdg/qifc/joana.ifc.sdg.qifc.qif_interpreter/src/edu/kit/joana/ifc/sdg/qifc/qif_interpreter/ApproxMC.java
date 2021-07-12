@@ -33,7 +33,7 @@ public class ApproxMC {
 		this.dest = System.getProperty("user.dir");
 	}
 
-	public int estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException, InterruptedException {
+	public long estimateModelCount(Formula f, List<Variable> samplingSet) throws IOException, InterruptedException {
 		Formula cnf = f.cnf();
 
 		String filename = dest + "/" + "leaked" + count + ".cnf";
@@ -41,7 +41,7 @@ public class ApproxMC {
 		return invokeApproxMC(filename, dest + "/" + "approxMC_out_" + count++);
 	}
 
-	public int invokeApproxMC(String in, String out) throws IOException, InterruptedException {
+	public long invokeApproxMC(String in, String out) throws IOException, InterruptedException {
 		String cmd = approxMCPath + in;
 		Runtime run = Runtime.getRuntime();
 
@@ -54,12 +54,12 @@ public class ApproxMC {
 		String line = "";
 		StringBuilder sb = new StringBuilder();
 		Matcher m;
-		int res = -1;
+		long res = -1;
 		while ((line = buf.readLine()) != null) {
 			sb.append(line).append(System.lineSeparator());
 			m = resultLine.matcher(line);
 			if (m.matches()) {
-				res = Integer.parseInt(m.group(1));
+				res = Long.parseLong(m.group(1));
 			}
 		}
 		if (res == -1) {

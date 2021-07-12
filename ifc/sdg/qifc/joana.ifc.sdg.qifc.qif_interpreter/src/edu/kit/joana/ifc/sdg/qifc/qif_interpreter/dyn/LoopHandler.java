@@ -95,6 +95,7 @@ public class LoopHandler {
 					.filter(succ -> !succ.equals(afterLoop)).filter(succ -> !breakSuccessors.contains(succ))
 					.forEach(breakSuccessors::add);
 		}
+
 		extractOutDeps(base);
 		computeRuns(base, m, loopUnrollingMax);
 
@@ -102,7 +103,7 @@ public class LoopHandler {
 		Map<Integer, TempValue> tempValues = new HashMap<>();
 		base.lastRun().getPrimitive().keySet()
 				.forEach(i -> tempValues.put(i, new TempValue(i, m, base.lastRun().getPrimitive(i))));
-		for (int i = loopUnrollingMax - 2; i >= 0; i--) {
+		for (int i = loopUnrollingMax - 1; i >= 0; i--) {
 			LoopIteration run = base.getRun(i);
 			base.getIn().keySet().forEach(j -> tempValues.get(j).setReal(LogicUtil
 					.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), tempValues.get(j).real)));
@@ -125,6 +126,7 @@ public class LoopHandler {
 			}
 			m.getArray(i).setValueDependencies(res);
 		}
+
 		return base;
 	}
 

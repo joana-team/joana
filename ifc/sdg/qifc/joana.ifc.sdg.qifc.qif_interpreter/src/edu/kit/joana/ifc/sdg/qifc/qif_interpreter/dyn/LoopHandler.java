@@ -164,7 +164,7 @@ public class LoopHandler {
 	Method to populate the in-value Map, out-value Map and beforeLoop Map of the LoopBody l
 	 */
 	private static void extractDeps(Method m, LoopBody loop) {
-		loop.phiMapping().forEach(t -> {
+		loop.phiMapping().stream().filter(t -> m.getValue(t.getLeft()).influencesLeak()).forEach(t -> {
 			loop.addInDeps(t.getLeft(), m.getVarsForValue(t.getLeft()));
 			loop.addResultMapping(t.getLeft(), t.getRight());
 			loop.addBeforeLoopDeps(t.getLeft(), m.getDepsForValue(t.getRight()));

@@ -34,7 +34,7 @@ public class StaticPreprocessingStage implements IStage {
 		Parser.ProgramNode p = null;
 		try {
 			p = c.convertProgram(env.iProgram);
-			// System.out.println(p.toPrettyString());
+			System.out.println(p.toPrettyString());
 		} catch (ConversionException e) {
 			e.printStackTrace();
 		}

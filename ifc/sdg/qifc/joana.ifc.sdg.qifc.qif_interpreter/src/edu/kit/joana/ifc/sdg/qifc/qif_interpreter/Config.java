@@ -10,7 +10,7 @@ public class Config {
 
 	public static final boolean usePP = false;
 	public static final boolean loopOnlyDyn = true;
-	public static final int bitwidth = 16;
+	public static final int bitwidth = 1;
 
 	// default values
 	public static final int DEFAULT_LOOP_UNROLLING_MAX = 5;

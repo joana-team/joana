@@ -46,6 +46,7 @@ public class ApproxMC {
 		Runtime run = Runtime.getRuntime();
 
 		long startTime = System.currentTimeMillis();
+		// System.out.println(cmd);
 		Process pr = run.exec(cmd);
 		pr.waitFor();
 		long endTime = System.currentTimeMillis();

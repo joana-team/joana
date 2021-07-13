@@ -7,12 +7,14 @@ public class SumAndProduct {
 	}
 
 	void sumAndProduct(int h1, int h2) {
-		int sum = 0;
-		int product = 1;
+		int sum = h2;
+		int product = 0;
+		int i = 0;
 
-		for (int i = 0; i < h1; ++i) {
-			sum += h2;
-			product *= h2;
+		while (i != h1) {
+			sum += 1;
+			product += h2;
+			i++;
 		}
 
 		Out.print(sum);

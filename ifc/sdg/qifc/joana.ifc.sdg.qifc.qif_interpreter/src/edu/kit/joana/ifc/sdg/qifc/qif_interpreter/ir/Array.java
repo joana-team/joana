@@ -220,10 +220,10 @@ public class Array<T extends Value> extends Value {
 	}
 
 	public boolean isEffectivelyConstant(SSAArrayStoreInstruction i) {
-		return IntStream.range(0, this.length()).allMatch(j -> isEffectivelyConstant(i, j));
+		return false; //IntStream.range(0, this.length()).allMatch(j -> isEffectivelyConstant(i, j));
 	}
 
 	public boolean isEffectivelyConstant(SSAArrayStoreInstruction i, int idx) {
-		return Arrays.stream(this.constantBits.get(i)[idx]).allMatch(b -> b != BitLatticeValue.UNKNOWN);
+		return false; //Arrays.stream(this.constantBits.get(i)[idx]).allMatch(b -> b != BitLatticeValue.UNKNOWN);
 	}
 }

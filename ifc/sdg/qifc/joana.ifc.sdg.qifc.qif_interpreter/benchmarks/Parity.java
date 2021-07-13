@@ -10,12 +10,9 @@ public class Parity {
 		int parity = 0;
 		int bitSet;
 
-		int k = 1;
 		for (int j = 0; j < 8; ++j) {
-
-			bitSet = (h & k) != 0 ? 1 : 0;
+			bitSet = (h & (1 << j)) != 0 ? 1 : 0;
 			parity = (bitSet != parity) ? 1 : 0;
-			k *= 2;
 		}
 
 		Out.print(parity);

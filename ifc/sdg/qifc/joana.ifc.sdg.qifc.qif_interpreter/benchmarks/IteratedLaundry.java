@@ -9,7 +9,8 @@ public class IteratedLaundry {
 	void launder(int h) {
 		int out = 0;
 		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < h; ++j) {
+			out = 0;
+			while (out != h) {
 				++out;
 			}
 		}

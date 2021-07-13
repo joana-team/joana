@@ -7,14 +7,12 @@ public class Voting1 {
 	}
 
 	void voting(int h) {
-		int voterCount = 15;
+		int voterCount = 7;
 
 		int result = 0;
 
-		int votes = h & (-1 >>> (32 - voterCount));
-
 		for (int i = 0; i < voterCount; ++i) {
-			if (((votes >>> i) & 1) != 0) {
+			if (((h >>> i) & 1) != 0) {
 				++result;
 			}
 		}

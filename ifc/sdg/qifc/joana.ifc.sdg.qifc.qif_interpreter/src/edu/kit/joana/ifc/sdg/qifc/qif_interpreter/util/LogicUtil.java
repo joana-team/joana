@@ -322,6 +322,9 @@ public class LogicUtil {
 	}
 
 	public static Formula ternaryOp(Formula if_, Formula then_, Formula else_) {
+		if (then_.isConstantFormula() && else_.isConstantFormula() && then_.equals(else_)) {
+			return then_;
+		}
 		return ff.and(ff.implication(if_, then_), ff.implication(ff.not(if_), else_));
 	}
 

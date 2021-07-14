@@ -32,7 +32,7 @@ public class Program extends ProgramPart {
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
 	private final Map<String, Method> methods;
-	private final List<TempValue> temporaries;
+	public final Map<Integer, TempValue> temporaries;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana,
 			Environment env) {
@@ -45,7 +45,7 @@ public class Program extends ProgramPart {
 		this.methods = new HashMap<>();
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
 		this.env = env;
-		this.temporaries = new ArrayList<>();
+		this.temporaries = new HashMap<>();
 	}
 
 	/**
@@ -60,15 +60,15 @@ public class Program extends ProgramPart {
 	}
 
 	public void addTemporaryValue(TempValue t) {
-		this.temporaries.add(t);
+		this.temporaries.put(t.valNum, t);
 	}
 
 	public void addTemporaryValue(Collection<TempValue> collection) {
-		this.temporaries.addAll(collection);
+		collection.forEach(t -> temporaries.put(t.valNum, t));
 	}
 
 	public List<TempValue> getTempValues() {
-		return this.temporaries;
+		return new ArrayList<>(this.temporaries.values());
 	}
 
 	public String getLevelForParam(SDGMethod method, int param) {

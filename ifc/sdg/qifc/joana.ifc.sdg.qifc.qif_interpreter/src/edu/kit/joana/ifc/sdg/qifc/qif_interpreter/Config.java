@@ -8,12 +8,12 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
  */
 public class Config {
 
-	public static final boolean usePP = false;
+	public static final boolean usePP = true;
 	public static final boolean loopOnlyDyn = true;
-	public static final int bitwidth = 1;
+	public static final int bitwidth = 16;
 
 	// default values
-	public static final int DEFAULT_LOOP_UNROLLING_MAX = 5;
+	public static final int DEFAULT_LOOP_UNROLLING_MAX = 17;
 	public static final int DEFAULT_RECURSION_DEPTH_MAX = 5;
 	public static final int DEFAULT_METHOD_DEPTH_MAX = 2;
 

@@ -102,11 +102,13 @@ public class LoopHandler {
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
 		Map<Integer, TempValue> tempValues = new HashMap<>();
 		base.lastRun().getPrimitive().keySet()
-				.forEach(i -> tempValues.put(i, new TempValue(i, m, base.lastRun().getPrimitive(i))));
+				.forEach(i -> tempValues.put(i, new TempValue(i, m, base, m.getValue(i).getConstantBitMask())));
 		for (int i = loopUnrollingMax - 1; i >= 0; i--) {
 			LoopIteration run = base.getRun(i);
-			base.getIn().keySet().forEach(j -> tempValues.get(j).setReal(LogicUtil
-					.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), tempValues.get(j).real)));
+			for (Integer j : base.getIn().keySet()) {
+				tempValues.get(j).setReal(LogicUtil
+						.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), tempValues.get(j).real));
+			}
 		}
 
 		Formula valueRestriction = IntStream.range(0, base.getSimulatedIterationNum())

@@ -4,6 +4,7 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.util.collections.Pair;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ApproxMC;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.TempValue;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
@@ -167,6 +168,8 @@ public class CombinedAnalysis {
 			f = IntStream.range(0, deps.length).mapToObj(j -> LogicUtil.ff.equivalence(deps[j], newVars[j]))
 					.reduce(f, LogicUtil.ff::and);
 		}
+		f = m.getProg().getTempValues().stream().filter(tv -> tv.owningSeg.dynAnaFeasible).map(TempValue::asOpenFormula)
+				.reduce(f, LogicUtil.ff::and);
 		return Pair.make(f, priority);
 	}
 }

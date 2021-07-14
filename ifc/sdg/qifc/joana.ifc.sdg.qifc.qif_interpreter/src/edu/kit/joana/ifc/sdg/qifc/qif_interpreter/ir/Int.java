@@ -53,9 +53,7 @@ public class Int extends Value {
 	}
 
 	@Override public Formula getDepForBit(int i) {
-		return (this.constantBits[i] == BitLatticeValue.UNKNOWN) ?
-				super.getDepForBit(i) :
-				this.constantBits[i].asPropFormula();
+		return super.getDepForBit(i);
 	}
 
 	@Override public Formula[] getDeps() {

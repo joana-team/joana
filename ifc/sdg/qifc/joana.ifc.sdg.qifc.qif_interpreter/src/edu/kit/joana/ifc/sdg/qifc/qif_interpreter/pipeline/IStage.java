@@ -16,7 +16,7 @@ public interface IStage {
 	enum Stage {
 
 		INIT(true, "INIT"), BUILD(true, "BUILD"), STATIC_PREPROCESSING(false, "STATIC_PREPROCESSING"), SAT_ANALYSIS(
-				true, "SAT_ANALYSIS"), EXECUTION(true, "EXECUTION"), PANIC(true, "PANIC");
+				true, "SAT_ANALYSIS"), EXECUTION(true, "EXECUTION"), PANIC(true, "PANIC"), HYBRID(true, "HYBRID_ANALYSIS");
 
 		boolean failsFatally;
 		String name;

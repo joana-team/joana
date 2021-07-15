@@ -56,11 +56,25 @@ public class Int extends Value {
 		return super.getDepForBit(i);
 	}
 
+	@Override public Formula[] getMaskedDeps() {
+		Formula[] deps = new Formula[this.getWidth()];
+		IntStream.range(0, this.getWidth()).forEach(i -> {
+			if (this.getConstantBitMask()[i] == BitLatticeValue.UNKNOWN) {
+				deps[i] = this.getDepForBit(i);
+			} else {
+				deps[i] = this.getConstantBitMask()[i].asPropFormula();
+			}
+		});
+		return deps;
+	}
+
+	/*
 	@Override public Formula[] getDeps() {
 		Formula[] deps = new Formula[this.getWidth()];
 		IntStream.range(0, this.getWidth()).forEach(i -> deps[i] = this.getDepForBit(i));
 		return deps;
 	}
+	 */
 
 	@Override public boolean[] getConstantBits() {
 		boolean[] constantBits = new boolean[this.getWidth()];

@@ -13,7 +13,7 @@ public class Config {
 	public static final int bitwidth = 16;
 
 	// default values
-	public static final int DEFAULT_LOOP_UNROLLING_MAX = 17;
+	public static final int DEFAULT_LOOP_UNROLLING_MAX = 5;
 	public static final int DEFAULT_RECURSION_DEPTH_MAX = 5;
 	public static final int DEFAULT_METHOD_DEPTH_MAX = 2;
 

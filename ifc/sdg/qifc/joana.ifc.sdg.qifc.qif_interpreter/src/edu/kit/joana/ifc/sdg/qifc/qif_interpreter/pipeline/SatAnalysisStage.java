@@ -4,6 +4,7 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.CombinedAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATAnalysis;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.SATVisitor;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 
 import java.util.Arrays;
 
@@ -14,7 +15,8 @@ public class SatAnalysisStage implements IStage {
 	@Override public Environment execute(Environment env) {
 		SATAnalysis sa = new SATAnalysis(env);
 		sa.computeSATDeps();
-
+		Logger.finishPipelineStage(Stage.SAT_ANALYSIS, true);
+		Logger.startPipelineStage(Stage.HYBRID);
 		CombinedAnalysis ca = new CombinedAnalysis(env);
 		SSAInvokeInstruction leak = (SSAInvokeInstruction) Arrays
 				.stream(env.iProgram.getEntryMethod().getIr().getInstructions())
@@ -22,7 +24,7 @@ public class SatAnalysisStage implements IStage {
 						.getSignature().equals(SATVisitor.OUTPUT_FUNCTION)).findFirst().get();
 		double cc = ca.channelCap(leak, env.iProgram.getEntryMethod());
 		System.out.println("Channel capacity: " + cc);
-
+		Logger.finishPipelineStage(Stage.HYBRID, true);
 		success = true;
 		return env;
 	}

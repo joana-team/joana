@@ -209,6 +209,10 @@ public abstract class Value {
 		return new ArrayList<>();
 	}
 
+	public Formula[] getMaskedDeps() {
+		return this.deps;
+	}
+
 	public enum BitLatticeValue {
 		ZERO(LogicUtil.ff.constant(false)), ONE(LogicUtil.ff.constant(true)), UNKNOWN(null);
 

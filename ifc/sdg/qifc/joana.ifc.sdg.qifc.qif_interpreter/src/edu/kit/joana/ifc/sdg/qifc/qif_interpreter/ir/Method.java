@@ -356,7 +356,8 @@ public class Method extends ProgramPart {
 	}
 
 	public Formula[] getDepsForValue(int valNum) {
-		return programValues.get(valNum).getDeps();
+		if (this.isComputedInLoop(valNum)) return programValues.get(valNum).getDeps();
+		else return programValues.get(valNum).getMaskedDeps();
 	}
 
 	public Type type(int valNum) {

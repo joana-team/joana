@@ -89,12 +89,12 @@ public class NildumuProgram {
 
 		List<Parser.StatementNode> stmts = c
 				.convertToSecretInput(Util.removeDuplicates(loopMethod.callArgs), m, inputLiterals);
-		String[] outputVars = Arrays.stream(loopMethod.recCallArgs).mapToObj(i -> Converter.varName())
+		String[] outputVars = Arrays.stream(loopMethod.returnVars).mapToObj(i -> Converter.varName())
 				.toArray(String[]::new);
 		IntStream.range(0, outputVars.length).forEach(i -> stmts
 				.add(Converter.varDecl(outputVars[i], m.getValue(loopMethod.recCallArgs[i]).getType().nildumuType())));
 
-		Parser.MethodNode singleRun = loopMethod.singleRun();
+		Parser.MethodNode singleRun = loopMethod.method;
 		stmts.add(new Parser.MultipleVariableAssignmentNode(Converter.DUMMY_LOCATION, outputVars,
 				new Parser.UnpackOperatorNode(new Parser.MethodInvocationNode(Converter.DUMMY_LOCATION, singleRun.name,
 						Converter.arguments(Arrays.stream(loopMethod.callArgs).mapToObj(i -> Converter.varName(i, m))

@@ -374,6 +374,13 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 			switch ((IShiftInstruction.Operator) instruction.getOperator()) {
 			case SHL:
 				defForm = LogicUtil.shl(op1, op2);
+				break;
+			case USHR:
+				defForm = LogicUtil.ushr(op1, op2);
+				break;
+			case SHR:
+				defForm = LogicUtil.sshr(op1, op2);
+				break;
 			}
 		} else {
 			IBinaryOpInstruction.Operator operator = (IBinaryOpInstruction.Operator) instruction.getOperator();
@@ -439,5 +446,4 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 		containsOutOfScopeInstruction = true;
 		outOfScopeInstruction = instruction;
 	}
-
 }

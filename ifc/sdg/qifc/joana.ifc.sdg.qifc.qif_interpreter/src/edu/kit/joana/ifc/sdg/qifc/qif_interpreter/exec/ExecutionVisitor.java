@@ -1,6 +1,9 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.exec;
 
-import com.ibm.wala.shrikeBT.*;
+import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
+import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
+import com.ibm.wala.shrikeBT.IShiftInstruction;
+import com.ibm.wala.shrikeBT.IUnaryOpInstruction;
 import com.ibm.wala.ssa.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.LeakageComputation;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
@@ -114,12 +117,15 @@ public class ExecutionVisitor implements SSAInstruction.IVisitor {
 		
 		if (instruction.getOperator() instanceof IShiftInstruction.Operator) {
 			switch ((IShiftInstruction.Operator) instruction.getOperator()) {
-				case SHL:
-					def = op1 << op2;
-					break;
-				case SHR:
-					def = op1 >> op2;
-					break;
+			case SHL:
+				def = op1 << op2;
+				break;
+			case SHR:
+				def = op1 >>> op2;
+				break;
+			case USHR:
+				def = op1 >> op2;
+				break;
 			}
 		} else {
 

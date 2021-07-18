@@ -9,7 +9,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
 public class Config {
 
 	public static final boolean usePP = true;
-	public static final boolean loopOnlyDyn = true;
+	public static final boolean loopOnlyDyn = false;
 	public static final int bitwidth = 16;
 
 	// default values

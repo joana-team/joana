@@ -59,7 +59,7 @@ public class App {
 		private static final String OUTPUT_DIR_NAME = "out_";
 		@Parameter(names = "--o", description = "Specify a path where the output directory should be created (Default is the current working directory)") public String outputDirectory = ".";
 		@Parameter(names = "--usage", description = "Print help") boolean help = false;
-		@Parameter(names = "--static", description = "Perform only static analysis on the input program") public boolean onlyStatic = false;
+		@Parameter(names = "--static", description = "Perform only static analysis on the input program to measure its channel capacity") public boolean onlyStatic = false;
 		@Parameter(names = "--run", description = "Run the program without performing any analysis") public boolean onlyRun = false;
 		@Parameter(names = "--dump-graphs", description = "Dump graphs created by JOANA") public boolean dumpGraphs = false;
 		@Parameter(description = "A program for the interpreter to execute, plus optionally the result of a previous static analysis", validateWith = Args.class, converter = Args.class) public List<String> inputFiles = new ArrayList<>();
@@ -67,6 +67,8 @@ public class App {
 		@Parameter(names = "--recursionLimit", description = "Set the limit for recursion until analysis switches to static") public int recMax = Config.DEFAULT_RECURSION_DEPTH_MAX;
 		@Parameter(names = "--methodDepthLimit", description = "Set the limit for nested method calls until analysis switches to static") public int methodMax = Config.DEFAULT_METHOD_DEPTH_MAX;
 		@Parameter(names = "--args", description = "Arguments for running the input program", variableArity = true) public List<String> args = new ArrayList<>();
+		@Parameter(names = "--pp", description = "Use static pre-processing") public boolean pp = false;
+		@Parameter(names = "--hybrid", description = "Use hybrid analysis for calculating the channel capacity") public boolean hybrid = false;
 
 		@Parameter(names = "--workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) public String workingDir = System
 				.getProperty("user.dir");

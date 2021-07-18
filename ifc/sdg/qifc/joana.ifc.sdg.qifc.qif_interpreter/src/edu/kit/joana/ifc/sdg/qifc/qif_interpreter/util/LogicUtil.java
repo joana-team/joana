@@ -359,8 +359,35 @@ public class LogicUtil {
 		for (int i = 0; i < op1.length; i++) {
 			res[i] = ff.constant(false);
 			for (int j = 0; j < Type.INTEGER.bitwidth(); j++) {
-				Formula shiftVal = (i + j) > Type.INTEGER.bitwidth() - 1 ? ff.constant(false) :  op1[(i + j)];
-				res[i] = ternaryOp(isEqual(asFormulaArray(twosComplement(j, Type.INTEGER.bitwidth())), op2), shiftVal, res[i]);
+				Formula shiftVal = (i + j) > Type.INTEGER.bitwidth() - 1 ? ff.constant(false) : op1[(i + j)];
+				res[i] = ternaryOp(isEqual(asFormulaArray(twosComplement(j, Type.INTEGER.bitwidth())), op2), shiftVal,
+						res[i]);
+			}
+		}
+		return res;
+	}
+
+	public static Formula[] ushr(Formula[] op1, Formula[] op2) {
+		Formula[] res = new Formula[op1.length];
+		for (int i = 0; i < op1.length; i++) {
+			res[i] = ff.constant(false);
+			for (int j = 0; j < Type.INTEGER.bitwidth(); j++) {
+				Formula shiftVal = (i - j) < 0 ? ff.constant(false) : op1[(i - j)];
+				res[i] = ternaryOp(isEqual(asFormulaArray(twosComplement(j, Type.INTEGER.bitwidth())), op2), shiftVal,
+						res[i]);
+			}
+		}
+		return res;
+	}
+
+	public static Formula[] sshr(Formula[] op1, Formula[] op2) {
+		Formula[] res = new Formula[op1.length];
+		for (int i = 0; i < op1.length; i++) {
+			res[i] = ff.constant(false);
+			for (int j = 0; j < Type.INTEGER.bitwidth(); j++) {
+				Formula shiftVal = (i - j) < 0 ? op1[0] : op1[(i - j)];
+				res[i] = ternaryOp(isEqual(asFormulaArray(twosComplement(j, Type.INTEGER.bitwidth())), op2), shiftVal,
+						res[i]);
 			}
 		}
 		return res;

@@ -1,5 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.State;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
@@ -91,7 +93,14 @@ public class SATAnalysis {
 
 			if (b.hasRelevantCF()) {
 				sv.visitBlock(m, b, -1);
-				LoopHandler.analyze(m, b, this, l, env);
+				if (l.getSegment().dynAnaFeasible) {
+					LoopHandler.analyze(m, b, this, l, env);
+				}
+				for (SSAInstruction i : b.instructions()) {
+					if (i instanceof SSAPhiInstruction) {
+						m.setDepsForvalue(i.getDef(), m.getValue(i.getDef()).getMaskedDeps());
+					}
+				}
 			}
 
 			// add all after-loop successors, but skip the dummy blocks

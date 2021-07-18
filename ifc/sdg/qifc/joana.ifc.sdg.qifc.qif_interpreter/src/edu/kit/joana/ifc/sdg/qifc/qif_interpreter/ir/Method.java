@@ -379,7 +379,12 @@ public class Method extends ProgramPart {
 	}
 
 	public boolean isComputedInLoop(int valNum) {
-		return this.loops.stream().anyMatch(l -> l.producesValNum(valNum));
+		for (LoopBody l : this.loops) {
+			if (l.producesValNum(valNum)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void addVarsToValue(int valNum, Variable[] vars) {

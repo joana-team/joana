@@ -3,6 +3,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
+import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
@@ -264,7 +265,9 @@ public class LoopBody extends ProgramPart {
 	}
 
 	public boolean producesValNum(int valNum) {
-		return this.in.containsKey(valNum);
+		return this.blocks.stream().filter(b -> !b.isDummy()).anyMatch(
+				b -> b.getWalaBasicBlock().getAllInstructions().stream().filter(SSAInstruction::hasDef)
+						.anyMatch(i -> i.getDef() == valNum));
 	}
 
 	public Map<Integer, Integer> phiToInsideLoop() {

@@ -64,7 +64,6 @@ public class StaticPreprocessingStage implements IStage {
 				}
 			}
 		}
-
 		// ------------------- Program Slice ----------------------
 		Slicer slicer = new Slicer();
 		List<Integer> leakedVals = env.iProgram.getEntryMethod().getLeakedValues();

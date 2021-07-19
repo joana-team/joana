@@ -10,7 +10,7 @@ public class Config {
 
 	public static boolean usePP = true;
 	public static boolean useHybrid = false;
-	public static int bitwidth = 4;
+	public static int bitwidth = 16;
 
 	// default values
 	public static final int DEFAULT_LOOP_UNROLLING_MAX = 5;

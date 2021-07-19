@@ -48,6 +48,7 @@ public class LeakageComputation {
 		res = addPhiDepsRec(res, -1);
 		res = m.getProg().getTempValues().stream().map(TempValue::asValueRestrictedFormula)
 				.reduce(res, LogicUtil.ff::and);
+		res = m.getProg().dlRestrictions.stream().reduce(res, LogicUtil.ff::and);
 		return res;
 	}
 

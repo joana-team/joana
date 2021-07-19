@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.MethodSegment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.combo.Segment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.LoopBody;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
@@ -24,6 +25,14 @@ public class TempValue {
 		this.tempVars = m.getDepsForValue(valNum);
 		this.real = LogicUtil.createVars(valNum, m.getValue(valNum).getWidth(), "bot");
 		this.owningSeg = loop.getSegment();
+		this.afterLoopConstantBits = alcb;
+	}
+
+	public TempValue(int valNum, Method m, MethodSegment seg, Value.BitLatticeValue[] alcb, Formula[] withoutRec) {
+		this.valNum = valNum;
+		this.tempVars = m.getDepsForValue(valNum);
+		this.real = withoutRec;
+		this.owningSeg = seg;
 		this.afterLoopConstantBits = alcb;
 	}
 

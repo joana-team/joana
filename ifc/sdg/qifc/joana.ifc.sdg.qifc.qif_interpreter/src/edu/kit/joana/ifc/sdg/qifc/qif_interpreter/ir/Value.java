@@ -280,6 +280,12 @@ public abstract class Value {
 						toStringLiteral(defaultUnknown(v.getWidth()));
 			}
 		}
+
+		public static Formula restriction(BitLatticeValue[] constantBits, Formula[] val) {
+			return IntStream.range(0, constantBits.length).filter(i -> constantBits[i] != UNKNOWN)
+					.mapToObj(i -> LogicUtil.ff.equivalence(constantBits[i].asPropFormula, val[i]))
+					.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
+		}
 	}
 
 	public boolean isParameter() {

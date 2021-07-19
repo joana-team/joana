@@ -153,10 +153,10 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 		switch (operator) {
 		case EQ:
-			defForm = LogicUtil.equalsZero(diff);
+			defForm = LogicUtil.isEqual(op1, op2);
 			break;
 		case NE:
-			defForm = LogicUtil.ff.not(LogicUtil.equalsZero(diff));
+			defForm = LogicUtil.ff.not(LogicUtil.isEqual(op1, op2));
 			break;
 		case LT:
 			defForm = LogicUtil.ff.equivalence(LogicUtil.ff.constant(true), diff[0]);
@@ -204,7 +204,8 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 			String calleeId = instruction.getDeclaredTarget().getSignature();
 			IInvocationHandler handler;
-			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed()) {
+			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed() && m.getProg().getMethod(calleeId).getSegments()
+					.get(instruction).dynAnaFeasible) {
 				if (m.getProg().isRecursive(instruction.getDeclaredTarget(), m.getCg())) {
 					handler = new RecursiveFunctionInvocationHandler();
 				} else {

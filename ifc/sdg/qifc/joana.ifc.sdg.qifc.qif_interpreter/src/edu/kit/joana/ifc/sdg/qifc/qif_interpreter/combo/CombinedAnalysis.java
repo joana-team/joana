@@ -170,6 +170,7 @@ public class CombinedAnalysis {
 		}
 		f = m.getProg().getTempValues().stream().filter(tv -> tv.owningSeg.dynAnaFeasible).map(TempValue::asOpenFormula)
 				.reduce(f, LogicUtil.ff::and);
+		f = m.getProg().ccRestrictions.stream().reduce(f, LogicUtil.ff::and);
 		return Pair.make(f, priority);
 	}
 }

@@ -6,16 +6,16 @@ public class RecursiveLaundry {
 		new RecursiveLaundry().recursiveLaundry(0);
 	}
 
-	int launder(int h) {
-		if (h <= 0) {
-			return 0;
+	int launder(int h, int l) {
+		if (h == l) {
+			return l;
 		}
 
-		return launder(h - 1) + 1;
+		return launder(h, l + 1);
 	}
 
 	void recursiveLaundry(int h) {
-		int out = launder(h);
+		int out = launder(h, 0);
 		Out.print(out);
 	}
 

@@ -18,6 +18,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Util;
 import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ui.annotations.Level;
 import edu.kit.joana.wala.core.SDGBuilder;
+import org.logicng.formulas.Formula;
 
 import java.util.*;
 
@@ -32,7 +33,10 @@ public class Program extends ProgramPart {
 	private final IFCAnalysis ana;
 	private final Method entryMethod;
 	private final Map<String, Method> methods;
+
 	public final Map<Integer, TempValue> temporaries;
+	public final List<Formula> ccRestrictions;
+	public final List<Formula> dlRestrictions;
 
 	public Program(SDGProgram sdgProg, SDG sdg, String className, SDGBuilder builder, CallGraph cg, IFCAnalysis ana,
 			Environment env) {
@@ -46,6 +50,8 @@ public class Program extends ProgramPart {
 		this.entryMethod = Method.getEntryMethodFromProgram(this);
 		this.env = env;
 		this.temporaries = new HashMap<>();
+		this.ccRestrictions = new ArrayList<>();
+		this.dlRestrictions = new ArrayList<>();
 	}
 
 	/**

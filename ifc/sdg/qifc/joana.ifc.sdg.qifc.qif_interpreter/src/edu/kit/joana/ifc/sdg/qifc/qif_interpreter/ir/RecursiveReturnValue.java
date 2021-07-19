@@ -69,18 +69,19 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 		T singleCall = substituteAll(this.getReturnValue(), primitiveArgsForNextCall, arrayArgsForNextCall);
 
 		for (int i = 0; i < this.m.getProg().getEnv().config.recDepthMax(); i++) {
-
 			computeNextArgs();
 			T nextCall = substituteAll(this.getReturnValue(), primitiveArgsForNextCall, arrayArgsForNextCall);
-
-			Substitution s = new Substitution();
 			singleCall = substituteReturnValue(singleCall, nextCall, returnValVars);
 		}
 
 		computeNextArgs();
 		T lastRun = substituteAll(this.getReturnValueNoRecursion(), primitiveArgsForNextCall, arrayArgsForNextCall);
-		return substituteReturnValue(singleCall, lastRun, returnValVars);
+		this.m.getProg().dlRestrictions.add(this.lastRunRestriction(lastRun, returnValVars));
+
+		return singleCall;
 	}
+
+	public abstract Formula lastRunRestriction(T lastRun, T vars);
 
 	/*
 	We have the arguments used for the current call, saved in the maps
@@ -144,7 +145,8 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 		} else {
 			T last = possibleReturns.last().getRight();
 			Iterator<Triple<Integer, Formula, T>> iter = possibleReturns.descendingIterator();
-			while(iter.hasNext()) {
+			iter.next(); // skip last map entry --> already in use
+			while (iter.hasNext()) {
 				Triple<Integer, Formula, T> next = iter.next();
 				last = this.getOperator().apply(next.getMiddle(), next.getRight(), last);
 			}

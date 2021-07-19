@@ -24,12 +24,16 @@ public class ArrayReturnValue extends RecursiveReturnValue<Formula[][]> {
 	private DecisionTree<Formula[][]> returnValDecisionNoRecursion;
 	private Formula[][] returnDeps;
 
-
 	public ArrayReturnValue(Method m) {
 		this.m = m;
 		this.paramValueNums = m.getIr().getParameterValueNumbers();
 		this.returnValDecision = new DecisionTree<>(m, true);
 		this.returnValDecisionNoRecursion = new DecisionTree<>(m, true);
+	}
+
+	@Override public Formula lastRunRestriction(Formula[][] lastRun, Formula[][] vars) {
+		return IntStream.range(0, lastRun.length).mapToObj(i -> LogicUtil.isEqual(lastRun[i], vars[i]))
+				.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
 	}
 
 	@Override protected Formula[][] substituteAll(Formula[][] returnValueNoRecursion,

@@ -63,16 +63,17 @@ public class ReturnValue extends RecursiveReturnValue<Formula[]> {
 		}
 		return Arrays.stream(testValue).anyMatch(f -> LogicUtil.containsAny(f, getRecVars()));
 	}
-	/*
 
-	@Override public Formula[] getReturnValue() {
-		return this.returnDeps;
+	public boolean containsRecursionVar(Formula f) {
+		return LogicUtil.containsAny(f, getRecVars());
 	}
-
-	 */
 
 	@Override public Formula[] getReturnValueNoRecursion() {
 		return this.returnDeps;
+	}
+
+	@Override public Formula lastRunRestriction(Formula[] lastRun, Formula[] vars) {
+		return LogicUtil.isEqual(lastRun, vars);
 	}
 
 	@Override protected Formula[] substituteAll(Formula[] f, Map<Integer, Formula[]> primitiveArgsForNextCall,

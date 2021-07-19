@@ -8,9 +8,9 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
  */
 public class Config {
 
-	public static final boolean usePP = true;
-	public static final boolean loopOnlyDyn = true;
-	public static final int bitwidth = 16;
+	public static boolean usePP = true;
+	public static boolean useHybrid = false;
+	public static int bitwidth = 4;
 
 	// default values
 	public static final int DEFAULT_LOOP_UNROLLING_MAX = 5;

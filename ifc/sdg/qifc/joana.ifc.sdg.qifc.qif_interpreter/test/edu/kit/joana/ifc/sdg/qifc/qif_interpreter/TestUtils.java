@@ -62,7 +62,6 @@ public class TestUtils {
 		args.onlyRun = false;
 		args.inputFiles = Collections.singletonList(testFilePath + testcase + ".java");
 		args.outputDirectory = "test_" + testcase + "_" + System.currentTimeMillis();
-		args.doStatic = true;
 		args.args = new ArrayList<>();
 		args.dumpGraphs = true;
 		args.workingDir = System.getProperty("user.dir");

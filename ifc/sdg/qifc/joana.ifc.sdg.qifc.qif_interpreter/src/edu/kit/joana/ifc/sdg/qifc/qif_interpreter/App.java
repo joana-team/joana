@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.NullPrintStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +18,6 @@ import java.util.logging.Level;
 
 public class App {
 
-	// magic strings are evil
 	private static final String JAVA_FILE_EXT = ".java";
 	private static final String CLASS_FILE_EXT = ".class";
 	private static final String DNNF_FILE_EXT = ".dnnf";
@@ -26,7 +26,7 @@ public class App {
 	public static void main(String[] args) throws InvalidClassFileException, MissingValueException,
 			edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.ParameterException, OutOfScopeException, IOException,
 			UnexpectedTypeException, InterruptedException {
-		// System.setErr(new NullPrintStream());
+		System.setErr(new NullPrintStream());
 		Args jArgs = new Args();
 		JCommander jc = JCommander.newBuilder().addObject(jArgs).build();
 		jc.setProgramName("QIF Interpreter");
@@ -67,16 +67,12 @@ public class App {
 		@Parameter(names = "--recursionLimit", description = "Set the limit for recursion until analysis switches to static") public int recMax = Config.DEFAULT_RECURSION_DEPTH_MAX;
 		@Parameter(names = "--methodDepthLimit", description = "Set the limit for nested method calls until analysis switches to static") public int methodMax = Config.DEFAULT_METHOD_DEPTH_MAX;
 		@Parameter(names = "--args", description = "Arguments for running the input program", variableArity = true) public List<String> args = new ArrayList<>();
+		@Parameter(names = "--width", description = "Set bitwidth for integer variables") public int width = 16;
 		@Parameter(names = "--pp", description = "Use static pre-processing") public boolean pp = false;
 		@Parameter(names = "--hybrid", description = "Use hybrid analysis for calculating the channel capacity") public boolean hybrid = false;
 
 		@Parameter(names = "--workingDir", description = "Directory from which the interpreter was started. Should be set automatically by run.sh", required = true) public String workingDir = System
 				.getProperty("user.dir");
-
-		/**
-		 * sometimes we don't need to do a static analysis, bc it is already provided via input
-		 */
-		public boolean doStatic = true;
 
 		/**
 		 * Validates the given arguments. Expected are:
@@ -115,13 +111,6 @@ public class App {
 			// we always need an input program
 			if (inputFiles.size() == 0) {
 				throw new ParameterException("Error: No input file found");
-			}
-
-			// if 2 input files are provided one of them is from a previous static analysis, hence we don't need to do it again
-			if (inputFiles.size() == 2) {
-				doStatic = false;
-			} else if (inputFiles.size() != 1) {
-				throw new ParameterException("Error: unexpected number of arguments");
 			}
 		}
 

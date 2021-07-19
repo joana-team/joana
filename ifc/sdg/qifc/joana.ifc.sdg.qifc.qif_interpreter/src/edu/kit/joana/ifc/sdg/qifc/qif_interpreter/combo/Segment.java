@@ -93,7 +93,7 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				LoopSegment loop = new LoopSegment(
 						curr.getCFG().getMethod().getLoops().stream().filter(l -> l.getHead().equals(finalCurr))
 								.findFirst().get(), this);
-				loop.dynAnaFeasible = Config.loopOnlyDyn; // temporary for testing
+				loop.dynAnaFeasible = !Config.useHybrid; // temporary for testing
 				loop.rank = numChildren++;
 				linear = startNewSegment(unclaimed, loop, linear, segments);
 			} else if (curr.isCondHeader()) {

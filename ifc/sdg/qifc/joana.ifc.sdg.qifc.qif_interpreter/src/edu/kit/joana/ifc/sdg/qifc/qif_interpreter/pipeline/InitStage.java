@@ -33,6 +33,11 @@ public class InitStage implements IStage {
 	@Override public Environment execute(Environment env) {
 		assert (env.args != null);
 
+		// configs used for benchmarking
+		Config.usePP = env.args.pp;
+		Config.useHybrid = env.args.hybrid;
+		Config.bitwidth = env.args.width;
+
 		String classFilePath;
 		String programPath = env.args.inputFiles.get(0);
 		String jarPath = null;

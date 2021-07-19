@@ -30,7 +30,10 @@ public class AnalysisPipeline {
 		}
 		if (!Config.usePP) {
 			stages.remove(IStage.Stage.STATIC_PREPROCESSING);
-			//stages.remove(IStage.Stage.SAT_ANALYSIS);
+		}
+
+		if (args.onlyStatic) {
+			stages.remove(IStage.Stage.EXECUTION);
 		}
 		return stages;
 	}

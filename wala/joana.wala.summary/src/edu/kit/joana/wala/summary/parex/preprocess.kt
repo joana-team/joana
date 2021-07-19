@@ -161,12 +161,12 @@ fun Node.removeNode(nodeToRemove: Node): Node? {
     reducedNeighbors?.remove(nodeToRemove)
 
     fun <T : Node> rem(vararg nodes: MutableCollection<in T>) {
-        nodes.forEach { it.remove(nodeToRemove) }
+        nodes.forEach { it.remove<Any?>(nodeToRemove) }
     }
 
     fun <T : Node, T2 : Node> rem(nodes: MutableMap<in T, in T2>) {
-        nodes.remove(nodeToRemove)
-        nodes.entries.filter { (_, v) -> v == nodeToRemove }.forEach { nodes.remove(it) }
+        nodes.remove(nodeToRemove as T)
+        nodes.entries.filter { (_, v) -> v == nodeToRemove }.forEach { nodes.remove(it as T) }
     }
 
     when (this) {

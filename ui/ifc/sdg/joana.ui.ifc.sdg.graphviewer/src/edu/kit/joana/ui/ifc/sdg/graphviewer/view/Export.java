@@ -7,16 +7,15 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
-import java.awt.Graphics2D;
+import org.jgraph.JGraph;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
-import org.jgraph.JGraph;
 
 public final class Export {
 	private Export() { }

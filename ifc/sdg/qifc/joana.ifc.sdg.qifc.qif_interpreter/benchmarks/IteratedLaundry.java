@@ -12,6 +12,7 @@ public class IteratedLaundry {
 			out = 0;
 			while (out != h) {
 				++out;
+				out = out | 1;
 			}
 		}
 		Out.print(out);

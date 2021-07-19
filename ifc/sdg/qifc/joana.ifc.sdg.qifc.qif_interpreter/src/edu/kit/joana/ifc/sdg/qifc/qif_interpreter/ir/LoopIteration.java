@@ -19,10 +19,22 @@ public class LoopIteration {
 	private final Map<Integer, Formula[]> primitive;
 	private final Map<Integer, Formula[][]> arr;
 
+	private final Map<Integer, Formula[]> primitiveIn;
+	private final Map<Integer, Formula[][]> arrIn;
+
+	private final Map<Integer, Formula[]> primitiveOut;
+	private final Map<Integer, Formula[][]> arrOut;
+
 	public LoopIteration(int iteration) {
 		this.iteration = iteration;
 		this.primitive = new HashMap<>();
 		this.arr = new HashMap<>();
+
+		this.primitiveIn = new HashMap<>();
+		this.primitiveOut = new HashMap<>();
+
+		this.arrIn = new HashMap<>();
+		this.arrOut = new HashMap<>();
 	}
 
 	public void addPrimitiveVal(int valNum, Formula[] deps) {

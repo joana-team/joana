@@ -9,8 +9,9 @@ public class MaskedLaundry {
 	void laundry(int h) {
 		int out = 0;
 
-		h = h & 3;
-
+		if ((h & 1) == 0) {
+			h = h | 1;
+		}
 		for (int i = 0; i < h; ++i) {
 			++out;
 		}

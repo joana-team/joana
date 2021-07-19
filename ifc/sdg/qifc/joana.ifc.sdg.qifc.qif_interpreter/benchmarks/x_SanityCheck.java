@@ -1,17 +1,17 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class SanityCheck {
+public class x_SanityCheck {
 
 	public static void main(String[] args) {
-		new SanityCheck().sanityCheck(0);
+		new x_SanityCheck().sanityCheck(0);
 	}
 
 	public void sanityCheck(int h) {
 		int l;
-		if (h < 4) {
-			l = 4 + h;
+		if (0 <= h && h < 16) {
+			l = h + 3;
 		} else {
-			l = 4;
+			l = 3;
 		}
 		Out.print(l);
 	}

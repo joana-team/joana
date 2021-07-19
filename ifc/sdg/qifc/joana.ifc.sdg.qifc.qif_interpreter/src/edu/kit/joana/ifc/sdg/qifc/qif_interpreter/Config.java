@@ -8,13 +8,13 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
  */
 public class Config {
 
-	public static boolean usePP = true;
+	public static boolean usePP = false;
 	public static boolean useHybrid = false;
-	public static int bitwidth = 16;
+	public static int bitwidth = 32;
 
 	// default values
-	public static final int DEFAULT_LOOP_UNROLLING_MAX = 5;
-	public static final int DEFAULT_RECURSION_DEPTH_MAX = 5;
+	public static final int DEFAULT_LOOP_UNROLLING_MAX = 32;
+	public static final int DEFAULT_RECURSION_DEPTH_MAX = 32;
 	public static final int DEFAULT_METHOD_DEPTH_MAX = 2;
 
 	private int loopUnrollingMax;

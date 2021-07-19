@@ -9,9 +9,9 @@ public class Voting2 {
 
 	void voting(int h1, int h2, int h3) {
 		int result = 0;
-		int canditateCount = 31;
+		int canditateCount = 3;
 
-		for (int i = 0; i < canditateCount; ++i) {
+		for (int i = 0; i != canditateCount; ++i) {
 			int count = 0;
 
 			if (h1 == i) {
@@ -28,7 +28,6 @@ public class Voting2 {
 
 			result |= (count << (2 * i));
 		}
-
 		Out.print(result);
 	}
 }

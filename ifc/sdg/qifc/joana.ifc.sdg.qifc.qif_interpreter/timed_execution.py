@@ -35,7 +35,7 @@ def all_af_benchmarks():
 def benchmark(f, directory):
     print(f)
     times = []
-    for i in range(0, 10):
+    for i in range(0, 1):
         time, leak = run_qifci(directory + f)
         times.append(time)
         print("Time: " + str(time) + " Leak: " + str(leak))
@@ -43,4 +43,4 @@ def benchmark(f, directory):
     print("Average: " + str(avg(times)))
 
 
-benchmark("Battlebits.java", "benchmarks/")
+benchmark("SumAndProduct.java", "benchmarks/")

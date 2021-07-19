@@ -24,7 +24,7 @@ public class StaticPreprocessingStage implements IStage {
 	private boolean success = false;
 
 	@Override public Environment execute(Environment env) {
-
+		System.out.println("PP");
 		assert (env.completedStage(Stage.BUILD));
 		Map<Pair<Method, Integer>, Boolean> neededDefs = new HashMap<>();
 		Map<Pair<Method, Integer>, Boolean> neededCF = new HashMap<>();

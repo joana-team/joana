@@ -1,0 +1,30 @@
+
+ Performance counter stats for './run.sh benchmarks/SumAndProduct.java --static':
+
+         36.552,60 msec task-clock                #    1,412 CPUs utilized          
+             8.623      context-switches          #  235,907 /sec                   
+             1.708      cpu-migrations            #   46,727 /sec                   
+           254.122      page-faults               #    6,952 K/sec                  
+   119.673.134.459      cycles                    #    3,274 GHz                      (38,47%)
+   223.972.530.373      instructions              #    1,87  insn per cycle           (46,20%)
+    40.108.830.624      branches                  #    1,097 G/sec                    (46,14%)
+       440.016.978      branch-misses             #    1,10% of all branches          (46,07%)
+    60.046.998.918      L1-dcache-loads           #    1,643 G/sec                    (46,05%)
+     1.923.615.552      L1-dcache-load-misses     #    3,20% of all L1-dcache accesses  (46,14%)
+       256.454.201      LLC-loads                 #    7,016 M/sec                    (30,76%)
+        49.080.703      LLC-load-misses           #   19,14% of all LL-cache accesses  (30,84%)
+   <not supported>      L1-icache-loads                                             
+       910.019.281      L1-icache-load-misses                                         (30,84%)
+    59.777.925.315      dTLB-loads                #    1,635 G/sec                    (30,80%)
+        31.112.776      dTLB-load-misses          #    0,05% of all dTLB cache accesses  (30,80%)
+        51.476.854      iTLB-loads                #    1,408 M/sec                    (30,81%)
+         6.179.546      iTLB-load-misses          #   12,00% of all iTLB cache accesses  (30,75%)
+   <not supported>      L1-dcache-prefetches                                        
+   <not supported>      L1-dcache-prefetch-misses                                   
+
+      25,894645970 seconds time elapsed
+
+      35,375315000 seconds user
+       0,929221000 seconds sys
+
+

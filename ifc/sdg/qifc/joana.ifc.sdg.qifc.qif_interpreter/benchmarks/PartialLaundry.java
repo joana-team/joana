@@ -10,7 +10,7 @@ public class PartialLaundry {
 		int out = 0;
 		int i = 0;
 		while (i != h) {
-			if (i == 1) {
+			if (i < 1) {
 				++out;
 			}
 			i++;

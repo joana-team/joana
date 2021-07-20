@@ -10,7 +10,7 @@ public class Parity {
 		int parity = 0;
 		int bitSet;
 
-		for (int j = 0; j != 16; ++j) {
+		for (int j = 0; j != 32; ++j) {
 			bitSet = (h & (1 << j)) != 0 ? 1 : 0;
 			parity = (bitSet != parity) ? 1 : 0;
 		}

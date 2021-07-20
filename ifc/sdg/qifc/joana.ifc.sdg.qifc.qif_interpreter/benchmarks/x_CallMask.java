@@ -31,12 +31,12 @@ public class CallMask {
 		return mask1(mask0(h));
 	}
 
-	public int mask23(int h) {
-		return mask2(mask3(h));
+	public int mask012(int h) {
+		return mask2(mask01(h));
 	}
 
 	public int mask0123(int h) {
-		return mask01(mask23(h));
+		return mask3(mask012(h));
 	}
 
 }

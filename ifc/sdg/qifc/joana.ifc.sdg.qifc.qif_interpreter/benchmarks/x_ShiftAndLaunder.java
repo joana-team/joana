@@ -3,21 +3,21 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 public class SumAndProduct {
 
 	public static void main(String[] args) {
-		new SumAndProduct().sumAndProduct(0, 0);
+		new SumAndProduct().sumAndProduct(0);
 	}
 
-	void sumAndProduct(int h1, int h2) {
-		int sum = h2;
-		int product = 0;
+	void sumAndProduct(int h1) {
+		int launder = 0;
+		int shift = 1;
 		int i = 0;
 
 		while (i != h1) {
-			sum += 1;
-			product += h2;
+			launder += 1;
+			shift = shift << 1;
 			i++;
 		}
 
-		Out.print(sum);
+		Out.print(launder);
 	}
 
 }

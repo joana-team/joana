@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class CallMask {
+public class x_CallMask {
 
 	public static void main(String[] args) {
-		new CallMask().mask(0);
+		new x_CallMask().mask(0);
 	}
 
 	public void mask(int h) {

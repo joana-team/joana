@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class Voting1 {
+public class x_Voting1 {
 
 	public static void main(String[] args) {
-		new Voting1().voting(0);
+		new x_Voting1().voting(0);
 	}
 
 	void voting(int h) {

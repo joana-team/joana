@@ -1,8 +1,41 @@
 use_sec basic;
-bit_width 3;
+bit_width 8;
+h input int v__2 = 0buuuuuuuu;
+int v__4 = 8;
+int v__6 = 0;
+int v__7 = 1;
+int v__8 = 2;
+int v__9 = 3;
+int v__10 = 4;
+int v__11 = 5;
+int v__12 = 6;
+int v__13 = 7;
+int[8] v__5;
+int v__14;
+int v__15;
+v__5 = {0, 0, 0, 0, 0, 0, 0, 0};
+v__5[0] = 0;
+v__5[1] = 1;
+v__5[2] = 2;
+v__5[3] = 3;
+v__5[4] = 4;
+v__5[5] = 5;
+v__5[6] = 6;
+v__5[7] = 7;
+if ((0 > v__2))
+  {
 
-h input int h = 0buuu;
-int l = 1 & h;
-int k = 3 & h;
-l output int x1 = k;
-l output int x2 = l;
+  }
+else
+  {
+    if ((v__2 >= 8))
+      {
+
+      }
+    else
+      {
+        v__14 = (v__5[v__2]);
+      }
+  }
+v__15 = phi(v__6, v__14);
+l output int o_v__15 = v__15;

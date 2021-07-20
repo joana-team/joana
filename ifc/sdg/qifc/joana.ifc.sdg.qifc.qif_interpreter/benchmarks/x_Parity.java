@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class Parity {
+public class x_Parity {
 
 	public static void main(String[] args) {
-		new Parity().parity(0);
+		new x_Parity().parity(0);
 	}
 
 	void parity(int h) {

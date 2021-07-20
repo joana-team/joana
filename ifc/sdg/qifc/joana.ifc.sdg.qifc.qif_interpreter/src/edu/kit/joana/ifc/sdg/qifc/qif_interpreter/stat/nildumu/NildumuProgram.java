@@ -26,7 +26,7 @@ public class NildumuProgram {
 	public static final int TRANSFORM_PLUS = 0b01;
 	public static final int TRANSFORM_LOOPS = 0b010;
 	public static final int RECORD_ALTERNATIVES = 0b0100;
-	public static final int OPTS = TRANSFORM_LOOPS | (MinCut.usedAlgo.supportsAlternatives ? RECORD_ALTERNATIVES : 0);
+	public static final int OPTS = TRANSFORM_LOOPS;
 	public static final Context.Mode MODE = Context.Mode.EXTENDED;
 
 	public Context context;
@@ -49,7 +49,8 @@ public class NildumuProgram {
 		Logger.log(Level.INFO, "Nildumu invocation for: \n" + p.toPrettyString());
 		Context methodContext = Processor
 				.process(p.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
-		Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = methodContext.computeLeakage(MinCut.usedAlgo);
+		Map<Lattices.Sec<?>, LeakageAlgorithm.ComputationResult> leakageResult = methodContext
+				.computeLeakage(LeakageAlgorithm.Algo.OPENWBO_GLUCOSE);
 		return leakageResult.get(Lattices.BasicSecLattice.LOW).maxFlow;
 	}
 
@@ -57,7 +58,8 @@ public class NildumuProgram {
 		Parser.ProgramNode methodProgram = fromLoop(l, l.getOwner(), inputs);
 		Context methodContext = Processor
 				.process(methodProgram.toPrettyString(), MODE, MethodInvocationHandler.parse(handler), OPTS);
-		Map<Lattices.Sec<?>, MinCut.ComputationResult> leakageResult = methodContext.computeLeakage(MinCut.usedAlgo);
+		Map<Lattices.Sec<?>, LeakageAlgorithm.ComputationResult> leakageResult = methodContext
+				.computeLeakage(LeakageAlgorithm.Algo.OPENWBO_GLUCOSE);
 		return leakageResult.get(Lattices.BasicSecLattice.LOW).maxFlow;
 	}
 

@@ -1,12 +1,12 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class SumAndProduct {
+public class x_ShiftAndLaunder {
 
 	public static void main(String[] args) {
-		new SumAndProduct().sumAndProduct(0);
+		new x_ShiftAndLaunder().sal(0);
 	}
 
-	void sumAndProduct(int h1) {
+	void sal(int h1) {
 		int launder = 0;
 		int shift = 1;
 		int i = 0;

@@ -108,7 +108,8 @@ public abstract class Segment<T extends ProgramPart> implements DotNode {
 				MethodSegment method = new MethodSegment(curr.getCallee(), this, instruction,
 						curr.getCFG().getMethod());
 				method.rank = numChildren++;
-				method.dynAnaFeasible = true; // temporary for testing
+				method.dynAnaFeasible = !Config.useHybrid;
+				; // temporary for testing
 				linear = startNewSegment(unclaimed, method, linear, segments);
 			}
 		}

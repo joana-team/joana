@@ -1,0 +1,1 @@
+Channel capacity: 32.0

@@ -1,45 +1,34 @@
-Exception in thread "main" java.lang.NoSuchMethodError: 'void org.jgrapht.graph.EdgeReversedGraph.<init>(org.jgrapht.DirectedGraph)'
-	at edu.kit.joana.wala.core.PDG.addControlDependence(PDG.java:595)
-	at edu.kit.joana.wala.core.PDG.run(PDG.java:246)
-	at edu.kit.joana.wala.core.PDG.build(PDG.java:103)
-	at edu.kit.joana.wala.core.SDGBuilder.createAndAddPDG(SDGBuilder.java:2186)
-	at edu.kit.joana.wala.core.SDGBuilder.run(SDGBuilder.java:690)
-	at edu.kit.joana.wala.core.SDGBuilder.run(SDGBuilder.java:640)
-	at edu.kit.joana.wala.core.SDGBuilder.buildAndKeepBuilder(SDGBuilder.java:538)
-	at edu.kit.joana.api.sdg.SDGBuildPreparation.computeAndKeepBuilder(SDGBuildPreparation.java:416)
-	at edu.kit.joana.ifc.sdg.qifc.qif_interpreter.IRBuilder.buildAndKeepBuilder(IRBuilder.java:80)
-	at edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.BuildStage.execute(BuildStage.java:28)
-	at edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline.execute(AnalysisPipeline.java:43)
-	at edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline.runPipelineUntil(AnalysisPipeline.java:22)
-	at edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.AnalysisPipeline.runPipeline(AnalysisPipeline.java:14)
-	at edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App.main(App.java:53)
+ANTLR Tool version 4.8 used for code generation does not match the current runtime version 4.9.2
+ANTLR Runtime version 4.8 used for parser compilation does not match the current runtime version 4.9.2
+ANTLR Tool version 4.8 used for code generation does not match the current runtime version 4.9.2
+ANTLR Runtime version 4.8 used for parser compilation does not match the current runtime version 4.9.2
 
- Performance counter stats for './run.sh benchmarks/TableLookup.java --static':
+ Performance counter stats for './run.sh benchmarks/x_MaskedLaundry.java --static':
 
-         10.910,64 msec task-clock                #    2,682 CPUs utilized          
-             4.845      context-switches          #  444,062 /sec                   
-               493      cpu-migrations            #   45,185 /sec                   
-           130.165      page-faults               #   11,930 K/sec                  
-    35.599.395.471      cycles                    #    3,263 GHz                      (38,40%)
-    32.754.129.386      instructions              #    0,92  insn per cycle           (46,21%)
-     5.982.708.100      branches                  #  548,337 M/sec                    (46,32%)
-       230.679.016      branch-misses             #    3,86% of all branches          (46,44%)
-     9.868.839.791      L1-dcache-loads           #  904,515 M/sec                    (46,47%)
-       697.138.242      L1-dcache-load-misses     #    7,06% of all L1-dcache accesses  (46,29%)
-       168.135.700      LLC-loads                 #   15,410 M/sec                    (30,87%)
-        31.240.666      LLC-load-misses           #   18,58% of all LL-cache accesses  (30,75%)
+         24.767,20 msec task-clock                #    2,321 CPUs utilized          
+             6.915      context-switches          #  279,200 /sec                   
+               913      cpu-migrations            #   36,863 /sec                   
+           250.672      page-faults               #   10,121 K/sec                  
+    69.008.818.130      cycles                    #    2,786 GHz                      (38,69%)
+    79.338.010.635      instructions              #    1,15  insn per cycle           (46,34%)
+    14.488.116.268      branches                  #  584,972 M/sec                    (46,21%)
+       418.332.657      branch-misses             #    2,89% of all branches          (46,18%)
+    24.267.050.821      L1-dcache-loads           #  979,806 M/sec                    (46,03%)
+     1.491.743.937      L1-dcache-load-misses     #    6,15% of all L1-dcache accesses  (45,97%)
+       330.191.201      LLC-loads                 #   13,332 M/sec                    (30,63%)
+        47.979.070      LLC-load-misses           #   14,53% of all LL-cache accesses  (30,71%)
    <not supported>      L1-icache-loads                                             
-       566.907.796      L1-icache-load-misses                                         (30,57%)
-     9.972.587.941      dTLB-loads                #  914,024 M/sec                    (30,57%)
-         9.074.924      dTLB-load-misses          #    0,09% of all dTLB cache accesses  (30,39%)
-        33.043.472      iTLB-loads                #    3,029 M/sec                    (30,52%)
-         4.328.530      iTLB-load-misses          #   13,10% of all iTLB cache accesses  (30,80%)
+       752.964.280      L1-icache-load-misses                                         (30,75%)
+    24.042.138.302      dTLB-loads                #  970,725 M/sec                    (30,82%)
+        16.200.435      dTLB-load-misses          #    0,07% of all dTLB cache accesses  (30,82%)
+        46.347.215      iTLB-loads                #    1,871 M/sec                    (30,88%)
+         5.966.749      iTLB-load-misses          #   12,87% of all iTLB cache accesses  (30,99%)
    <not supported>      L1-dcache-prefetches                                        
    <not supported>      L1-dcache-prefetch-misses                                   
 
-       4,067679597 seconds time elapsed
+      10,668638885 seconds time elapsed
 
-      10,359937000 seconds user
-       0,465932000 seconds sys
+      23,989055000 seconds user
+       0,672020000 seconds sys
 
 

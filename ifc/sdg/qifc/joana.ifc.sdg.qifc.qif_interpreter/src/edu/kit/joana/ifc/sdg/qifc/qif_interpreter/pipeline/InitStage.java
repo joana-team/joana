@@ -40,6 +40,7 @@ public class InitStage implements IStage {
 
 		String classFilePath;
 		String programPath = env.args.inputFiles.get(0);
+		Logger.log(programPath);
 		String jarPath = null;
 		try {
 			jarPath = App.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();

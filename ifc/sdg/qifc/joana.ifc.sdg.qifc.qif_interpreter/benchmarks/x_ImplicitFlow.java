@@ -30,7 +30,7 @@ public class x_ImplicitFlow {
 			l = 6;
 		}
 		if (h == 7) {
-			l = 7;
+			l = 0;
 		}
 		Out.print(l);
 	}

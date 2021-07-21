@@ -133,6 +133,8 @@ public class CombinedAnalysis {
 		List<Integer> valsForMC = (as.blocks.contains(leakBlock)) ?
 				Collections.singletonList(leaked) :
 				as.collectiveOutputValues;
+		if (valsForMC.size() == 0)
+			return Integer.MAX_VALUE;
 
 		Pair<Formula, List<Variable>> cc = ccFormula(valsForMC, leakBlock.getCFG().getMethod(), as);
 

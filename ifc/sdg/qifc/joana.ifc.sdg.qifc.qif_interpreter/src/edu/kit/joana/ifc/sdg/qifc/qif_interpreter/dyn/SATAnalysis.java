@@ -93,7 +93,7 @@ public class SATAnalysis {
 
 			if (b.hasRelevantCF()) {
 				sv.visitBlock(m, b, -1);
-				if (l.getSegment().dynAnaFeasible) {
+				if (l.getSegment().dynAnaFeasible || !this.env.args.onlyStatic) {
 					LoopHandler.analyze(m, b, this, l, env);
 				}
 				for (SSAInstruction i : b.instructions()) {

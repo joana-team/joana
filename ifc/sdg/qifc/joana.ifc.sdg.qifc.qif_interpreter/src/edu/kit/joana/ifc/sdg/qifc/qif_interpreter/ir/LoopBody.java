@@ -127,16 +127,19 @@ public class LoopBody extends ProgramPart {
 	 */
 	public LoopIteration simulateRun(LoopIteration previous) {
 		LoopIteration res = new LoopIteration(previous.getIteration() + 1);
+		res.setReached(
+				LogicUtil.ff.and(previous.getReached(), LogicUtil.ff.not(previous.getJumpOutAfterThisIteration())));
 		Substitution substituteInputs = previous.makeSubstitution(this.in, this.placeholderArrayVars);
 
 		// primitive values
-		for (int i: this.in.keySet()) {
+		for (int i : this.in.keySet()) {
 			res.addPrimitiveVal(i, LogicUtil.applySubstitution(getOut(i), substituteInputs));
 		}
 
 		// array values
-		for (int i: this.placeholderArrays.keySet()) {
-			Formula[][] arrayResult = new Formula[this.placeholderArrayVars.get(i).length][this.placeholderArrays.get(i).elementType().bitwidth()];
+		for (int i : this.placeholderArrays.keySet()) {
+			Formula[][] arrayResult = new Formula[this.placeholderArrayVars.get(i).length][this.placeholderArrays.get(i)
+					.elementType().bitwidth()];
 			for (int j = 0; j < arrayResult.length; j++) {
 				arrayResult[j] = LogicUtil
 						.applySubstitution(this.placeholderArrays.get(i).getValueDependencies()[j], substituteInputs);

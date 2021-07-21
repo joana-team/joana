@@ -97,16 +97,19 @@ public class LoopHandler {
 		}
 
 		extractOutDeps(base);
-		computeRuns(base, m, loopUnrollingMax);
+		computeRuns(base, m, loopUnrollingMax + 1);
 
 		// combine all possible loop results into a single formula and set the value dependencies in the Value objects accordingly
 		Map<Integer, TempValue> tempValues = new HashMap<>();
-		base.lastRun().getPrimitive().keySet()
-				.forEach(i -> tempValues.put(i, new TempValue(i, m, base, m.getValue(i).getConstantBitMask())));
-		for (int i = loopUnrollingMax - 1; i >= 0; i--) {
+		base.lastRun().getPrimitive().keySet().forEach(i -> tempValues
+				.put(i, new TempValue(i, m, base, m.getValue(i).getConstantBitMask(), base.lastRun().getPrimitive(i))));
+		for (int i = loopUnrollingMax; i >= 0; i--) {
 			LoopIteration run = base.getRun(i);
 			for (Integer j : base.getIn().keySet()) {
 				tempValues.get(j).setReal(LogicUtil
+						.ternaryOp(LogicUtil.ff.and(run.getReached(), run.getJumpOutAfterThisIteration()),
+								run.getPrimitive(j), tempValues.get(j).real));
+				tempValues.get(j).setRestricted(LogicUtil
 						.ternaryOp(run.getJumpOutAfterThisIteration(), run.getPrimitive(j), tempValues.get(j).real));
 			}
 		}
@@ -114,13 +117,14 @@ public class LoopHandler {
 		Formula valueRestriction = IntStream.range(0, base.getSimulatedIterationNum())
 				.mapToObj(i -> base.getRun(i).getJumpOutAfterThisIteration())
 				.reduce(LogicUtil.ff.constant(false), LogicUtil.ff::or);
-		tempValues.values().forEach(t -> t.valueRestriction = valueRestriction);
+		//tempValues.values().forEach(t -> t.valueRestriction = valueRestriction);
+		m.getProg().dlRestrictions.add(valueRestriction);
 		m.getProg().addTemporaryValue(tempValues.values());
 
 		// same thing, but for arrays
 		for (int i : base.getPlaceholderArrays().keySet()) {
 			Formula[][] res = base.lastRun().getArray(i).clone();
-			for (int j = base.getSimulatedIterationNum() - 1; j >= 0; j--) {
+			for (int j = base.getSimulatedIterationNum(); j >= 0; j--) {
 				int finalJ = j;
 				IntStream.range(0, res.length).forEach(k -> res[k] = LogicUtil
 						.ternaryOp(base.getRun(finalJ).getJumpOutAfterThisIteration(),

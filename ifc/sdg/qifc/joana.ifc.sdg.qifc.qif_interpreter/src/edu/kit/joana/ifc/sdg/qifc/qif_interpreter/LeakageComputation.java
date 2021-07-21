@@ -5,6 +5,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.TempValue;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Value;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeException;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
@@ -46,8 +47,7 @@ public class LeakageComputation {
 				leakedValue.getDepForBit(i) :
 				LogicUtil.ff.not(leakedValue.getDepForBit(i))).reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
 		res = addPhiDepsRec(res, -1);
-		res = m.getProg().getTempValues().stream().map(TempValue::asValueRestrictedFormula)
-				.reduce(res, LogicUtil.ff::and);
+		res = m.getProg().getTempValues().stream().map(TempValue::asOpenFormula).reduce(res, LogicUtil.ff::and);
 		res = m.getProg().dlRestrictions.stream().reduce(res, LogicUtil.ff::and);
 		return res;
 	}
@@ -74,9 +74,12 @@ public class LeakageComputation {
 		Formula count = createCountingFormula();
 		long modelCount;
 
-		if (hVars.stream().noneMatch(count::containsVariable)) {
+		if (count.isConstantFormula()) {
+			modelCount = (count.equals(LogicUtil.ff.constant(true))) ? (long) Math.pow(2, hVars.size()) : 1;
+		} else if (hVars.stream().noneMatch(count::containsVariable)) {
 			modelCount = (long) Math.pow(2, hVars.size());
 		} else {
+			Logger.log("Starting Model Count");
 			ApproxMC approxMC = new ApproxMC(outputDirectory);
 			modelCount = approxMC.estimateModelCount(count, hVars);
 		}

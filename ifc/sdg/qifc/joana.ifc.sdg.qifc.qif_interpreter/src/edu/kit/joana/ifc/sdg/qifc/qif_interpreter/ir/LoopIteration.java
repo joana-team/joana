@@ -1,5 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import org.logicng.formulas.Formula;
 
@@ -16,10 +17,12 @@ public class LoopIteration {
 	private final int iteration;
 	private Formula jumpOutAfterThisIteration;
 	private Formula jumpOutOnlyLoopCondition;
+	private Formula reached;
 	private final Map<Integer, Formula[]> primitive;
 	private final Map<Integer, Formula[][]> arr;
 
 	public LoopIteration(int iteration) {
+		this.reached = LogicUtil.ff.constant(true);
 		this.iteration = iteration;
 		this.primitive = new HashMap<>();
 		this.arr = new HashMap<>();
@@ -77,5 +80,13 @@ public class LoopIteration {
 
 	public Formula getJumpOutOnlyLoopCondition() {
 		return jumpOutOnlyLoopCondition;
+	}
+
+	public Formula getReached() {
+		return this.reached;
+	}
+
+	public void setReached(Formula reached) {
+		this.reached = reached;
 	}
 }

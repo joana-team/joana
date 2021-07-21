@@ -17,16 +17,8 @@ public class TempValue {
 	public Segment<? extends ProgramPart> owningSeg; // temp values either represent the output of a loop or a function
 	public Formula[] tempVars;
 	public Formula[] real;
+	public Formula[] restricted;
 	public Value.BitLatticeValue[] afterLoopConstantBits;
-	public Formula valueRestriction;
-
-	public TempValue(int valNum, Method m, LoopBody loop, Value.BitLatticeValue[] alcb) {
-		this.valNum = valNum;
-		this.tempVars = m.getDepsForValue(valNum);
-		this.real = LogicUtil.createVars(valNum, m.getValue(valNum).getWidth(), "bot");
-		this.owningSeg = loop.getSegment();
-		this.afterLoopConstantBits = alcb;
-	}
 
 	public TempValue(int valNum, Method m, MethodSegment seg, Value.BitLatticeValue[] alcb, Formula[] withoutRec) {
 		this.valNum = valNum;
@@ -36,13 +28,22 @@ public class TempValue {
 		this.afterLoopConstantBits = alcb;
 	}
 
+	public TempValue(int valNum, Method m, LoopBody seg, Value.BitLatticeValue[] alcb, Formula[] restricted) {
+		this.valNum = valNum;
+		this.tempVars = m.getDepsForValue(valNum);
+		this.real = LogicUtil.createVars(valNum, m.getValue(valNum).getWidth(), "bot");
+		this.restricted = restricted;
+		this.owningSeg = seg.getSegment();
+		this.afterLoopConstantBits = alcb;
+	}
+
 	public void setReal(Formula[] deps) {
 		this.real = deps;
 	}
 
 	public Formula asValueRestrictedFormula() {
-		return IntStream.range(0, tempVars.length).mapToObj(i -> LogicUtil.ff.equivalence(tempVars[i], real[i]))
-				.reduce(valueRestriction, LogicUtil.ff::and);
+		return IntStream.range(0, tempVars.length).mapToObj(i -> LogicUtil.ff.equivalence(tempVars[i], restricted[i]))
+				.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
 	}
 
 	public Formula asOpenFormula() {
@@ -56,5 +57,9 @@ public class TempValue {
 		}
 		return IntStream.range(0, tempVars.length).mapToObj(i -> LogicUtil.ff.equivalence(tempVars[i], afterLoop[i]))
 				.reduce(LogicUtil.ff.constant(true), LogicUtil.ff::and);
+	}
+
+	public void setRestricted(Formula[] res) {
+		this.restricted = res;
 	}
 }

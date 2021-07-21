@@ -23,22 +23,22 @@ public class IntegerArithmetic {
 	}
 
 	public static int add(int x, int y) {
-		return overflow((x + y + NUM_VALUES));
+		return x + y;
 	}
 
 	public static int sub(int x, int y) {
-		return overflow(x - y + NUM_VALUES);
+		return x - y;
 	}
 
 	public static int mult(int x, int y) {
-		return overflow((x * y) + NUM_VALUES);
+		return x * y;
 	}
 
 	public static int div(int x, int y) {
-		return overflow((x / y) + NUM_VALUES);
+		return x / y;
 	}
 
 	public static int mod(int x, int y) {
-		return overflow((x % y) + NUM_VALUES);
+		return x % y;
 	}
 }

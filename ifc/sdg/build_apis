@@ -1,0 +1,5 @@
+#! /bin/sh
+
+cd "$(dirname "$0")"
+mkdir -p schemas/petstore/source
+java -jar bin/openapi-generator-cli.jar generate -g java -i schemas/petstore/petstore.yaml -o schemas/petstore/sources

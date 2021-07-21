@@ -80,7 +80,11 @@ public class LeakageComputation {
 			ApproxMC approxMC = new ApproxMC(outputDirectory);
 			modelCount = approxMC.estimateModelCount(count, hVars);
 		}
-		System.out.println("# of inputs w/ the same output: " + modelCount);
+
+		double dynL = hVars.size() - (Math.log(modelCount) / Math.log(2));
+		System.out.println("---");
+		System.out.println("Pre-image Size: " + modelCount);
+		System.out.println("Dynamic Leakage: " + dynL);
 		System.out.println("---");
 	}
 }

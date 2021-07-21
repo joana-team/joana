@@ -8,8 +8,8 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
  */
 public class Config {
 
-	public static boolean usePP = false;
-	public static boolean useHybrid = true;
+	public static boolean usePP = true;
+	public static boolean useHybrid = false;
 	public static int bitwidth = 32;
 
 	// default values

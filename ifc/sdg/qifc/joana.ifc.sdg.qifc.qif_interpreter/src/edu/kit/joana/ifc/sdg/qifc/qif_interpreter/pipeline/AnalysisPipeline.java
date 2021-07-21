@@ -1,7 +1,6 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline;
 
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.App;
-import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 
 import java.util.Deque;
@@ -28,7 +27,7 @@ public class AnalysisPipeline {
 		while (stages.getLast() != until) {
 			stages.pollLast();
 		}
-		if (!Config.usePP) {
+		if (!args.pp) {
 			stages.remove(IStage.Stage.STATIC_PREPROCESSING);
 		}
 

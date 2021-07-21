@@ -1,12 +1,17 @@
 import os
 
 exec_cmd = "sudo chrt -f 99 perf stat -ddd {cmd} ;"
-approxflow_cmd = "./run.sh {benchmark} --static"
+static_cmd = "./run.sh {benchmark} --static"
+dyn_cmd = "./run.sh {benchmark}"
 pipe = "2> perf.txt > res.txt"
 
 
-def run_qifci(benchmark_path):
-    cmd = "{ " + exec_cmd.format(cmd=approxflow_cmd.format(benchmark=benchmark_path)) + " } " + pipe
+def run_qifci(benchmark_path, do_static):
+    if do_static:
+        raw_cmd = static_cmd
+    else:
+        raw_cmd = dyn_cmd
+    cmd = "{ " + exec_cmd.format(cmd=raw_cmd.format(benchmark=benchmark_path)) + " } " + pipe
     os.system(cmd)
 
     with open("perf.txt", 'r') as perf:
@@ -32,22 +37,24 @@ def all_af_benchmarks():
         benchmark(f, dir)
 
 
-def benchmark(f, directory):
+def benchmark(f, directory, do_static):
     print(f)
     times = []
     for i in range(0, 10):
-        time, leak = run_qifci(directory + f)
+        time, leak = run_qifci(directory + f, do_static)
         times.append(time)
         print("Time: " + str(time) + " Leak: " + str(leak))
 
     print("Average: " + str(avg(times)))
 
 
+benchmark("x_Mask --args 0", "benchmarks/", False)
+
 # benchmark("x_CallMask.java --args 0", "benchmarks/")
 # benchmark("x_RecursiveLaundry.java --args 0", "benchmarks/")
 # benchmark("x_Parity.java --args 0", "benchmarks/")
 # benchmark("x_Voting1.java", "benchmarks/")
-# benchmark("x_ShiftAndLaunder --args 0.java", "benchmarks/")
+# benchmark("x_ShiftAndLaunder.java", "benchmarks/")
 # benchmark("x_Laundry.java -- args 0", "benchmarks/")
 # benchmark("x_ImplicitFlow.java", "benchmarks/")
 # benchmark("x_SanityCheck.java --args 0", "benchmarks/")
@@ -60,6 +67,6 @@ def benchmark(f, directory):
 # benchmark("x_SaneLaundering.java --pp --hybrid", "benchmarks/")
 # benchmark("x_MaskedLaundry.java --pp --hybrid", "benchmarks/")
 
-print("PP")
-benchmark("x_SaneLaundering.java", "benchmarks/")
-benchmark("x_MaskedLaundry.java", "benchmarks/")
+# print("PP")
+# benchmark("x_SaneLaundering.java", "benchmarks/")
+# benchmark("x_MaskedLaundry.java", "benchmarks/")

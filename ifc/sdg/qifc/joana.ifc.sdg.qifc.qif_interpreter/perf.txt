@@ -2,33 +2,34 @@ ANTLR Tool version 4.8 used for code generation does not match the current runti
 ANTLR Runtime version 4.8 used for parser compilation does not match the current runtime version 4.9.2
 ANTLR Tool version 4.8 used for code generation does not match the current runtime version 4.9.2
 ANTLR Runtime version 4.8 used for parser compilation does not match the current runtime version 4.9.2
+Estimation of Indistinguishability relation failed. Aborting.
 
- Performance counter stats for './run.sh benchmarks/x_MaskedLaundry.java --static':
+ Performance counter stats for './run.sh benchmarks/x_ShiftAndLaunder.java --static':
 
-         24.767,20 msec task-clock                #    2,321 CPUs utilized          
-             6.915      context-switches          #  279,200 /sec                   
-               913      cpu-migrations            #   36,863 /sec                   
-           250.672      page-faults               #   10,121 K/sec                  
-    69.008.818.130      cycles                    #    2,786 GHz                      (38,69%)
-    79.338.010.635      instructions              #    1,15  insn per cycle           (46,34%)
-    14.488.116.268      branches                  #  584,972 M/sec                    (46,21%)
-       418.332.657      branch-misses             #    2,89% of all branches          (46,18%)
-    24.267.050.821      L1-dcache-loads           #  979,806 M/sec                    (46,03%)
-     1.491.743.937      L1-dcache-load-misses     #    6,15% of all L1-dcache accesses  (45,97%)
-       330.191.201      LLC-loads                 #   13,332 M/sec                    (30,63%)
-        47.979.070      LLC-load-misses           #   14,53% of all LL-cache accesses  (30,71%)
+         37.540,67 msec task-clock                #    2,207 CPUs utilized          
+             6.959      context-switches          #  185,372 /sec                   
+             1.110      cpu-migrations            #   29,568 /sec                   
+           591.364      page-faults               #   15,753 K/sec                  
+   123.467.873.303      cycles                    #    3,289 GHz                      (38,70%)
+   147.986.975.942      instructions              #    1,20  insn per cycle           (46,37%)
+    26.587.384.019      branches                  #  708,229 M/sec                    (46,42%)
+       572.669.445      branch-misses             #    2,15% of all branches          (46,37%)
+    44.771.511.163      L1-dcache-loads           #    1,193 G/sec                    (46,23%)
+     2.685.364.918      L1-dcache-load-misses     #    6,00% of all L1-dcache accesses  (46,08%)
+       557.229.382      LLC-loads                 #   14,843 M/sec                    (30,56%)
+        80.791.498      LLC-load-misses           #   14,50% of all LL-cache accesses  (30,52%)
    <not supported>      L1-icache-loads                                             
-       752.964.280      L1-icache-load-misses                                         (30,75%)
-    24.042.138.302      dTLB-loads                #  970,725 M/sec                    (30,82%)
-        16.200.435      dTLB-load-misses          #    0,07% of all dTLB cache accesses  (30,82%)
-        46.347.215      iTLB-loads                #    1,871 M/sec                    (30,88%)
-         5.966.749      iTLB-load-misses          #   12,87% of all iTLB cache accesses  (30,99%)
+       916.338.052      L1-icache-load-misses                                         (30,58%)
+    45.201.762.443      dTLB-loads                #    1,204 G/sec                    (30,65%)
+        30.134.404      dTLB-load-misses          #    0,07% of all dTLB cache accesses  (30,73%)
+        53.451.883      iTLB-loads                #    1,424 M/sec                    (30,89%)
+         7.472.500      iTLB-load-misses          #   13,98% of all iTLB cache accesses  (30,98%)
    <not supported>      L1-dcache-prefetches                                        
    <not supported>      L1-dcache-prefetch-misses                                   
 
-      10,668638885 seconds time elapsed
+      17,012494981 seconds time elapsed
 
-      23,989055000 seconds user
-       0,672020000 seconds sys
+      36,139939000 seconds user
+       1,214058000 seconds sys
 
 

@@ -67,7 +67,7 @@ public class AnalysisUnit implements DotNode {
 		}
 
 		// remove if value is not used anywhere outside of the segments
-		outs.removeIf(i -> blocks.containsAll(top.getValue(i).useBlocks()));
+		outs.removeIf(i -> top.hasValue(i) && blocks.containsAll(top.getValue(i).useBlocks()));
 
 		Segment<? extends ProgramPart> tail = segments.stream().max(Comparator.comparingInt(s -> s.rank)).get();
 		BasicBlock segmentEnd = tail.getBlocks().stream().max(Comparator.comparingInt(b -> b.idx())).get();

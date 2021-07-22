@@ -23,6 +23,8 @@ def run_qifci(benchmark_path, do_static):
         for line in res.readlines():
             if "Channel capacity:" in line:
                 leak = float(line.strip().split()[2])
+            # if "Dynamic Leakage:" in line:
+            #     leak = float(line.strip().split()[2])
 
     return time, leak
 
@@ -40,7 +42,7 @@ def all_af_benchmarks():
 def benchmark(f, directory, do_static):
     print(f)
     times = []
-    for i in range(0, 10):
+    for i in range(0, 5):
         time, leak = run_qifci(directory + f, do_static)
         times.append(time)
         print("Time: " + str(time) + " Leak: " + str(leak))
@@ -48,20 +50,53 @@ def benchmark(f, directory, do_static):
     print("Average: " + str(avg(times)))
 
 
-benchmark("x_Mask --args 0", "benchmarks/", False)
+# benchmark("x_Mask.java --args 0", "benchmarks/", False)
 
-# benchmark("x_CallMask.java --args 0", "benchmarks/")
-# benchmark("x_RecursiveLaundry.java --args 0", "benchmarks/")
-# benchmark("x_Parity.java --args 0", "benchmarks/")
-# benchmark("x_Voting1.java", "benchmarks/")
-# benchmark("x_ShiftAndLaunder.java", "benchmarks/")
-# benchmark("x_Laundry.java -- args 0", "benchmarks/")
-# benchmark("x_ImplicitFlow.java", "benchmarks/")
-# benchmark("x_SanityCheck.java --args 0", "benchmarks/")
-# benchmark("x_Sum.java --args 0 1 2", "benchmarks/")
-# benchmark("x_Mask.java --args 0", "benchmarks/")
-# benchmark("TableLookup.java --args 0", "benchmarks/")
-# benchmark("x_DeadRecursiveId.java", "benchmarks/")
+# benchmark("x_Sum.java --args 0 1 2", "benchmarks/", False)
+
+# benchmark("x_SanityCheck.java --args 3", "benchmarks/", False)
+# benchmark("x_SanityCheck.java --args 1", "benchmarks/", False)
+# benchmark("x_SanityCheck.java --args 9", "benchmarks/", False)
+
+# os.system("sudo find . -type d -name 'out_*' -exec rm -r {} \;")
+
+# benchmark("TableLookup.java --args 0", "benchmarks/", False)
+# benchmark("TableLookup.java --args 1", "benchmarks/", False)
+# benchmark("TableLookup.java --args 9", "benchmarks/", False)
+
+# os.system("sudo find . -type d -name 'out_*' -exec rm -r {} \;")
+
+# benchmark("x_ImplicitFlow.java --args 0", "benchmarks/", False)
+# benchmark("x_ImplicitFlow.java --args 1", "benchmarks/", False)
+# benchmark("x_ImplicitFlow.java --args 9", "benchmarks/", False)
+
+# os.system("sudo find . -type d -name 'out_*' -exec rm -r {} \;")
+
+benchmark("x_Parity.java", "benchmarks/", True)
+benchmark("x_Parity.java --pp", "benchmarks/", True)
+benchmark("x_Parity.java --pp --hybrid", "benchmarks/", True)
+
+# benchmark("x_Laundry.java --args 0", "benchmarks/", False)
+
+# benchmark("x_ShiftAndLaunder.java --args 0", "benchmarks/", False)
+
+# os.system("sudo find . -type d -name 'out_*' -exec rm -r {} \;")
+
+# benchmark("x_MaskedLaundry.java --args 0", "benchmarks/", False)
+# benchmark("x_MaskedLaundry.java --args 1", "benchmarks/", False)
+
+# benchmark("x_SaneLaundering.java --args 0", "benchmarks/", False)
+# benchmark("x_SaneLaundering.java --args 1", "benchmarks/", False)
+
+# os.system("sudo find . -type d -name 'out_*' -exec rm -r {} \;")
+
+# benchmark("x_RecursiveLaundry.java --args 0", "benchmarks/", False)
+
+# benchmark("x_CallMask.java --args 0", "benchmarks/", False)
+
+# benchmark("x_DeadRecursiveId.java --args 0", "benchmarks/", False)
+
+# os.system("sudo find . -type d -name 'out_*' -exec rm -r {} \;")
 
 # print("Hybrid + PP")
 # benchmark("x_SaneLaundering.java --pp --hybrid", "benchmarks/")

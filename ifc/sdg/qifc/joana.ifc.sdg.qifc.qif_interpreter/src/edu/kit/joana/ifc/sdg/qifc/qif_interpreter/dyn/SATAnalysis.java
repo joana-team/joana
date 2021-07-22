@@ -9,6 +9,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.UnexpectedTypeExceptio
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Logger;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
+import org.logicng.formulas.Formula;
 import org.logicng.formulas.Variable;
 
 import java.util.stream.Collectors;
@@ -95,6 +96,19 @@ public class SATAnalysis {
 				sv.visitBlock(m, b, -1);
 				if (l.getSegment().dynAnaFeasible || !this.env.args.onlyStatic) {
 					LoopHandler.analyze(m, b, this, l, env);
+					for (SSAInstruction i : b.instructions()) {
+						if (i instanceof SSAPhiInstruction) {
+							// see if we can find any constant bits that were undetected by nildumu
+							Formula[] op1 = m.getDepsForValue(i.getUse(0));
+							Formula[] op2 = m.getDepsForValue(i.getUse(1));
+
+							for (int j = 0; j < op1.length; j++) {
+								if (op1[j].isConstantFormula() && op2[j].isConstantFormula() && op1[j].equals(op2[j])) {
+									m.getValue(i.getDef()).setDepforBit(j, op1[j]);
+								}
+							}
+						}
+					}
 				}
 				for (SSAInstruction i : b.instructions()) {
 					if (i instanceof SSAPhiInstruction) {

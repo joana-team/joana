@@ -204,8 +204,9 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 
 			String calleeId = instruction.getDeclaredTarget().getSignature();
 			IInvocationHandler handler;
-			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed() && m.getProg().getMethod(calleeId).getSegments()
-					.get(instruction).dynAnaFeasible) {
+			if (!m.getProg().getMethod(calleeId).isDepsAnalyzed() && (
+					m.getProg().getMethod(calleeId).getSegments().get(instruction).dynAnaFeasible
+							|| !this.env.args.onlyStatic)) {
 				if (m.getProg().isRecursive(instruction.getDeclaredTarget(), m.getCg())) {
 					handler = new RecursiveFunctionInvocationHandler();
 				} else {
@@ -219,7 +220,7 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 				MethodSegment seg = callee.getSegments().get(instruction);
 				Type returnType = callee.getReturnType();
 
-				if (seg.dynAnaFeasible) {
+				if (seg.dynAnaFeasible || !this.env.args.onlyStatic) {
 					setReturnValueDeps(callee, returnType, instruction);
 				} else {
 					setReturnValueVars(callee, returnType, instruction);
@@ -335,7 +336,9 @@ public class SATVisitor implements SSAInstruction.IVisitor {
 	private void handleLoopPhi(SSAPhiInstruction instruction) {
 		Value defVal = m.getValue(instruction.getDef());
 		Variable[] vars = LogicUtil.createVars(defVal.getValNum(), defVal.getType().bitwidth());
-		m.setDepsForvalue(instruction.getDef(), vars);
+		Formula[] asFormulaArray = new Formula[vars.length];
+		IntStream.range(0, vars.length).forEach(i -> asFormulaArray[i] = vars[i]);
+		m.setDepsForvalue(instruction.getDef(), asFormulaArray);
 		m.addVarsToValue(instruction.getDef(), vars);
 	}
 

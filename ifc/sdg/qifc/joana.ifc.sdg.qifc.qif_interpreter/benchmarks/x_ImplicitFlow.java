@@ -11,9 +11,6 @@ public class x_ImplicitFlow {
 		if (h == 1) {
 			l = 1;
 		}
-		if (h == 1) {
-			l = 1;
-		}
 		if (h == 2) {
 			l = 2;
 		}

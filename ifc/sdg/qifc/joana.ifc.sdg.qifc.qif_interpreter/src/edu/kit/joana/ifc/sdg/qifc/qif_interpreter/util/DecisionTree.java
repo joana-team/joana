@@ -65,11 +65,22 @@ public class DecisionTree<T> {
 		if (this.type == NodeType.LEAF) {
 			return leafVal;
 		} else {
-			return operator.apply(this.pathCondition, trueSubTree.getDecision(operator), falseSubTree.getDecision(operator));
+			return operator
+					.apply(this.pathCondition, trueSubTree.getDecision(operator), falseSubTree.getDecision(operator));
 		}
 	}
 
-	public DecisionTree<T> addInnerNode(int idx, Formula pathCondition, SortedSet<Pair<Integer, Boolean>> implicitFlows) {
+	public Formula getCombinedConditions() {
+		if (this.type == NodeType.LEAF) {
+			return LogicUtil.ff.constant(true);
+		} else {
+			return LogicUtil.ternaryOp(this.pathCondition, trueSubTree.getCombinedConditions(),
+					falseSubTree.getCombinedConditions());
+		}
+	}
+
+	public DecisionTree<T> addInnerNode(int idx, Formula pathCondition,
+			SortedSet<Pair<Integer, Boolean>> implicitFlows) {
 		if (implicitFlows.size() == 0) {
 			addInnerNode(idx, pathCondition);
 			return root();

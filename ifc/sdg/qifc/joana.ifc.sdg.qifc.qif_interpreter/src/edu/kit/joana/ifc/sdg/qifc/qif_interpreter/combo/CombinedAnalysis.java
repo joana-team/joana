@@ -7,6 +7,7 @@ import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ProgramPart;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn.TempValue;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.BasicBlock;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Method;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.Type;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ui.DotGrapher;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
@@ -127,14 +128,17 @@ public class CombinedAnalysis {
 
 		// only dummy blocks? this unit has no influence on channel capacity overall!
 		if (as.blocks.stream().allMatch(BasicBlock::isDummy)) {
-			return Integer.MAX_VALUE;
+			as.cc = Type.INTEGER.bitwidth();
+			return as.cc;
 		}
 
 		List<Integer> valsForMC = (as.blocks.contains(leakBlock)) ?
 				Collections.singletonList(leaked) :
 				as.collectiveOutputValues;
-		if (valsForMC.size() == 0)
-			return Integer.MAX_VALUE;
+		if (valsForMC.size() == 0) {
+			as.cc = Type.INTEGER.bitwidth();
+			return as.cc;
+		}
 
 		Pair<Formula, List<Variable>> cc = ccFormula(valsForMC, leakBlock.getCFG().getMethod(), as);
 

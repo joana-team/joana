@@ -17,7 +17,7 @@ public class x_ShiftAndLaunder {
 			i++;
 		}
 
-		Out.print(shift);
+		Out.print(launder);
 	}
 
 }

@@ -13,9 +13,9 @@ public class Config {
 	public static int bitwidth = 32;
 
 	// default values
-	public static final int DEFAULT_LOOP_UNROLLING_MAX = 32;
-	public static final int DEFAULT_RECURSION_DEPTH_MAX = 32;
-	public static final int DEFAULT_METHOD_DEPTH_MAX = 32;
+	public static final int DEFAULT_LOOP_UNROLLING_MAX = 8;
+	public static final int DEFAULT_RECURSION_DEPTH_MAX = 8;
+	public static final int DEFAULT_METHOD_DEPTH_MAX = 8;
 
 	private int loopUnrollingMax;
 	private int recDepthMax;

@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_ShiftAndLaunder {
+public class ShiftAndLaunder {
 
 	public static void main(String[] args) {
-		new x_ShiftAndLaunder().sal(0);
+		new ShiftAndLaunder().sal(0);
 	}
 
 	void sal(int h1) {

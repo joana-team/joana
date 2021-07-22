@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_RecursiveLaundry {
+public class RecursiveLaundering {
 
 	public static void main(String[] args) {
-		new x_RecursiveLaundry().recursiveLaundry(0);
+		new RecursiveLaundering().recursiveLaundry(0);
 	}
 
 	int launder(int h, int l) {

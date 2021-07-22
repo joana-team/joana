@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_Sum {
+public class SumQuery {
 
 	public static void main(String[] args) {
-		new x_Sum().sum(0, 0, 0);
+		new SumQuery().sum(0, 0, 0);
 	}
 
 	public void sum(int h1, int h2, int h3) {

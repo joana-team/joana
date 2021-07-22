@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_SanityCheck {
+public class SanityCheck {
 
 	public static void main(String[] args) {
-		new x_SanityCheck().sanityCheck(0);
+		new SanityCheck().sanityCheck(0);
 	}
 
 	public void sanityCheck(int h) {

@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_TableLookup {
+public class TableLookup {
 
 	public static void main(String[] args) {
-		new x_TableLookup().lookup(0);
+		new TableLookup().lookup(0);
 	}
 
 	public void lookup(int h) {

@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_Mask {
+public class MaskedCopy {
 
 	public static void main(String[] args) {
-		new x_Mask().mask(0);
+		new MaskedCopy().mask(0);
 	}
 
 	public void mask(int h) {

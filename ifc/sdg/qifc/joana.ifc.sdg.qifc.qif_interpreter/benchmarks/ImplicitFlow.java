@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_ImplicitFlow {
+public class ImplicitFlow {
 
 	public static void main(String[] args) {
-		new x_ImplicitFlow().implicit(0);
+		new ImplicitFlow().implicit(0);
 	}
 
 	public void implicit(int h) {

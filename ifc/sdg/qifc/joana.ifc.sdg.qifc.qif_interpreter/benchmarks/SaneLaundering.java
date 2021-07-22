@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_SaneLaundering {
+public class SaneLaundering {
 
 	public static void main(String[] args) {
-		new x_SaneLaundering().sanityCheck(0);
+		new SaneLaundering().sanityCheck(0);
 	}
 
 	public void sanityCheck(int h) {

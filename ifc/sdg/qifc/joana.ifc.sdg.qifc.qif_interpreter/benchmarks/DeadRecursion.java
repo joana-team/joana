@@ -1,9 +1,9 @@
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.input.Out;
 
-public class x_DeadRecursiveId {
+public class DeadRecursion {
 
 	public static void main(String[] args) {
-		new x_DeadRecursiveId().f(0);
+		new DeadRecursion().f(0);
 	}
 
 	int f(int h) {

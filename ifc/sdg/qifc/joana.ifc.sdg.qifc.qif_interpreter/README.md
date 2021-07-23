@@ -4,17 +4,22 @@ A (minimal) Java Interpreter that measures information flow during execution. Th
 
 ----------------
 
+### Demo
+To get QIFCI running quickly, we provide a ``Dockerfile`` in [``https://github.com/tnstrssnr/QIFC-Evaluation``](https://github.com/tnstrssnr/QIFC-Evaluation). The image contains the example programs we used to benchmark QIFCI as well as a script to run the programs in different configurations.
+
+
 ### Build
 
 1. Setup JOANA Dependencies
     - make sure to check if the requirements specified in the base directory's ``README.md`` are fulfilled
+    - run ``git submodule init`` and ``git submodule update``
     - run ``setup_deps.sh`` in the JOANA base directory
 
 
 2. Install cryptominisat & ApproxMC
     - install the following packages:
       ````
-      build-essential cmake zlib1g-dev libboost-program-options-dev libm4ri-dev
+      build-essential cmake zlib1g-dev libboost-program-options-dev libm4ri-dev libgmp10 libgmp-dev
       ````
     - follow the instructions at ``https://github.com/meelgroup/approxmc`` to install cryptominisat and ApproxMc
 
@@ -48,6 +53,7 @@ folder.
   ``--static``: Only compute the channel capacity of the program without executing it
   ``--pp``: Enalbe the static pre-processing
 - ``--hybrid``: Enable the hybrid analysis for the channel capacity
+  ``--unwind BOUND``: Set ``BOUND`` as the limit for th analysis of loop iterations / recursion depth
 - ``--run``: only execute the input program, without performing any analysis on it
 - ``--dump-graphs``: dump program graphs created by JOANA + CFGs of the program used in the interpreter analysis
 - ``--working-dir CURRENT_WORKING_DIR``: required parameter specifying the current working directory. If the ``run.sh``

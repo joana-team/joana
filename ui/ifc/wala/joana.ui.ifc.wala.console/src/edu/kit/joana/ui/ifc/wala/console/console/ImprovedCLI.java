@@ -840,7 +840,8 @@ public class ImprovedCLI {
   }
 
   @Command(name = "declass", description = "Annotate declassificators", subcommands = {
-      DeclassificationsCommand.CurrentCommand.class }) static class DeclassificationsCommand implements Callable<Integer> {
+      DeclassificationsCommand.CurrentCommand.class })
+  static class DeclassificationsCommand implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
@@ -971,6 +972,42 @@ public class ImprovedCLI {
         return ExitCode.SOFTWARE;
       }
       return exit(state.run(mixin));
+    }
+  }
+
+  public interface MiscAnnotationsEnabled {
+    /**
+     * @return [(entity, string representation)]
+     */
+    List<Pair<String, String>> getMiscAnnotations(String entityRegexp, String typeRegexp);
+  }
+
+  @Command(name = "miscAnnotations", description = "Get annotations not used for security levels (might need to build the SDG first)")
+  static class MiscAnnotationsCommand implements Callable<Integer> {
+
+    @Spec Model.CommandSpec spec;
+
+    @ParentCommand
+    CliCommands parent;
+
+    MiscAnnotationsEnabled state;
+
+    MiscAnnotationsCommand(@State MiscAnnotationsEnabled state){
+      this.state = state;
+    }
+
+    @Parameters(paramLabel = "entityRegexp", defaultValue = ".*", description = "Optional regexp that matches entities", index = "0")
+    String entityRegexp;
+
+    @Parameters(paramLabel = "annotationRegexp", defaultValue = ".*", description = "Optional regexp that matches annotation types", index = "1")
+    String annotationRegexp;
+
+    @Override
+    public Integer call() {
+      for (Pair<String, String> annotation : state.getMiscAnnotations(entityRegexp, annotationRegexp)) {
+        parent.out.println(annotation.getFirst() + ": " + annotation.getSecond());
+      }
+      return 0;
     }
   }
 
@@ -1408,7 +1445,8 @@ public class ImprovedCLI {
   }
 
   static class Dummy
-      implements ClassPathEnabled, SetValueEnabled, SinksAndSourcesEnabled, EntryPointEnabled, RunAnalysisEnabled<Object> {
+      implements ClassPathEnabled, SetValueEnabled, SinksAndSourcesEnabled, EntryPointEnabled, RunAnalysisEnabled<Object>,
+      MiscAnnotationsEnabled {
     @Override public boolean setClassPath(String classPath) {
       return false;
     }
@@ -1515,6 +1553,10 @@ public class ImprovedCLI {
 
     @Override public boolean run(Object state) {
       return false;
+    }
+
+    @Override public List<Pair<String, String>> getMiscAnnotations(String entityRegexp, String typeRegexp) {
+      return Collections.emptyList();
     }
 
     static class Dummy2 {

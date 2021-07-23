@@ -13,6 +13,7 @@
 	<classpathentry kind="src" path="/joana.wala.core"/>
 	<classpathentry kind="src" path="/joana.ifc.sdg.util"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joana.contrib.lib"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joana.ifc.sdg.qifc.qif_interpreter.libs"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joana.ui.annotations"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.shrike"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joana.api.annotations.ignore"/>

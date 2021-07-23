@@ -7,42 +7,16 @@
  */
 package edu.kit.joana.api.annotations;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
-
-import edu.kit.joana.api.sdg.SDGActualParameter;
-import edu.kit.joana.api.sdg.SDGAttribute;
-import edu.kit.joana.api.sdg.SDGCall;
-import edu.kit.joana.api.sdg.SDGCallExceptionNode;
-import edu.kit.joana.api.sdg.SDGCallReturnNode;
-import edu.kit.joana.api.sdg.SDGClass;
-import edu.kit.joana.api.sdg.SDGClassComputation;
-import edu.kit.joana.api.sdg.SDGFieldOfParameter;
-import edu.kit.joana.api.sdg.SDGFormalParameter;
-import edu.kit.joana.api.sdg.SDGInstruction;
-import edu.kit.joana.api.sdg.SDGLocalVariable;
-import edu.kit.joana.api.sdg.SDGMethod;
-import edu.kit.joana.api.sdg.SDGMethodExceptionNode;
-import edu.kit.joana.api.sdg.SDGMethodExitNode;
-import edu.kit.joana.api.sdg.SDGPhi;
-import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.SDGProgramPart;
-import edu.kit.joana.api.sdg.SDGProgramPartVisitor;
-import edu.kit.joana.api.sdg.ThrowingSDGProgramPartVisitor;
+import edu.kit.joana.api.sdg.*;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ifc.sdg.util.BytecodeLocation;
 import edu.kit.joana.util.Pair;
+
+import java.util.*;
 
 /**
  * @author Martin Mohr
@@ -190,6 +164,9 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 		case SINK:
 			toSelect =  pp2NodeTrans.getSinkNodes(a);
 			break;
+		case MISC:
+			toSelect = pp2NodeTrans.getRootNodes(a);
+			break;
 		default:
 			throw new UnsupportedOperationException("not implemented yet!");
 		}
@@ -206,6 +183,8 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 				return pp2NodeTrans.getSourceNodes(local);
 			case SINK:
 				return pp2NodeTrans.getSinkNodes(local);
+			case MISC:
+				return edu.kit.joana.util.collections.Collections.merge(pp2NodeTrans.getSinkNodes(local), pp2NodeTrans.getSourceNodes(local));
 			default:
 				throw new UnsupportedOperationException("not implemented yet!");
 		}
@@ -243,13 +222,13 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 
 	private static final boolean isActualNodeOfKind(SDGNode node, AnnotationType type) {
-		return ((type == AnnotationType.SINK && node.getKind() == SDGNode.Kind.ACTUAL_IN) || (type == AnnotationType.SOURCE && node
-				.getKind() == SDGNode.Kind.ACTUAL_OUT));
+		return (((type == AnnotationType.SINK || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.ACTUAL_IN)
+				|| ((type == AnnotationType.SOURCE || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.ACTUAL_OUT));
 	}
 
 	private static final boolean isFormalNodeOfKind(SDGNode node, AnnotationType type) {
-		return (type == AnnotationType.SOURCE && node.getKind() == SDGNode.Kind.FORMAL_IN)
-				|| (type == AnnotationType.SINK && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
+		return ((type == AnnotationType.SOURCE || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.FORMAL_IN)
+				|| ((type == AnnotationType.SINK || type == AnnotationType.MISC) && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
 	}
 
 	@SuppressWarnings("unused")

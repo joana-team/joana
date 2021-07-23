@@ -7,11 +7,9 @@
  */
 package edu.kit.joana.util.collections;
 
-import java.util.AbstractCollection;
-import java.util.Collection;
-import java.util.Iterator;
-
 import com.google.common.collect.Iterables;
+
+import java.util.*;
 
 /**
  * TODO: @author Add your name here.
@@ -62,5 +60,12 @@ public class Collections {
 		};
 		
 		
+	}
+
+	public static <T, S extends Set<T>> Set<T> merge(S s1, S s2) {
+		HashSet<T> s = new HashSet<>();
+		s.addAll(s1);
+		s.addAll(s2);
+		return s;
 	}
 }

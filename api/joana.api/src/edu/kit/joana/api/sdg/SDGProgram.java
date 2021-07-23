@@ -67,6 +67,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SDGProgram {
@@ -163,7 +165,12 @@ public class SDGProgram {
 	private final SDG sdg;
 	private final MHPAnalysis mhpAnalysis;
 	private SDGProgramPartParserBC ppartParser;
-	private final Map<SDGProgramPart, Collection<Pair<Annotation,String>>> annotations = new LinkedHashMap<>();
+	private final Map<SDGProgramPart, Collection<Pair<Annotation, String>>> annotations = new LinkedHashMap<>();
+	/**
+	 * Additional annotations, like EntryPoint and other annotations used in the code,
+	 * excludes sink, source and declassification related annotations (stored in the annotations field)
+	 */
+	private final Map<SDGProgramPart, Set<Annotation>> miscAnnotations = new LinkedHashMap<>();
 
 	private final IdManager idManager = new IdManager();
 
@@ -348,6 +355,7 @@ public class SDGProgram {
 	}
 
 	public void fillWithAnnotations(IClassHierarchy cha, Iterable<IClass> classes) {
+		collectedAllNodesForMiscAnnotations = false;
 		final Collection<String> sourceOrSinkAnnotationName = 
 				Arrays.asList(new Class<?>[] { 
 					Source.class, Sink.class, Declassification.class,
@@ -357,40 +365,62 @@ public class SDGProgram {
 		for (IClass c : classes) {
 			final String walaClassName = c.getName().toString();
 			final JavaType jt = JavaType.parseSingleTypeFromString(walaClassName, Format.BC);
-			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName()); 
-			
+			final String sourcefile = PrettyWalaNames.sourceFileName(c.getName());
+
+
+			Function<Collection<Annotation>, Optional<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>>> splitAnnotations = anns -> {
+				if (anns == null || anns.isEmpty()) {
+					return Optional.empty();
+				}
+				return Optional.of(Pair.nonNullPairs(anns.stream()
+						.filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
+						.map( a -> Pair.pair(a, sourcefile))
+						.collect(Collectors.toList()), anns.stream()
+						.filter( a -> !sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
+						.collect(Collectors.toList())));
+			};
+
+			BiConsumer<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>, Collection<? extends SDGProgramPart>> storeAnnotations = (pair, parts) -> {
+				for (SDGProgramPart part : parts) {
+					if (pair.getFirst().size() > 0) {
+						this.annotations.put(part, pair.getFirst());
+					}
+					if (pair.getSecond().size() > 0) {
+						this.miscAnnotations.computeIfAbsent(part, p -> new HashSet<>()).addAll(pair.getSecond());
+					}
+				}
+			};
 
 			for (IField f : c.getAllFields()) {
 				final Collection<SDGAttribute> attributes = this.getAttribute(jt, f.getName().toString());
 				// attributes.isEmpty() if c isn't Part of the CallGraph
-				if (f.getAnnotations() != null && !f.getAnnotations().isEmpty()) {
+				Optional<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>> relAndNonRel = splitAnnotations
+						.apply(f.getAnnotations());
+				if (relAndNonRel.isPresent()) {
+					storeAnnotations.accept(relAndNonRel.get(), attributes);
 					for (SDGAttribute attribute : attributes) {
-						this.annotations.put(attribute, f.getAnnotations().stream().map(a -> Pair.pair(a, sourcefile)).collect(Collectors.toList()));
 						f.getAnnotations().forEach(a -> idManager.put(attribute, a));
 					}
 					debug.outln("Annotated: " + jt + ":::" + f.getName() + " with " + f.getAnnotations());
 				}
 
 			}
+
 			for (IMethod m : c.getAllMethods()) {
 				
 				if (m.getAnnotations() != null) {
-					Collection<Pair<Annotation, String>> methodWithSourceFile = m.getAnnotations().stream()
-							.filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString()))
-							.map( a -> Pair.pair(a, sourcefile))
-							.collect(Collectors.toList()
-					);
-					if (!methodWithSourceFile.isEmpty()) {
+					Optional<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>> relAndNonRel = splitAnnotations
+							.apply(m.getAnnotations());
+					if (relAndNonRel.isPresent()) {
 						final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
 						final Collection<SDGMethod> methods = implementors.stream().flatMap(
 								mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
 						).collect(Collectors.toList());
-						for (SDGMethod sdgm : methods) {
-							this.annotations.put(
-								sdgm,
-								methodWithSourceFile
-							);
-							m.getAnnotations().forEach(a -> idManager.put(sdgm, a));
+						storeAnnotations.accept(relAndNonRel.get(), methods);
+						if (relAndNonRel.get().getFirst().size() > 0) {
+							for (SDGMethod sdgm : methods) {
+								m.getAnnotations().forEach(a -> idManager.put(sdgm, a));
+							}
 						}
 						debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 					}
@@ -400,23 +430,28 @@ public class SDGProgram {
 					ShrikeCTMethod method = (ShrikeCTMethod) m;
 					Collection<SDGMethod> methods = Collections.emptyList();
 
-					int parameternumber = m.isStatic() ? 1 : 1;
+					int parameterNumber = m.isStatic() ? 1 : 1;
 					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
-						final Collection<Pair<Annotation, String>> parameterWithSourcefile =
-							parameter.stream().filter( a -> sourceOrSinkAnnotationName.contains(a.getType().getName().toString())).map( a -> Pair.pair(a, sourcefile)).collect(Collectors.toList());
-						if (!parameterWithSourcefile.isEmpty()) {
+						Optional<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>> relAndNonRel = splitAnnotations.apply(parameter);
+						if (relAndNonRel.isPresent()) {
 							if (methods.isEmpty()) { 
 								final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
 								methods = implementors.stream().flatMap(
 										mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
 								).collect(Collectors.toList());
 							}
+							if (relAndNonRel.get().getSecond().size() > 0) {
+								for (SDGMethod sdgMethod : methods) {
+									SDGFormalParameter param = sdgMethod.getParameter(parameterNumber);
+									this.miscAnnotations.computeIfAbsent(param, p -> new HashSet<>()).addAll(relAndNonRel.get().getSecond());
+								}
+							}
 							for (SDGMethod sdgm : methods) {
-								this.annotations.put(sdgm.getParameter(parameternumber), parameterWithSourcefile);
+								this.annotations.put(sdgm.getParameter(parameterNumber), relAndNonRel.get().getFirst());
 								m.getAnnotations().forEach(a -> idManager.put(sdgm, a));
 							}
 						}
-						parameternumber++;
+						parameterNumber++;
 					}
 					
 					try {
@@ -457,7 +492,7 @@ public class SDGProgram {
 									}
 								}
 							}
-							parameternumber++;
+							parameterNumber++;
 						}
 					} catch (InvalidClassFileException e) {
 						// TODO: handle this?!?!
@@ -562,6 +597,40 @@ public class SDGProgram {
 
 	public Map<SDGProgramPart, Collection<Pair<Annotation,String>>> getJavaSourceAnnotations() {
 		return annotations;
+	}
+
+	public Map<SDGProgramPart, Set<Annotation>> getMiscJavaSourceAnnotations() {
+		return Collections.unmodifiableMap(miscAnnotations);
+	}
+
+	public Set<Annotation> getMiscJavaSourceAnnotations(SDGProgramPart part) {
+		return Collections.unmodifiableSet(miscAnnotations.getOrDefault(part, Collections.emptySet()));
+	}
+
+	/** Exclude annotations from the edu.kit.joana package */
+	public Set<Annotation> getMiscJavaSourceAnnotationsWOJoana(SDGProgramPart part) {
+		return miscAnnotations.getOrDefault(part, Collections.emptySet()).stream()
+				.filter(a -> a.getType().getName().getPackage().toString().startsWith("edu.kit.joana.")).collect(Collectors.toSet());
+	}
+
+	private boolean collectedAllNodesForMiscAnnotations = false;
+
+	private void initAnnotationCollectorWithAllMiscAnnotatedNodes() {
+		if (!collectedAllNodesForMiscAnnotations) {
+			miscAnnotations.keySet().forEach(p -> coll.collectNodes(p, AnnotationType.MISC));
+			collectedAllNodesForMiscAnnotations = true;
+		}
+	}
+
+	public Set<Annotation> getMiscAnnotations(SDGNode node) {
+		initAnnotationCollectorWithAllMiscAnnotatedNodes();
+		return coll.getCoveringCandidates(node).stream().flatMap(p -> miscAnnotations.getOrDefault(p, Collections.emptySet()).stream()).collect(
+				Collectors.toSet());
+	}
+
+	public Set<Annotation> getMiscAnnotationsWOJoana(SDGNode node) {
+		return getMiscAnnotations(node).stream().filter(a -> a.getType().getName().getPackage().toString().startsWith("edu.kit.joana.")).collect(
+				Collectors.toSet());
 	}
 
 	public Collection<SDGClass> getClasses() {

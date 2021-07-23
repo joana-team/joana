@@ -48,6 +48,7 @@ unauthorized user of the system
 - Java == 1.8
 - ant >= 1.9.6
 - Maven >= 3.x
+- g++ compiler for WALA (build-essential package on ubuntu and debian)
 
 1. Fetch submodule sources
 

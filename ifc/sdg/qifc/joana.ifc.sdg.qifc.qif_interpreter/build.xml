@@ -14,7 +14,7 @@
 	<property name="dest.dir" value="${joana.dist.dir}/${projectname}"/>
 	<property name="dest.dir.classes" location="${dest.dir}/classes"/>
 
-	<target name="fulljar" depends="joana.api, interpreter_jar_only">
+	<target name="fulljar" depends="joana.api, joana.ifc.sdg.qifc.nildumu, interpreter_jar_only">
 	</target>
 
 	<target name="interpreter_jar_only" depends="init,compile,spill_out_jars"
@@ -32,6 +32,9 @@
 	<target name="spill_out_jars">
 		<unjar dest="${dest.dir.classes}">
 			<fileset dir="${joana.contrib.base.dir}">
+				<filename name="*.jar" />
+			</fileset>
+			<fileset dir="${joana.ifc.sdg.qifc.qif_interpreter.libs.dir}">
 				<filename name="*.jar" />
 			</fileset>
 			<fileset dir="${joana.dist.dir}">
@@ -52,6 +55,7 @@
 	<target name="compile">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.dist.dir}" includes="joana.api.jar joana.ifc.sdg.qifc.nildumu.jar"/>
+			<fileset dir="${joana.ifc.sdg.qifc.qif_interpreter.libs.dir}"/>
 		</path>
 		<javac
 			includeantruntime="false"

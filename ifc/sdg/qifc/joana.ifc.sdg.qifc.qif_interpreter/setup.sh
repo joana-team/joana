@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # installs cryptominisat + approxmc
-# the follwoing packages need to be installed:
+# the following packages need to be installed:
 # build-essential cmake zlib1g-dev libboost-program-options-dev libm4ri-dev
 
 git clone https://github.com/msoos/cryptominisat

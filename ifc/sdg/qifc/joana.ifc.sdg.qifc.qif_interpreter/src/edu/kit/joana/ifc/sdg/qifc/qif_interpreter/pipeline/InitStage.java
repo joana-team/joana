@@ -34,9 +34,9 @@ public class InitStage implements IStage {
 		assert (env.args != null);
 
 		// configs used for benchmarking
-		Config.usePP = env.args.pp;
+		Config.usePP = env.args.pp || env.args.hybrid;
 		Config.useHybrid = env.args.hybrid;
-		Config.bitwidth = env.args.width;
+		Config.unwind = env.args.unwind;
 
 		String classFilePath;
 		String programPath = env.args.inputFiles.get(0);
@@ -62,8 +62,6 @@ public class InitStage implements IStage {
 		}
 		Logger.log(String.format("Finished compilation. Generated file: %s", classFilePath));
 		DotGrapher.configureDest(env.args.outputDirectory);
-
-		env.config = new Config(env.args.loopMax, env.args.recMax, env.args.methodMax);
 
 		// get classname via filename
 		String className = FilenameUtils.getBaseName(programPath);

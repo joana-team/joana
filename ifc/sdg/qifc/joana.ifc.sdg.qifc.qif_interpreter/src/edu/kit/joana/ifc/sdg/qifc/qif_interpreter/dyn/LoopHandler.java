@@ -2,6 +2,7 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.dyn;
 
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.Pair;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir.*;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.oopsies.OutOfScopeException;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.pipeline.Environment;
@@ -31,7 +32,7 @@ public class LoopHandler {
 	 * @return {@code LoopBody} object that contains all necessary loop information
 	 */
 	public static LoopBody analyze(Method m, BasicBlock head, SATAnalysis sa, LoopBody base, Environment env) {
-		int loopUnrollingMax = env.config.loopUnrollingMax();
+		int loopUnrollingMax = Config.unwind;
 
 		base.computeLoopCondition();
 		extractDeps(m, base);

@@ -1,6 +1,7 @@
 package edu.kit.joana.ifc.sdg.qifc.qif_interpreter.ir;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.Config;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.LogicUtil;
 import edu.kit.joana.ifc.sdg.qifc.qif_interpreter.util.Substitution;
 import edu.kit.joana.util.Triple;
@@ -68,7 +69,7 @@ public abstract class RecursiveReturnValue<T> implements IReturnValue<T>, IRecur
 
 		T singleCall = substituteAll(this.getReturnValue(), primitiveArgsForNextCall, arrayArgsForNextCall);
 
-		for (int i = 0; i < this.m.getProg().getEnv().config.recDepthMax(); i++) {
+		for (int i = 0; i < Config.unwind; i++) {
 			computeNextArgs();
 			T nextCall = substituteAll(this.getReturnValue(), primitiveArgsForNextCall, arrayArgsForNextCall);
 			singleCall = substituteReturnValue(singleCall, nextCall, returnValVars);

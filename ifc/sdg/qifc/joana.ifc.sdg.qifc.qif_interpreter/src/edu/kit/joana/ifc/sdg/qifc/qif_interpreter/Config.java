@@ -8,48 +8,14 @@ package edu.kit.joana.ifc.sdg.qifc.qif_interpreter;
  */
 public class Config {
 
-	public static boolean usePP = true;
-	public static boolean useHybrid = false;
-	public static int bitwidth = 32;
-
 	// default values
-	public static final int DEFAULT_LOOP_UNROLLING_MAX = 8;
-	public static final int DEFAULT_RECURSION_DEPTH_MAX = 8;
-	public static final int DEFAULT_METHOD_DEPTH_MAX = 8;
+	public static final int DEFAULT_UNWIND = 32;
+	public static final boolean DEFAULT_PP = false;
+	public static final boolean DEFAULT_HYBRID = false;
 
-	private int loopUnrollingMax;
-	private int recDepthMax;
-	private int methodDepthMax;
+	public static boolean usePP = DEFAULT_PP;
+	public static boolean useHybrid = DEFAULT_HYBRID;
+	public static int bitwidth = 32;
+	public static int unwind = DEFAULT_UNWIND;
 
-	public Config(int loopMax, int recMax, int methodMax) {
-		this.loopUnrollingMax = loopMax;
-		this.recDepthMax = recMax;
-		this.methodDepthMax = methodMax;
-	}
-
-	public static Config defaultConfig() {
-		return new Config(DEFAULT_LOOP_UNROLLING_MAX, DEFAULT_RECURSION_DEPTH_MAX, DEFAULT_METHOD_DEPTH_MAX);
-	}
-
-	public Config setLoopUnrollingMax(int limit) {
-		this.loopUnrollingMax = limit;
-		return this;
-	}
-
-	public Config setRecursionDepthMax(int limit) {
-		this.recDepthMax = limit;
-		return this;
-	}
-
-	public int loopUnrollingMax() {
-		return this.loopUnrollingMax;
-	}
-
-	public int recDepthMax() {
-		return this.recDepthMax;
-	}
-
-	public int methodDepthMax() {
-		return this.methodDepthMax;
-	}
 }

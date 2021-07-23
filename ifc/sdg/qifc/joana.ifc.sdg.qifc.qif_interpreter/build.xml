@@ -34,6 +34,9 @@
 			<fileset dir="${joana.contrib.base.dir}">
 				<filename name="*.jar" />
 			</fileset>
+			<fileset dir="${joana.ifc.sdg.qifc.qif_interpreter.libs.dir}">
+				<filename name="*.jar" />
+			</fileset>
 			<fileset dir="${joana.dist.dir}">
 				<filename name="joana.api.jar" />
 			</fileset>
@@ -52,6 +55,7 @@
 	<target name="compile">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.dist.dir}" includes="joana.api.jar joana.ifc.sdg.qifc.nildumu.jar"/>
+			<fileset dir="${joana.ifc.sdg.qifc.qif_interpreter.libs.dir}"/>
 		</path>
 		<javac
 			includeantruntime="false"

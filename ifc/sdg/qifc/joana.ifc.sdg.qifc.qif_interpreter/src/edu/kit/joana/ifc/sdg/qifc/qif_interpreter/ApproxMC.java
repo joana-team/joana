@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class ApproxMC {
 
 	private static final Pattern resultLine = Pattern.compile("s mc ([0-9]*)");
-	private static final String approxMCPath = "../../../../contrib/lib/approxmc ";
+	private static final String approxMCPath = "approxmc ";
 	private static int count = 0;
 	private final String dest;
 

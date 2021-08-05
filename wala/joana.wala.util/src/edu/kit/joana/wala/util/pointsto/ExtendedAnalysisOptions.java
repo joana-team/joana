@@ -7,11 +7,8 @@
  */
 package edu.kit.joana.wala.util.pointsto;
 
-import com.ibm.wala.ipa.callgraph.AnalysisOptions;
-import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.*;
 
-import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import edu.kit.joana.wala.util.pointsto.ObjSensZeroXCFABuilder.MethodFilter;
 
 /**
@@ -23,8 +20,9 @@ public class ExtendedAnalysisOptions extends AnalysisOptions {
 
 	public MethodFilter filter;
 
-	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e, UninitializedFieldHelperOptions fieldHelperOptions) {
-		super(scope, e, fieldHelperOptions);
+	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e,
+			UninitializedFieldHelperOptions fieldHelperOptions, InterfaceImplementationOptions interfaceImplOptions) {
+		super(scope, e, fieldHelperOptions, interfaceImplOptions);
 		if (filter == null) {
 			this.filter = new ObjSensZeroXCFABuilder.DefaultMethodFilter();
 		} else {
@@ -32,8 +30,17 @@ public class ExtendedAnalysisOptions extends AnalysisOptions {
 		}
 	}
 
+	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e,
+			UninitializedFieldHelperOptions fieldHelperOptions) {
+		this(filter, scope, e, fieldHelperOptions, InterfaceImplementationOptions.createEmpty());
+	}
+
+	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e, InterfaceImplementationOptions interfaceImplOptions) {
+		this(filter, scope, e, UninitializedFieldHelperOptions.createEmpty(), interfaceImplOptions);
+	}
+
 	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {
-		this(filter, scope, e, UninitializedFieldHelperOptions.createEmpty());
+		this(filter, scope, e, InterfaceImplementationOptions.createEmpty());
 	}
 
 	public ExtendedAnalysisOptions(final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {

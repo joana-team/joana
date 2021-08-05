@@ -1,9 +1,7 @@
 name: Java CI
 
 on:
-  push:
-    branches:
-      - master
+  push: {}
   schedule:
     # Every day at 3am
     - cron: '0 3 * * *'

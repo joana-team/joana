@@ -23,6 +23,7 @@ cd "$(dirname "$0")"
 git submodule update --init --remote --rebase
 
 cd contrib/wala
+git checkout master
 mvn verify -DskipTests=true -e
 
 cd ../parameter-setter

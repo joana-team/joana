@@ -40,35 +40,44 @@ jobs:
       with:
         name: joana.api.jar
         path: ./dist/joana.api.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.ifc.sdg.core.jar
         path: ./dist/joana.ifc.sdg.core.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.ifc.sdg.qifc.nildumu.jar
         path: ./dist/joana.ifc.sdg.qifc.nildumu.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.ui.ifc.sdg.graphviewer.jar
         path: ./dist/joana.ui.ifc.sdg.graphviewer.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.ui.ifc.wala.cli.jar
         path: ./dist/joana.ui.ifc.wala.cli.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.ui.ifc.wala.console.jar
         path: ./dist/joana.ui.ifc.wala.console.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.wala.core.jar
         path: ./dist/joana.wala.core.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.wala.dictionary.jar
         path: ./dist/joana.wala.dictionary.jar
+        retention-days: 10
     - uses: actions/upload-artifact@v2
       with:
         name: joana.wala.jodroid.jar
         path: ./dist/joana.wala.jodroid.jar
+        retention-days: 10

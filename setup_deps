@@ -1,6 +1,6 @@
 #! /bin/sh
 
-
+set -e
   if ! (java -version 2>&1 >/dev/null | grep "1.8" > /dev/null) ; then 
     echo "Java version is not 1.8, trying to use java8 if installed"
     lib=`update-java-alternatives -l | grep "[/].*1\.8.*" --only-matching`
@@ -20,10 +20,15 @@
 
 cd "$(dirname "$0")"
 
-git submodule update --init --remote --rebase
+git submodule init
+git submodule update --remote --merge
 
-cd contrib/wala
-git checkout master
+cd contrib/exceptionalist && git fetch --all && git reset --hard origin/master
+./gradlew shadowJar
+cp build/libs/exceptionalist-1.0-all.jar ../lib/exceptionalist.jar
+java -jar build/libs/exceptionalist-1.0-all.jar 1.7 ../lib/stubs/jdk7_wo_exceptions.json
+
+cd ../wala
 mvn verify -DskipTests=true -e
 
 cd ../parameter-setter

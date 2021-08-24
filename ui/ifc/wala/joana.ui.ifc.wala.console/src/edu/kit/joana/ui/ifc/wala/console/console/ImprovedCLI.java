@@ -14,6 +14,7 @@ import edu.kit.joana.ui.annotations.PruningPolicy;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.util.SDGUtils;
 import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.Triple;
 import edu.kit.joana.wala.core.SDGBuilder;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -36,6 +37,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
@@ -94,9 +96,9 @@ public class ImprovedCLI {
           JavaType.parseSingleTypeFromString("java.lang.Object"));
     }
     if (str.matches(".+\\..+")) {
-      if (str.matches(".+->[0-9]+")) {
+      if (str.matches(".+->-?[0-9]+")) {
         String[] parts = str.split("->");
-        return new SDGFormalParameter((SDGMethod) programPartFromString(parts[0]), Integer.parseInt(parts[1]), "",
+        return new SDGFormalParameter((SDGMethod) programPartFromString(parts[0]), Integer.parseInt(parts[1]), parts[1],
             JavaType.parseSingleTypeFromString("java.lang.Object"));
       }
       return new SDGMethod(JavaMethodSignature.fromString(str), AnalysisScope.APPLICATION.toString(), false);
@@ -172,6 +174,27 @@ public class ImprovedCLI {
     }
   }
 
+  public interface LoadSDGEnabled {
+
+    boolean loadSDG(Path file);
+  }
+
+  @Command(name = "loadSDG", description = "Load the SDG from a file")
+  static class LoadSDGCommand implements Callable<Integer> {
+
+    @ParentCommand CliCommands parent;
+
+    @State
+    LoadSDGEnabled state;
+
+    @Parameters(description = "SDG file", paramLabel = "FILE")
+    Path file;
+
+    @Override public Integer call() {
+      return exit(state.loadSDG(file));
+    }
+  }
+
   public interface ExportSDGEnabled {
 
     boolean exportSDG(File file);
@@ -238,6 +261,14 @@ public class ImprovedCLI {
     boolean usesOnlyDirectFlow();
 
     void setUninitializedFieldTypeMatcher(UninitializedFieldHelperOptions.FieldTypeMatcher fieldTypeMatcher);
+
+    void setStubs(Stubs stubs);
+
+    Stubs getStubs();
+
+    void setExceptionalistEnabled(boolean enabled);
+
+    boolean isExceptionalistEnabled();
 
     UninitializedFieldHelperOptions.FieldTypeMatcher getUninitializedFieldTypeMatcher();
   }
@@ -328,8 +359,70 @@ public class ImprovedCLI {
                 Pair.pair("excAnalysis", parent.state.getExcAnalysis()),
                 Pair.pair("pruningPolicy", parent.state.getPruningPolicy()),
                 Pair.pair("onlyDirectFlow", parent.state.usesOnlyDirectFlow()),
-                Pair.pair("uninitializedFieldTypeRegexp", parent.state.getUninitializedFieldTypeMatcher()))) {
+                Pair.pair("uninitializedFieldTypeRegexp", parent.state.getUninitializedFieldTypeMatcher()),
+                Pair.pair("stubs", parent.state.getStubs()),
+                Pair.pair("exceptionalistEnabled", parent.state.isExceptionalistEnabled()))) {
           System.out.println(String.format("%-20s = %s", p.getFirst(), p.getSecond().toString()));
+        }
+      }
+    }
+
+    @Command
+    void stubs(@Parameters(paramLabel = "stubs") Stubs stubs) {
+      this.state.setStubs(stubs);
+    }
+
+    @Command
+    void setExceptionalistEnabled(@Parameters(paramLabel = "enabled", completionCandidates = BooleanCompletionCandidates.class)
+        boolean enabled) {
+      this.state.setExceptionalistEnabled(enabled);
+    }
+
+
+    @Override public Integer call() {
+      return parent.printUsage(spec);
+    }
+  }
+
+  interface OpenAPIEnabled {
+    boolean isOpenAPIEnabled();
+    void enableOpenAPI();
+    void disableOpenAPI();
+  }
+
+  @Command(name = "openapi", description = "Enable and disable byte code optimizations",
+      subcommands = { OpenAPICommand.DisableCommand.class, OpenAPICommand.InfoCommand.class })
+  static class OpenAPICommand implements Callable<Integer> {
+    @Spec Model.CommandSpec spec;
+
+    @ParentCommand CliCommands parent;
+
+    @State
+    OpenAPIEnabled state;
+
+    @Command
+    void enable(){
+      state.enableOpenAPI();
+    }
+
+    @Command(name = "disable")
+    static class DisableCommand implements Runnable {
+      @ParentCommand
+      OpenAPICommand parent;
+      @Override public void run() {
+        parent.state.disableOpenAPI();
+      }
+    }
+
+    @Command(name = "info")
+    static class InfoCommand implements Runnable {
+      @ParentCommand
+      OpenAPICommand parent;
+      @Override public void run() {
+        if (parent.state.isOpenAPIEnabled()){
+          System.out.println("enabled");
+        } else {
+          System.out.println("disabled");
         }
       }
     }

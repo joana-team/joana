@@ -7,13 +7,24 @@
  */
 package edu.kit.joana.util;
 
+import exceptionalist.MethodInfo;
+import joana.contrib.lib.Contrib;
+import com.ibm.wala.classLoader.IMethod;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
-import joana.contrib.lib.Contrib;
+;
 
 /**
  * This class encapsulates the functionality to locate stubs. It is hopefully
@@ -39,6 +50,19 @@ public enum Stubs {
 	private final String[] files;
 	private final String nativeSpecFile;
 	private final ClassLoader nativeSpecClassLoader;
+	private final String exceptionalistMethodInfoFile = "jdk7_wo_exceptions.json";
+	private Map<String, Map<String, MethodInfo>> exceptionalistMethodInfoCached = null;
+
+	public static class ExceptionalistConfig {
+		public final boolean enable;
+
+		public static final ExceptionalistConfig DISABLE = new ExceptionalistConfig(false);
+		public static final ExceptionalistConfig ENABLE = new ExceptionalistConfig(true);
+
+		public ExceptionalistConfig(boolean enable) {
+			this.enable = enable;
+		}
+	}
 
 	private Stubs(final String name, final String fileName, final String nativeSpecFile, final ClassLoader nativeSpecClassLoader) {
 		this.name = name;
@@ -77,7 +101,6 @@ public enum Stubs {
 				paths[i] = stubsBaseDir + "/" + name;
 			}
 		}
-		
 		return paths;
 	}
 
@@ -110,6 +133,53 @@ public enum Stubs {
 	private boolean locateableByClassLoader(final String name) {
 		final URL urlStubsLocation = Contrib.class.getClassLoader().getResource(name);
 		return (urlStubsLocation != null);
+	}
+
+	private InputStream getExceptionalistFile() throws IOException {
+		String path = "stubs/" + exceptionalistMethodInfoFile;
+		if (locateableByClassLoader(path)) {
+			URL url = Contrib.class.getClassLoader().getResource(path);
+			assert url != null;
+			final URLConnection con = url.openConnection();
+			return con.getInputStream();
+		} else {
+			return Files.newInputStream(Paths.get(determineStubsBasePath() + "/" + path));
+		}
+	}
+
+	/**
+	 * Loads a file that contains methods that should not throw an error (besides null related errors if a parameter or the
+	 * owning object is null).
+	 * @return class name → methods
+	 */
+	public Map<String, Map<String, MethodInfo>> getExceptionalistMethodInfo() throws IOException {
+		return exceptionalist.MainKt.loadMethodInfos(getExceptionalistFile());
+	}
+
+	/**
+	 * Loads a file that contains methods that should not throw an error (besides null related errors if a parameter or the
+	 * owning object is null).
+	 *
+	 * This method caches the method infos.
+	 *
+	 * @return class name → methods
+	 */
+	public Map<String, Map<String, MethodInfo>> getExceptionalistMethodInfoCached() throws IOException {
+		if (exceptionalistMethodInfoCached == null) {
+			exceptionalistMethodInfoCached = getExceptionalistMethodInfo();
+		}
+		return exceptionalistMethodInfoCached;
+	}
+
+	public Optional<MethodInfo> getExceptionalistInfo(IMethod method) {
+		try {
+			return Optional.ofNullable(getExceptionalistMethodInfoCached()
+					.getOrDefault(TypeNameUtils.toJavaClassName(method.getDeclaringClass()),
+							Collections.emptyMap()).getOrDefault(TypeNameUtils.toJavaSignatureWOReturn(method), null));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return Optional.empty();
 	}
 
 	/**

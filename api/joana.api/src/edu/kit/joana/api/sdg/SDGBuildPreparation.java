@@ -49,6 +49,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class SDGBuildPreparation {
 
@@ -112,9 +113,16 @@ public final class SDGBuildPreparation {
 	/**
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
-	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters){
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters, boolean returns){
+		return searchProgramParts(out, classPath, methods, fields, parameters, returns, false);
+	}
+
+	/**
+	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
+	 */
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters, boolean returns, boolean includeInherited){
 		try {
-			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters);
+			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters, returns, includeInherited);
 		} catch (ClassHierarchyException e) {
 			out.println("Error while analyzing class structure!");
 			return Collections.emptyList();
@@ -127,13 +135,21 @@ public final class SDGBuildPreparation {
 	/**
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
-	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters)
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters, boolean returns)
+			throws IOException, ClassHierarchyException {
+		return searchProgramParts(out, cha, methods, fields, parameters, returns, false);
+	}
+
+	/**
+	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
+	 */
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters, boolean returns, boolean includeInherited)
 			throws IOException, ClassHierarchyException {
 		final List<SDGProgramPart> result = new ArrayList<>();
 		for (final IClass cls : cha) {
 			String classLoader = cls.getClassLoader().getName().toString();
 			if (cls.getClassLoader().getName().equals(AnalysisScope.APPLICATION)) {
-				for (final IMethod m : cls.getDeclaredMethods()) {
+				for (final IMethod m : (includeInherited ? cls.getAllMethods() : cls.getDeclaredMethods())) {
 					SDGMethod method = new SDGMethod(JavaMethodSignature.fromString(m.getSignature()), classLoader, m.isStatic());
 					if (methods){
 						result.add(method);
@@ -144,6 +160,9 @@ public final class SDGBuildPreparation {
 							result.add(new SDGFormalParameter(method, num, !m.isStatic() && i == 0 ? "this" : (num + ""),
 									JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
+					}
+					if (returns && !method.getSignature().getReturnType().toHRString().equals("void")){
+						result.add(new SDGFormalParameter(method, -1, "return", method.getSignature().getReturnType()));
 					}
 				}
 				if (fields){
@@ -356,6 +375,13 @@ public final class SDGBuildPreparation {
 		scfg.cache = cache;
 		scfg.cha = cha;
 		scfg.entry = m;
+		scfg.additionalEntries = cfg.additionalEntries.stream().map(e -> StringStuff.makeMethodReference(Language.JAVA, e)).map(mrr -> {
+			IMethod mm = cha.resolveMethod(mrr);
+			if (mm == null){
+				fail("could not resolve " + mrr);
+			}
+			return mm;
+		}).collect(Collectors.toList());
 		scfg.ext = chk;
 		scfg.immutableNoOut = SDGBuilder.IMMUTABLE_NO_OUT;
 		scfg.immutableStubs = SDGBuilder.IMMUTABLE_STUBS;
@@ -384,6 +410,9 @@ public final class SDGBuildPreparation {
 		scfg.doParallel = cfg.isParallel;
 		scfg.controlDependenceVariant = cfg.controlDependenceVariant;
 		scfg.fieldHelperOptions = cfg.fieldHelperOptions;
+		scfg.interfaceImplOptions = cfg.interfaceImplOptions;
+		scfg.stubs = cfg.stubs;
+		scfg.exceptionalistConfig = cfg.exceptionalistConfig;
 		return Pair.make(startTime, scfg);
 	}
 
@@ -460,11 +489,13 @@ public final class SDGBuildPreparation {
 	public static class Config {
 		public String name;
 		public String entryMethod;
+		public Collection<String> additionalEntries = Collections.emptyList();
 		public String classpath;
 		public boolean classpathAddEntriesFromMANIFEST = true;
 		public String thirdPartyLibPath;
 		public String exclusions;
-		public Stubs stubs; 
+		public Stubs stubs;
+		public Stubs.ExceptionalistConfig exceptionalistConfig;
 		public String outputDir;
 		public ExternalCallCheck extern;
 		public PointsToPrecision pts;
@@ -489,6 +520,7 @@ public final class SDGBuildPreparation {
 		public boolean isParallel = true;
 		public ControlDependenceVariant controlDependenceVariant = SDGBuilder.defaultControlDependenceVariant;
 		public UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
+		public InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
 
 		public Config(String name) {
 			this(name, "<no entry defined>", FieldPropagation.OBJ_GRAPH);
@@ -496,39 +528,46 @@ public final class SDGBuildPreparation {
 
 		public Config(String name, String entryMethod, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, STD_CLASS_PATH, true, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS,
+					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS, Stubs.ExceptionalistConfig.DISABLE,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS,
+					DEFAULT_ACCESS_PATH, SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS, Stubs.ExceptionalistConfig.DISABLE,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH,
-					SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS, /*ext-call*/null,
+					SDGBuilder.STD_EXCLUSION_REG_EXP, Stubs.NO_STUBS, Stubs.ExceptionalistConfig.DISABLE, /*ext-call*/null,
 					"./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, String exclusions,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, PointsToPrecision.INSTANCE_BASED, DEFAULT_EXCEPTION_ANALYSIS,
-					DEFAULT_ACCESS_PATH, exclusions, Stubs.NO_STUBS,
+					DEFAULT_ACCESS_PATH, exclusions, Stubs.NO_STUBS, Stubs.ExceptionalistConfig.DISABLE,
 					/*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts, String exclusions,
 				FieldPropagation fieldPropagation) {
 			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, pts, DEFAULT_EXCEPTION_ANALYSIS, DEFAULT_ACCESS_PATH, exclusions,
-					Stubs.NO_STUBS, /*ext-call*/null, "./", fieldPropagation);
+					Stubs.NO_STUBS, Stubs.ExceptionalistConfig.DISABLE, /*ext-call*/null, "./", fieldPropagation);
 		}
 
 		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts,
 				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, Stubs stubs,
-				ExternalCallCheck extern, String outputDir,	FieldPropagation fieldPropagation) {
+				ExternalCallCheck extern, String outputDir, FieldPropagation fieldPropagation) {
+			this(name, entryMethod, classpath, classpathAddEntriesFromMANIFEST, pts, exceptions, accessPath, exclusions, stubs,
+					Stubs.ExceptionalistConfig.ENABLE, extern, outputDir, fieldPropagation);
+		}
+
+		public Config(String name, String entryMethod, String classpath, boolean classpathAddEntriesFromMANIFEST, PointsToPrecision pts,
+				ExceptionAnalysis exceptions, boolean accessPath, String exclusions, Stubs stubs,
+				Stubs.ExceptionalistConfig exceptionalistConfig, ExternalCallCheck extern, String outputDir, FieldPropagation fieldPropagation) {
 			this.name = name;
 			this.pts = pts;
 			this.exceptions = exceptions;
@@ -538,6 +577,7 @@ public final class SDGBuildPreparation {
 			this.entryMethod = entryMethod;
 			this.exclusions = exclusions;
 			this.stubs = stubs;
+			this.exceptionalistConfig = exceptionalistConfig;
 			this.extern = extern;
 
 			if (!outputDir.endsWith(File.separator)) {

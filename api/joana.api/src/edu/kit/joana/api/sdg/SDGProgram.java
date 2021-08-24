@@ -13,7 +13,10 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.impl.FakeRootClass;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
@@ -28,6 +31,7 @@ import com.ibm.wala.types.annotations.TypeAnnotation.LocalVarTarget;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
+import edu.kit.joana.api.annotations.AnnotationSubTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.AnnotationTypeBasedNodeCollector;
 import edu.kit.joana.api.annotations.IdManager;
@@ -59,6 +63,7 @@ import edu.kit.joana.wala.summary.SummaryComputation;
 import edu.kit.joana.wala.summary.WorkPackage;
 import edu.kit.joana.wala.summary.WorkPackage.EntryPoint;
 import edu.kit.joana.wala.util.PrettyWalaNames;
+import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -71,7 +76,16 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static edu.kit.joana.wala.core.SDGBuilder.createCallgraphBuilder;
+import static edu.kit.joana.wala.core.SDGBuilder.createSingleEntryOptions;
+
 public class SDGProgram {
+
+	static {
+		if (Integer.parseInt(System.getProperty("java.class.version").split("\\.")[0]) > 52){
+			throw new RuntimeException("Use at most java8");
+		}
+	}
 
 	/**
 	 * Special object which provides information about where a given code piece stems from
@@ -189,11 +203,29 @@ public class SDGProgram {
 	}
 
 	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, Optional<String> entryMethod) {
+		this(sdg, mhpAnalysis, entryMethod, false);
+	}
+
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, boolean annotateOverloadedMethods) {
+		this(sdg, mhpAnalysis, Optional.empty(), annotateOverloadedMethods);
+	}
+
+	/**
+	 *
+	 * @param sdg
+	 * @param mhpAnalysis
+	 * @param entryMethod
+	 * @param annotateOverloadedMethods annotate overloading methods (and their parameters) too, but do not create actual
+	 *                                  new annotations
+	 */
+	public SDGProgram(SDG sdg, MHPAnalysis mhpAnalysis, Optional<String> entryMethod, boolean annotateOverloadedMethods) {
 		this.sdg = sdg;
 		this.mhpAnalysis = mhpAnalysis;
 		this.ppartParser = new SDGProgramPartParserBC(this);
 		this.classComp = new SDGClassComputation(sdg);
-		this.coll = new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
+		this.coll = annotateOverloadedMethods ?
+				new AnnotationSubTypeBasedNodeCollector(sdg, this, this.classComp) :
+				new AnnotationTypeBasedNodeCollector(sdg, this.classComp);
 		this.coll.init(this);
 		this.entryMethod = entryMethod;
 	}
@@ -221,7 +253,7 @@ public class SDGProgram {
 			MHPType mhpType) {
 		try {
 			// TODO: do not ever create with stubs == null!
-			return createSDGProgram(classPath, entryMethod, null, computeInterference, mhpType,
+			return createSDGProgram(classPath, entryMethod, null, Stubs.ExceptionalistConfig.DISABLE, computeInterference, mhpType,
 					IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), NullProgressMonitor.INSTANCE);
 		} catch (ClassHierarchyException e) {
 			return null;
@@ -235,9 +267,9 @@ public class SDGProgram {
 	}
 
 	public static SDGProgram createSDGProgram(String classPath, String entryMethod, Stubs stubsPath,
-			boolean computeInterference, MHPType mhpType, PrintStream out, IProgressMonitor monitor)
+			Stubs.ExceptionalistConfig exceptionalistConfig, boolean computeInterference, MHPType mhpType, PrintStream out, IProgressMonitor monitor)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
-		SDGConfig config = new SDGConfig(classPath, entryMethod, stubsPath);
+		SDGConfig config = new SDGConfig(classPath, entryMethod, stubsPath, exceptionalistConfig);
 		config.setComputeInterferences(computeInterference);
 		config.setMhpType(mhpType);
 		return createSDGProgram(config, out, monitor);
@@ -252,6 +284,23 @@ public class SDGProgram {
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		return createSDGProgram(config, out, monitor, null);
+	}
+
+	public static SDGBuilder.CGResult buildCallGraph(SDGConfig config)
+			throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
+		return buildCallGraph(SDGProgram.makeBuildPreparationConfig(config));
+	}
+
+	public static SDGBuilder.CGResult buildCallGraph(SDGBuildPreparation.Config config)
+			throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
+		SDGBuilder.SDGBuilderConfig cfg = SDGBuildPreparation
+				.prepareBuild(System.out, config, new NullProgressMonitor()).snd;
+		ExtendedAnalysisOptions options = createSingleEntryOptions(cfg);
+
+		CallGraphBuilder<InstanceKey> cgb = createCallgraphBuilder(cfg, options);
+		com.ibm.wala.ipa.callgraph.CallGraph callgraph = cgb.makeCallGraph(options, new NullProgressMonitor());
+
+		return new SDGBuilder.CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
@@ -295,7 +344,11 @@ public class SDGProgram {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
 			sdgFileOut.flush();
 		}
-		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis, config.getEntryMethod());
+		String entryMethod = buildArtifacts.getWalaCallGraph().getFakeRootNode().getMethod().getSignature();
+		if (config.getAdditionalEntryMethods().isEmpty()){
+			entryMethod = config.getEntryMethod();
+		}
+		final SDGProgram ret = new SDGProgram(sdg, mhpAnalysis, Optional.of(config.getEntryMethod()), config.isAnnotatingOverloadingMethods());
 		ret.setClassHierarchy(buildArtifacts.getClassHierarchy());
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
@@ -525,6 +578,7 @@ public class SDGProgram {
 		cfg.accessPath = config.computeAccessPaths();
 		cfg.sideEffects = config.getSideEffectDetectorConfig();
 		cfg.stubs = config.getStubs();
+		cfg.exceptionalistConfig = config.getExceptionalistConfig();
 		cfg.pruningPolicy = config.getPruningPolicy();
 		cfg.exclusions = config.getExclusions();
 		cfg.computeAllocationSites = config.computeAllocationSites();
@@ -538,6 +592,8 @@ public class SDGProgram {
 		cfg.isParallel = config.isParallel();
 		cfg.controlDependenceVariant = config.getControlDependenceVariant();
 		cfg.fieldHelperOptions = config.getFieldHelperOptions();
+		cfg.interfaceImplOptions = config.getInterfaceImplOptions();
+		cfg.additionalEntries = config.getAdditionalEntryMethods();
 		debug.outln(cfg.stubs);
 		return cfg;
 	}
@@ -616,7 +672,7 @@ public class SDGProgram {
 	private boolean collectedAllNodesForMiscAnnotations = false;
 
 	private void initAnnotationCollectorWithAllMiscAnnotatedNodes() {
-		if (!collectedAllNodesForMiscAnnotations) {
+		if (collectedAllNodesForMiscAnnotations) {
 			miscAnnotations.keySet().forEach(p -> coll.collectNodes(p, AnnotationType.MISC));
 			collectedAllNodesForMiscAnnotations = true;
 		}
@@ -917,6 +973,10 @@ public class SDGProgram {
 		} else {
 			return pparts.iterator().next();
 		}
+	}
+
+	public SDGMethod getMethod(IMethod method){
+		return getMethod(method.getSignature());
 	}
 
 	/**

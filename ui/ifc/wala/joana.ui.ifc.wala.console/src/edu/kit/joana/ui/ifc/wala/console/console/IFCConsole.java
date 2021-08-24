@@ -10,6 +10,7 @@ package edu.kit.joana.ui.ifc.wala.console.console;
 import com.amihaiemil.eoyaml.*;
 import com.google.common.collect.Multimap;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.InterfaceImplementationOptions;
 import com.ibm.wala.ipa.callgraph.UninitializedFieldHelperOptions;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -28,10 +29,7 @@ import edu.kit.joana.api.annotations.AnnotationType;
 import edu.kit.joana.api.annotations.IFCAnnotation;
 import edu.kit.joana.api.lattice.BuiltinLattices;
 import edu.kit.joana.api.sdg.*;
-import edu.kit.joana.api.sdg.opt.FilePass;
-import edu.kit.joana.api.sdg.opt.PreProcPasses;
-import edu.kit.joana.api.sdg.opt.ProGuardPass;
-import edu.kit.joana.api.sdg.opt.SetValuePass;
+import edu.kit.joana.api.sdg.opt.*;
 import edu.kit.joana.ifc.sdg.core.SecurityNode;
 import edu.kit.joana.ifc.sdg.core.SecurityNode.SecurityNodeFactory;
 import edu.kit.joana.ifc.sdg.core.conc.DataConflict;
@@ -67,6 +65,7 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import picocli.CommandLine;
@@ -353,15 +352,15 @@ public class IFCConsole {
 	// private SDG sdg;
 	private IFCAnalysis ifcAnalysis = null;
 	private String classPath = "bin";
-	private PointsToPrecision pointsTo = PointsToPrecision.INSTANCE_BASED;
-	private ExceptionAnalysis excAnalysis = ExceptionAnalysis.INTRAPROC;
+	private PointsToPrecision pointsTo = PointsToPrecision.TYPE_BASED;
+	private ExceptionAnalysis excAnalysis = ExceptionAnalysis.IGNORE_ALL;
 	private boolean computeInterference = false;
 	private MHPType mhpType = MHPType.NONE;
 	// private IStaticLattice<String> securityLattice;
 	private final Collection<IViolation<SecurityNode>> lastAnalysisResult = new LinkedList<IViolation<SecurityNode>>();
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
 	private Set<edu.kit.joana.api.sdg.SDGInstruction> lastComputedChop = null;
-    private final EntryLocator loc = new EntryLocator();
+	private final EntryLocator loc = new EntryLocator();
 	private final List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 	private final SDGMethodSelector methodSelector = new SDGMethodSelector(this);
@@ -369,7 +368,8 @@ public class IFCConsole {
 	private final CommandRepository repo = new CommandRepository();
 	private final String outputDirectory = "./";
 	private String latticeFile;
-	private Stubs stubsPath = Stubs.JRE_15;
+	private Stubs stubsPath = Stubs.JRE_17;
+	private Stubs.ExceptionalistConfig exceptionalistConfig = Stubs.ExceptionalistConfig.ENABLE;
 	private boolean recomputeSDG = true;
 	private ChopComputation chopComputation = ChopComputation.ALL;
 	private boolean onlyDirectFlow = false; 
@@ -387,6 +387,17 @@ public class IFCConsole {
 	 * @see UninitializedFieldHelperOptions
 	 */
 	private UninitializedFieldHelperOptions.FieldTypeMatcher uninitializedFieldTypeMatcher = typeReference -> false;
+
+	private InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
+
+	private boolean annotateOverloadedMethods = false;
+	private boolean enableOpenApi = true;
+	private OpenApiPreProcessorPass.Config openApiPreProcConfig = OpenApiPreProcessorPass.Config.DEFAULT;
+
+	/**
+	 * BC strings
+	 */
+	private Collection<String> additionalEntryMethods = Collections.emptyList();
 
 	public IFCConsole(BufferedReader in, IFCConsoleOutput out) {
 		this.in = in;
@@ -1855,11 +1866,14 @@ public class IFCConsole {
 			recomputeSDG = false;
 			final PrintStream outs = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
 			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
+			config.setAdditionalEntryMethods(additionalEntryMethods);
 			config.setComputeInterferences(computeInterference);
 			config.setMhpType(mhpType);
 			config.setExceptionAnalysis(excAnalysis);
 			config.setPointsToPrecision(pointsTo);
 			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
+			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
+			config.setInterfaceImplOptions(interfaceImplOptions);
 			com.ibm.wala.util.collections.Pair<Long, SDGBuilder.SDGBuilderConfig> pair;
 			try {
 				pair = SDGBuildPreparation.prepareBuild(outs, SDGProgram.makeBuildPreparationConfig(config), NullProgressMonitor.INSTANCE);
@@ -2198,7 +2212,7 @@ public class IFCConsole {
 	}
 
 	private void setSDG(SDG newSDG, MHPAnalysis mhp) {
-		setSDGProgram(new SDGProgram(newSDG, mhp));
+		setSDGProgram(new SDGProgram(newSDG, mhp, annotateOverloadedMethods));
 	}
 
 	public void displayCurrentConfig() {
@@ -2560,7 +2574,7 @@ public class IFCConsole {
 	}
 
 	private boolean buildSDG(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
-		if (!loc.entrySelected()) {
+		if (!loc.entrySelected() && additionalEntryMethods.isEmpty()) {
 			out.error("No entry method selected. Select entry method first!");
 			return false;
 		}
@@ -2601,24 +2615,26 @@ public class IFCConsole {
 		};
 	}
 
+	OpenApiPreProcessorPass createOpenApiPreProcessorPass() {
+		return new OpenApiPreProcessorPass(new OpenApiClientDetector(), openApiPreProcConfig);
+	}
+
 	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA){
 		return createSDG(classPath, computeInterference, mhpType, exA, true);
 	}
 
 	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues){
 		try {
+			SDGConfig preConf = getSdgConfig(classPath, computeInterference, mhpType, exA);
 			if (this.valuesToSet.size() > 0){
-				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
+				classPath = new PreProcPasses(createSetValuePass()).process(null, preConf, "", classPath);
 				classPathAfterOpt = classPath;
 			}
-			SDGConfig config = new SDGConfig(classPath, loc.getActiveEntry().toBCString(), stubsPath);
-			config.setPruningPolicy(pruningPolicy);
-			config.setComputeInterferences(computeInterference);
-			config.setMhpType(mhpType);
-			config.setExceptionAnalysis(exA);
-			config.setPointsToPrecision(pointsTo);
-			config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
-			config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
+			if (enableOpenApi) {
+				classPath = new PreProcPasses(createOpenApiPreProcessorPass()).process(null, preConf, "", classPath);
+				classPathAfterOpt = classPath;
+			}
+			SDGConfig config = getSdgConfig(classPath, computeInterference, mhpType, exA);
 			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
 				SDGProgram.throwAwayControlDeps(program.getSDG());
@@ -2629,6 +2645,9 @@ public class IFCConsole {
 			return Optional.empty();
 		} catch (IOException e) {
 			out.error("\nI/O problem during sdg creation: " + e.getMessage());
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			e.printStackTrace(new PrintStream(baos));
+			out.error(baos.toString());
 			return Optional.empty();
 		} catch (CancelException e) {
 			out.error("\nSDG creation cancelled.");
@@ -2639,8 +2658,34 @@ public class IFCConsole {
 		}
 	}
 
+	private SDGConfig getSdgConfig() {
+		return getSdgConfig(classPath, computeInterference, mhpType, excAnalysis);
+	}
+
+	private SDGConfig getSdgConfig(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
+		String entryPoint = "";
+		if (loc.getActiveEntry() != null){
+			entryPoint = loc.getActiveEntry().toBCString();
+		} else {
+			entryPoint = additionalEntryMethods.iterator().next();
+		}
+		SDGConfig config = new SDGConfig(classPath, entryPoint, stubsPath);
+		config.setAdditionalEntryMethods(additionalEntryMethods);
+		config.setPruningPolicy(pruningPolicy);
+		config.setComputeInterferences(computeInterference);
+		config.setMhpType(mhpType);
+		config.setExceptionAnalysis(exA);
+		config.setPointsToPrecision(pointsTo);
+		config.setFieldPropagation(FieldPropagation.OBJ_GRAPH_SIMPLE_PROPAGATION);
+		config.setFieldHelperOptions(new UninitializedFieldHelperOptions(uninitializedFieldTypeMatcher));
+		config.setInterfaceImplOptions(interfaceImplOptions);
+		config.setAnnotateOverloadingMethods(annotateOverloadedMethods);
+		return config;
+	}
+
 	PreProcPasses createOptPasses(){
-		return new PreProcPasses(new ProGuardPass());
+		return new PreProcPasses(new ProGuardPass(),
+				new OpenApiPreProcessorPass(new OpenApiClientDetector(), openApiPreProcConfig));
 	}
 
 	public synchronized boolean saveSDG(String path) {
@@ -2787,11 +2832,11 @@ public class IFCConsole {
 		Collection<IFCAnnotation> annotations = ifcAnalysis.getAnnotations();
 		if (useByteCodeOptimizations) {
 			if (this.valuesToSet.size() > 0){
-				classPath = new PreProcPasses(createSetValuePass()).process(null, "", classPath);
+				classPath = new PreProcPasses(createSetValuePass()).process(null, getSdgConfig(), "", classPath);
 				classPathAfterOpt = classPath;
 			}
 			PreProcPasses passes = createOptPasses();
-			passes.processAndUpdateSDG(ifcAnalysis, optLibPath,
+			passes.processAndUpdateSDG(ifcAnalysis, getSdgConfig(), optLibPath,
 					classPathAfterOpt == null ? classPath : classPathAfterOpt,
 					cp -> createSDG(cp, computeInterference, mhpType, excAnalysis, false).get());
 		}
@@ -2803,7 +2848,7 @@ public class IFCConsole {
 		public Optional<String> optimizeClassPath(String libPath){
 			PreProcPasses passes = createOptPasses();
 			try {
-				return Optional.of(passes.process(ifcAnalysis, libPath,
+				return Optional.of(passes.process(ifcAnalysis, getSdgConfig(), libPath,
 						classPathAfterOpt == null ? classPath : classPathAfterOpt));
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -3065,7 +3110,7 @@ public class IFCConsole {
 				@Override public boolean requiresKnowledgeOnAnnotations() {
 					return false;
 				}
-			}).process(null, "", classPath);
+			}).process(null, getSdgConfig(), "", classPath);
 		} catch (IOException e) {
 			out.error(e.getMessage());
 			return false;
@@ -3097,7 +3142,7 @@ public class IFCConsole {
 				@Override public boolean requiresKnowledgeOnAnnotations() {
 					return false;
 				}
-			}).process(null, "", classPath);
+			}).process(null, getSdgConfig(), "", classPath);
 		} catch (IOException e) {
 			out.error(e.getMessage());
 			return null;
@@ -3202,7 +3247,7 @@ public class IFCConsole {
 				@Override public boolean requiresKnowledgeOnAnnotations() {
 					return false;
 				}
-			}).process(null, "", classPath);
+			}).process(null, getSdgConfig(), "", classPath);
 		} catch (IOException e) {
 			out.error(e.getMessage());
 			return false;
@@ -3210,17 +3255,23 @@ public class IFCConsole {
 		return true;
 	}
 
-  /**
+	public void setInterfaceImplOptions(InterfaceImplementationOptions interfaceImplOptions) {
+		this.interfaceImplOptions = interfaceImplOptions;
+	}
+
+	/**
    * Wrapper for using the class with {@link ImprovedCLI}
    */
 	public class Wrapper
 			implements ImprovedCLI.ClassPathEnabled, ImprovedCLI.EntryPointEnabled, ImprovedCLI.SinksAndSourcesEnabled,
 			ImprovedCLI.SetValueEnabled, ImprovedCLI.BuildSDGEnabled, ImprovedCLI.RunAnalysisEnabled<AnalysisObject>, ImprovedCLI.ClassSinksEnabled,
 			ImprovedCLI.DeclassificationEnabled, ImprovedCLI.OptimizationEnabled, ImprovedCLI.SDGOptionsEnabled, ImprovedCLI.RunEnabled<AnalysisObject>,
-			ImprovedCLI.ExportSDGEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ViewEnabled, ImprovedCLI.MiscAnnotationsEnabled {
+			ImprovedCLI.LoadSDGEnabled, ImprovedCLI.MiscAnnotationsEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ExportSDGEnabled,
+			ImprovedCLI.ViewEnabled, ImprovedCLI.OpenAPIEnabled {
 
 		Map<AnnotationType, Set<IFCAnnotation>> annotationsPerType = new HashMap<>();
 		List<SDGClass> sinkClasses = new ArrayList<>();
+		private Pair<String, List<String>> cachedProgramParts = Pair.pair("", new ArrayList<>());
 
 		@Override public List<String> getPossibleEntryMethods(String regexp) {
       return loc.justSearch(classPath, out,false, regexp);
@@ -3287,8 +3338,12 @@ public class IFCConsole {
 		}
 
 		@Override public List<String> getAnnotatableEntities(String regexp) {
-			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true).stream()
-					.map(ImprovedCLI::programPartToString).filter(s -> s != null && s.matches(regexp)).collect(Collectors.toList());
+			if (!cachedProgramParts.getFirst().equals(getClassPath()) || cachedProgramParts.getSecond().isEmpty()){
+				cachedProgramParts = Pair.pair(getClassPath(), searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, false, true, true).stream()
+						.map(ImprovedCLI::programPartToString).collect(Collectors.toList()));
+			}
+			java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regexp);
+			return cachedProgramParts.getSecond().stream().filter(s -> s != null && pattern.matcher(s).matches()).collect(Collectors.toList());
 		}
 
 		@Override public boolean selectDeclassification(String entity, String fromLevel, String toLevel) {
@@ -3319,10 +3374,15 @@ public class IFCConsole {
 			return false;
 		}
 
+		/** E.g. for auto generated classes */
+		public void selectSinkWithoutCheck(String entity, String level){
+			annotationsPerType.computeIfAbsent(AnnotationType.SINK, s -> new HashSet<>()).add(
+					new IFCAnnotation(AnnotationType.SINK, level.isEmpty() ? Level.LOW : level, ImprovedCLI.programPartFromString(entity)));
+		}
+
 		@Override public boolean selectSink(String entity, String level) {
 			if (getAnnotatableEntities(java.util.regex.Pattern.quote(entity)).size() > 0) {
-				annotationsPerType.computeIfAbsent(AnnotationType.SINK, s -> new HashSet<>()).add(
-						new IFCAnnotation(AnnotationType.SINK, level.isEmpty() ? Level.LOW : level, ImprovedCLI.programPartFromString(entity)));
+				selectSinkWithoutCheck(entity, level);
 				return true;
 			}
 			return false;
@@ -3355,7 +3415,7 @@ public class IFCConsole {
 		}
 
 		@Override public List<Pair<String, String>> getSettableEntities(String regexp) {
-			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true).stream()
+			return searchProgramParts(out.getDebugPrintStream(), getClassPath(), true, true, true, false).stream()
 					.filter(s -> ImprovedCLI.programPartToString(s) != null)
 					.map(p -> p.acceptVisitor(new SDGProgramPartVisitor2<Pair<String, String>, Object>(){
 						@Override protected Pair<String, String> visitMethod(SDGMethod m, Object data) {
@@ -3512,6 +3572,22 @@ public class IFCConsole {
 			IFCConsole.this.setUninitializedFieldTypeMatcher(fieldTypeMatcher);
 		}
 
+		@Override public void setStubs(Stubs stubs) {
+			IFCConsole.this.stubsPath = stubs;
+		}
+
+		@Override public Stubs getStubs() {
+			return IFCConsole.this.stubsPath;
+		}
+
+		@Override public void setExceptionalistEnabled(boolean enabled) {
+			exceptionalistConfig = enabled ? Stubs.ExceptionalistConfig.ENABLE : Stubs.ExceptionalistConfig.DISABLE;
+		}
+
+		@Override public boolean isExceptionalistEnabled() {
+			return exceptionalistConfig.enable;
+		}
+
 		@Override public UninitializedFieldHelperOptions.FieldTypeMatcher getUninitializedFieldTypeMatcher() {
 			return uninitializedFieldTypeMatcher;
 		}
@@ -3532,12 +3608,28 @@ public class IFCConsole {
 			return IFCConsole.this.getSDG();
 		}
 
+		@Override public boolean loadSDG(Path file) {
+			return IFCConsole.this.loadSDG(file.toString(), IFCConsole.this.getMHPType());
+		}
+
 		@Override public List<Pair<String, String>> getMiscAnnotations(String entityRegexp, String typeRegexp) {
 			buildSDGIfNeeded();
 			return getProgram().getMiscJavaSourceAnnotations().entrySet().stream().filter(e -> e.getKey().toString().matches(entityRegexp)).flatMap(e -> {
 				String entity = e.getKey().toString();
 				return e.getValue().stream().filter(a -> a.getType().getName().toString().matches(typeRegexp)).map(a -> Pair.pair(entity, a.toString()));
 			}).collect(Collectors.toList());
+		}
+
+		@Override public boolean isOpenAPIEnabled() {
+			return enableOpenApi;
+		}
+
+		@Override public void enableOpenAPI() {
+			enableOpenApi = true;
+		}
+
+		@Override public void disableOpenAPI() {
+			enableOpenApi = false;
 		}
 	}
 
@@ -3563,4 +3655,21 @@ public class IFCConsole {
 	public Wrapper createWrapper(){
 	  return new Wrapper();
   }
+
+  public IFCAnalysis getAnalysis(){
+		return ifcAnalysis;
+	}
+
+	public void setAdditionalEntryMethods(Collection<String> additionalEntryMethods) {
+		this.additionalEntryMethods = additionalEntryMethods;
+	}
+
+
+	public boolean isAnnotatingOverloadedMethods() {
+		return annotateOverloadedMethods;
+	}
+
+	public void setAnnotateOverloadedMethods(boolean annotateOverloadedMethods) {
+		this.annotateOverloadedMethods = annotateOverloadedMethods;
+	}
 }

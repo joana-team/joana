@@ -7,20 +7,6 @@
  */
 package edu.kit.joana.wala.dictionary.accesspath;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.Module;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
@@ -37,7 +23,6 @@ import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
 import com.ibm.wala.util.intset.BitVector;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -84,6 +69,9 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+
+import java.io.*;
+import java.util.*;
 
 public final class CheckFlowLessWithAlias {
 
@@ -1107,6 +1095,7 @@ public final class CheckFlowLessWithAlias {
 		scfg.debugStaticInitializers = false;
 		scfg.fieldPropagation = cfg.fieldPropagation;
 		scfg.debugManyGraphsDotOutput = cfg.debugManyGraphsDotOutput;
+		scfg.stubs = cfg.stubs;
 
 		final SDGBuilder sdg = SDGBuilder.create(scfg, cg.cg, cg.pts);
 		final APResult ap = sdg.getAPResult();

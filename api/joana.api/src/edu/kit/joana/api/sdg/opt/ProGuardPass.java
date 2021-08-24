@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ProGuardPass implements Pass {
 
   @Override
-  public void process(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder) {
+  public void process(IFCAnalysis ana, SDGConfig cfg, String libClassPath, Path sourceFolder, Path targetFolder) {
     if (!Logger.getGlobal().isLoggable(Level.FINEST)) {
       PrintStream out = System.out;
       System.setOut(new NullPrintStream());

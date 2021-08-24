@@ -1,16 +1,5 @@
 package tests;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
-
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
-
 import com.ibm.wala.cfg.exc.intra.MethodState;
 import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
 import com.ibm.wala.classLoader.IClass;
@@ -27,7 +16,6 @@ import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -45,13 +33,19 @@ import edu.kit.joana.util.Stubs;
 import edu.kit.joana.wala.core.ExternalCallCheck;
 import edu.kit.joana.wala.core.Main;
 import edu.kit.joana.wala.core.SDGBuilder;
-import edu.kit.joana.wala.core.SDGBuilder.DynamicDispatchHandling;
-import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
-import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
-import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
-import edu.kit.joana.wala.core.SDGBuilder.StaticInitializationTreatment;
+import edu.kit.joana.wala.core.SDGBuilder.*;
 import edu.kit.joana.wala.core.graphs.Dominators;
 import edu.kit.joana.wala.summary.SummaryComputationType;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class JoanaRunner {
 
@@ -122,6 +116,8 @@ public class JoanaRunner {
 		scfg.additionalContextSelector = null;
 		scfg.dynDisp = DynamicDispatchHandling.PRECISE;
 		scfg.debugManyGraphsDotOutput = true;
+		scfg.stubs = Stubs.JRE_17;
+		scfg.exceptionalistConfig = Stubs.ExceptionalistConfig.ENABLE;
 		final SDG sdg = SDGBuilder.build(scfg);
 		return sdg;
 	}

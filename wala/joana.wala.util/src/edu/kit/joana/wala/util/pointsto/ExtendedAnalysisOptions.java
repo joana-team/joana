@@ -30,17 +30,8 @@ public class ExtendedAnalysisOptions extends AnalysisOptions {
 		}
 	}
 
-	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e,
-			UninitializedFieldHelperOptions fieldHelperOptions) {
-		this(filter, scope, e, fieldHelperOptions, InterfaceImplementationOptions.createEmpty());
-	}
-
-	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e, InterfaceImplementationOptions interfaceImplOptions) {
-		this(filter, scope, e, UninitializedFieldHelperOptions.createEmpty(), interfaceImplOptions);
-	}
-
 	public ExtendedAnalysisOptions(final MethodFilter filter, final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {
-		this(filter, scope, e, InterfaceImplementationOptions.createEmpty());
+		this(filter, scope, e, UninitializedFieldHelperOptions.createEmpty(), InterfaceImplementationOptions.createEmpty());
 	}
 
 	public ExtendedAnalysisOptions(final AnalysisScope scope, final Iterable<? extends Entrypoint> e) {

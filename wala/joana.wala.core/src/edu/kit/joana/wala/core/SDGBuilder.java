@@ -65,6 +65,7 @@ import edu.kit.joana.wala.core.killdef.IFieldsMayMod;
 import edu.kit.joana.wala.core.killdef.LocalKillingDefs;
 import edu.kit.joana.wala.core.killdef.impl.FieldsMayModComputation;
 import edu.kit.joana.wala.core.killdef.impl.SimpleFieldsMayMod;
+import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
 import edu.kit.joana.wala.core.params.FlatHeapParams;
 import edu.kit.joana.wala.core.params.SearchFieldsOfPrunedCalls;
 import edu.kit.joana.wala.core.params.StaticFieldParams;
@@ -94,7 +95,8 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Function;
-
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
@@ -194,24 +196,24 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	}
 
 	public static enum PointsToPrecision {
-		/*
+		/**
 		 * Rapid Type Analysis
 		 * Maybe UNSOUND - WALAs implementation looks suspicious.
 		 * Its also less precise and slower (blows up dynamic calls) as TYPE (0-CFA).
 		 * Its just here for academic purposes.
 		 */
 		RTA(false, "rapid type analysis"),
-		/*
+		/**
 		 * 0-CFA
 		 * Fastest option. Use this in case everything else is too slow aka the callgraph is getting too big.
 		 */
 		TYPE_BASED(true, "type-based (0-CFA)"),
-		/* DEFAULT
+		/** DEFAULT
 		 * 0-1-CFA
 		 * Best bang for buck. Use this in case you are not sure what to pick.
 		 */
 		INSTANCE_BASED(true, "instance-based (0-1-CFA)"),
-		/*
+		/**
 		 * Object-sensitive (unlimited receiver object context for application code)
 		 * Very precise for OO heavy code - best option for really precise analysis.
 		 * Unlimited receiver context for application code, 1-level receiver context for library code. 
@@ -219,30 +221,30 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * n-CFA and filter for methods where object-sensitivity should be engaged. Default 'n = 1'.
 		 */
 		OBJECT_SENSITIVE(true, "object-sensitive + 1-level call-stack"),
-		/*
+		/**
 		 * 1-level object-sensitive (1-level receiver object context)
 		 * Receiver context is limited to 1-level. 
 		 * Uses 1-CFA as fallback for static methods.
 		 */
 		N1_OBJECT_SENSITIVE(true, "1-level object-sensitive + 1-level call-stack"),
-		/*
+		/**
 		 * Object-sensitive (unlimited receiver object context)
 		 * Very precise for OO heavy code, but also very slow.
 		 * Unlimited receiver context for the whole code - application as well as library. 
 		 * Uses 1-CFA as fallback for static methods.
 		 */
 		UNLIMITED_OBJECT_SENSITIVE(true, "unlimited object-sensitive + 1-level call-stack"),
-		/*
+		/**
 		 * 1-CFA
 		 * Slower as 0-1-CFA, yet few precision improvements
 		 */
 		N1_CALL_STACK(true, "1-level call-stack (1-CFA)"),
-		/*
+		/**
 		 * 2-CFA
  		 * Slow, but precise
 		 */
 		N2_CALL_STACK(true, "2-level call-stack (2-CFA)"),
-		/*
+		/**
 		 * 3-CFA
 		 * Very slow with little increased precision. Not much improvement over 2-CFA.
 		 */
@@ -437,11 +439,13 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		WorkPackage<SDG> pack = null;
 		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
 
+		CallGraph cg = null;
+
 		/* additional scope so SDGBuilder object can be garbage collected */{
 			SDGBuilder builder = new SDGBuilder(cfg);
 			builder.run(walaCG, pts, progress);
 			sdg = convertToJoana(cfg.out, builder, progress, false);
-
+			cg = builder.cg;
 			if (cfg.computeSummary) {
 				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
 			}
@@ -454,7 +458,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			if (cfg.accessPath) {
 				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress, cg);
 			}
 		}
 
@@ -474,10 +478,11 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
 		SDG sdg = null;
 		WorkPackage<SDG> pack = null;
-
+		CallGraph cg = null;
 		/* additional scope so SDGBuilder object can be garbage collected */{
 			SDGBuilder builder = new SDGBuilder(cfg);
 			builder.run(progress);
+			cg = builder.cg;
 			if (cfg.abortAfterCG) return null;
 			sdg = convertToJoana(cfg.out, builder, progress, false);
 
@@ -493,7 +498,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			if (cfg.accessPath) {
 				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress, cg);
 			}
 		}
 
@@ -522,7 +527,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			if (cfg.accessPath) {
 				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress, builder.cg);
 			}
 		}
 
@@ -548,7 +553,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 			if (cfg.accessPath) {
 				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
 			} else {
-				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
+				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress, builder.cg);
 			}
 		}
 
@@ -593,8 +598,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return pack;
 	}
 
-	private static void computeSummaryEdges(PrintStream out, ISummaryComputer summaryComputer,
-			WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress) throws CancelException {
+	private static void computeSummaryEdges(PrintStream out, ISummaryComputer summaryComputer, WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress,
+			CallGraph cg) throws CancelException {
+		new OpenApiClientDetector().detectUsedClientOperations(cg).forEach(System.out::println);
+		new OpenApiClientDetector().detectUnsupportedApiCalls(cg).forEach(System.err::println);
 		summaryComputer.compute(pack, isParallel, progress);
 		out.print(".");
 	}
@@ -855,6 +862,21 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 				}
 			}
 		}
+		if (cfg.exceptionalistConfig.enable) {
+			removeEdgesToExceptionsIfPossible();
+		}
+	}
+
+	private void removeEdgesToExceptionsIfPossible() {
+		this.pdgs.stream()
+				.filter(pdg -> cfg.stubs
+						.getExceptionalistInfo(pdg.cgNode.getMethod()).isPresent()).forEach(this::removeEdgesToExceptions);
+	}
+
+	private void removeEdgesToExceptions(PDG pdg) {
+		pdg.removeIncomingEdgesOf(pdg.exception);
+		pdg.removeOutgoingEdgesOf(pdg.exception);
+		pdg.removeNode(pdg.exception);
 	}
 	
 	private void purge() {
@@ -1114,11 +1136,12 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public final com.ibm.wala.ipa.callgraph.CallGraph cg;
 		public final PointerAnalysis<InstanceKey> pts;
 
-		private CGResult(com.ibm.wala.ipa.callgraph.CallGraph cg, PointerAnalysis<InstanceKey> pts) {
+		public CGResult(com.ibm.wala.ipa.callgraph.CallGraph cg, PointerAnalysis<InstanceKey> pts) {
 			this.cg = cg;
 			this.pts = pts;
 		}
 	}
+
 
 	public CallGraphBuilder<InstanceKey> createCallgraphBuilder(final IProgressMonitor progress) {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
@@ -1216,17 +1239,20 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return new CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 
+	/**
+	 * Supports additionalEntries
+	 */
 	public static ExtendedAnalysisOptions createSingleEntryOptions(SDGBuilderConfig cfg) {
-		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, Collections.singletonList(cfg.entry), cfg.fieldHelperOptions);
+		return createMultipleEntryOptions(cfg.scope, cfg.cha, cfg.objSensFilter, cfg.ext!=null?cfg.ext.resolveReflection():false, cfg.methodTargetSelector, cfg.getEntries(), cfg.fieldHelperOptions, cfg.interfaceImplOptions);
 	}
 
-	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods, UninitializedFieldHelperOptions fieldHelperOptions) {
+	public static ExtendedAnalysisOptions createMultipleEntryOptions(AnalysisScope scope, IClassHierarchy cha, ObjSensZeroXCFABuilder.MethodFilter objSensFilter, boolean resolveReflection, MethodTargetSelector methodTargetSelector, Collection<? extends IMethod> entryMethods, UninitializedFieldHelperOptions fieldHelperOptions, InterfaceImplementationOptions interfaceImplOptions) {
 		final List<Entrypoint> entries = new LinkedList<Entrypoint>();
 		for (IMethod entry : entryMethods) {
 			final Entrypoint ep = new SubtypesEntrypoint(entry, cha);
 			entries.add(ep);
 		}
-		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries, fieldHelperOptions);
+		final ExtendedAnalysisOptions options = new ExtendedAnalysisOptions(objSensFilter, scope, entries, fieldHelperOptions, interfaceImplOptions);
 		if (resolveReflection) {
 			options.setReflectionOptions(ReflectionOptions.JOANA);
 		} else {
@@ -2005,6 +2031,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return cg.getOrig();
 	}
 
+	public CallGraph getCallGraph() {
+		return cg;
+	}
+
 	public com.ibm.wala.ipa.callgraph.CallGraph getNonPrunedWalaCallGraph() {
 		return nonPrunedCG;
 	}
@@ -2032,6 +2062,7 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		public transient IClassHierarchy cha = null;
 		public String additionalNativeSpec = null; // specify additional XML method summary file for methods for which code is not available - path is relative to class path
 		public IMethod entry = null;
+		public Collection<IMethod> additionalEntries = Collections.emptyList();
 		public ExternalCallCheck ext = null;
 		public String[] immutableNoOut = Main.IMMUTABLE_NO_OUT;
 		public String[] immutableStubs = Main.IMMUTABLE_STUBS;
@@ -2167,10 +2198,16 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		 * Options for creating the static helper for working with uninitialized fields
 		 */
 		public UninitializedFieldHelperOptions fieldHelperOptions = UninitializedFieldHelperOptions.createEmpty();
+		public InterfaceImplementationOptions interfaceImplOptions = InterfaceImplementationOptions.createEmpty();
+		public Stubs stubs = Stubs.NO_STUBS;
+		public Stubs.ExceptionalistConfig exceptionalistConfig = Stubs.ExceptionalistConfig.ENABLE;
 
 		public SDGBuilderConfig() {
 		}
 
+		public Collection<IMethod> getEntries(){
+			return Stream.concat(Stream.of(entry), additionalEntries.stream()).collect(Collectors.toSet());
+		}
 	}
 
 	public String getMainMethodName() {

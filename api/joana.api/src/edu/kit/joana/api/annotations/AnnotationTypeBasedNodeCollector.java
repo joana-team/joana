@@ -69,10 +69,17 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 			return Collections.emptySet();
 		}
 	}
+
 	@Override
 	protected Set<SDGNode> visitParameter(SDGFormalParameter param, AnnotationType type) {
+		Set<SDGNode> ret = new HashSet<>();
+
+		if (param.getIndex() == -1){ // return value
+			return pp2NodeTrans.getRealReturnNodes(param.getOwningMethod());
+		}
+
 		assert !pp2NodeTrans.getOutRoots(param).isEmpty() || !pp2NodeTrans.getInRoots(param).isEmpty();
-		Set<SDGNode> ret = new HashSet<SDGNode>();
+
 
 		
 		if (false) {
@@ -227,8 +234,8 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 	}
 
 	private static final boolean isFormalNodeOfKind(SDGNode node, AnnotationType type) {
-		return ((type == AnnotationType.SOURCE || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.FORMAL_IN)
-				|| ((type == AnnotationType.SINK || type == AnnotationType.MISC) && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
+		return ((type == AnnotationType.SINK || type == AnnotationType.SOURCE || type == AnnotationType.MISC) && node.getKind() == SDGNode.Kind.FORMAL_IN)
+				|| ((type == AnnotationType.SOURCE || type == AnnotationType.SINK || type == AnnotationType.MISC) && (node.getKind() == SDGNode.Kind.EXIT || node.getKind() == SDGNode.Kind.FORMAL_OUT));
 	}
 
 	@SuppressWarnings("unused")
@@ -280,7 +287,6 @@ public class AnnotationTypeBasedNodeCollector extends SDGProgramPartVisitor<Set<
 				}
 			}
 		}
-
 	}
 
 	private boolean hasFields(SDGNode param) {

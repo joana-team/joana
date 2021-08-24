@@ -8,30 +8,12 @@
 
 package edu.kit.joana.ifc.sdg.qifc.nildumu;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Stream;
-
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.ConstructionNotifier;
 import edu.kit.joana.api.sdg.SDGBuildPreparation;
@@ -52,6 +34,16 @@ import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
+
+import java.io.*;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Stream;
 
 /**
  * Fluent API for creating SDGConfigs and for loading SDGPrograms
@@ -95,7 +87,7 @@ public class Builder {
 	}
 
 	/**
-	 * Modified version of {@link SDGProgram#createSDGProgram(String, String, Stubs, boolean, MHPType, PrintStream, IProgressMonitor)}
+	 * Modified version of {@link SDGProgram#createSDGProgram(String, String, Stubs, Stubs.ExceptionalistConfig, boolean, MHPType, PrintStream, IProgressMonitor)}
 	 */
 	private static <T> Pair<SDGBuilder, SDGProgram> createSDGProgram(SDGConfig config) throws ClassHierarchyException, UnsoundGraphException, CancelException, IOException{
 		PrintStream out = IOFactory.createUTF8PrintStream(new ByteArrayOutputStream());
@@ -149,10 +141,11 @@ public class Builder {
 	}
 
 
-	private SDGConfig config = new SDGConfig(TEST_DATA_CLASSPATH, true, null, Stubs.JRE_15,
-			ExceptionAnalysis.IGNORE_ALL, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
-			false, // no interference
-			MHPType.NONE);
+	private SDGConfig config = new SDGConfig(TEST_DATA_CLASSPATH, true, null, Stubs.JRE_15, Stubs.ExceptionalistConfig.ENABLE,
+			ExceptionAnalysis.IGNORE_ALL,
+      FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED,  // no
+      false,  // no interference
+      false, MHPType.NONE);
 
 	private Path dumpDir = Paths.get(TEST_DATA_GRAPHS);
 

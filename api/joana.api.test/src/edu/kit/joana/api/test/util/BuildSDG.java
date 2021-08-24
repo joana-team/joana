@@ -7,18 +7,9 @@
  */
 package edu.kit.joana.api.test.util;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
-
 import edu.kit.joana.api.IFCAnalysis;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
@@ -33,6 +24,8 @@ import edu.kit.joana.wala.core.SDGBuilder.ExceptionAnalysis;
 import edu.kit.joana.wala.core.SDGBuilder.FieldPropagation;
 import edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision;
 
+import java.io.*;
+
 /**
  * Utility class to build SDGs for tests.
  *
@@ -42,33 +35,37 @@ public final class BuildSDG {
 
 	private static final Stubs STUBS = Stubs.JRE_15;
 
-	public static final SDGConfig top_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, null, STUBS, ExceptionAnalysis.INTERPROC,
-			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
+	public static final SDGConfig top_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, null, STUBS,
+			Stubs.ExceptionalistConfig.ENABLE,
+      ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE,  // no
 																					// access
 																					// paths
-			false, // no interference
-			MHPType.NONE);
+      false,  // no interference
+      false, MHPType.NONE);
 
 	public static final SDGConfig bottom_sequential = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, null, STUBS,
-			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
+			Stubs.ExceptionalistConfig.ENABLE,
+      ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED,  // no
 																											// access
 																											// paths
-			false, // no interference
-			MHPType.NONE);
+      false,  // no interference
+      false, MHPType.NONE);
 
-	public static final SDGConfig top_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, null, STUBS, ExceptionAnalysis.INTERPROC,
-			FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE, false, // no
+	public static final SDGConfig top_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, null, STUBS,
+			Stubs.ExceptionalistConfig.ENABLE,
+      ExceptionAnalysis.INTERPROC, FieldPropagation.OBJ_GRAPH, PointsToPrecision.OBJECT_SENSITIVE,  // no
 																					// access
 																					// paths
-			true, // interference
-			MHPType.PRECISE);
+      false,  // interference
+      true, MHPType.PRECISE);
 
 	public static final SDGConfig bottom_concurrent = new SDGConfig(JoanaPath.JOANA_API_TEST_DATA_CLASSPATH, true, null, STUBS,
-			ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED, false, // no
+			Stubs.ExceptionalistConfig.ENABLE,
+      ExceptionAnalysis.ALL_NO_ANALYSIS, FieldPropagation.OBJ_GRAPH, PointsToPrecision.TYPE_BASED,  // no
 																											// access
 																											// paths
-			true, // interference
-			MHPType.SIMPLE);
+      false,  // interference
+      true, MHPType.SIMPLE);
 
 	private BuildSDG() {
 

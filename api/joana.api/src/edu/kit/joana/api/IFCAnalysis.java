@@ -48,6 +48,8 @@ import edu.kit.joana.util.Maybe;
 import edu.kit.joana.util.Pair;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import java.util.*;
+import java.util.Map.Entry;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -280,6 +282,10 @@ public class IFCAnalysis {
 		return groupByPPPart(doIFC(ifcType));
 	}
 
+	/**
+	 * Ignore overloading annotations and registers them for the base class,
+	 * important when using the annotateOverloadedMethods option
+	 */
 	public TObjectIntMap<IViolation<SDGProgramPart>> groupByPPPart(Collection<? extends IViolation<SecurityNode>> vios) {
 		return groupByPPPart(vios, true);
 	}

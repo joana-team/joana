@@ -1,6 +1,7 @@
 package edu.kit.joana.api.sdg.opt;
 
 import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.setter.misc.AnnotatedEntityFinder;
 import org.junit.jupiter.api.function.ThrowingConsumer;
 
@@ -21,22 +22,23 @@ public interface Pass {
    * parameter is used
    *
    * @param ana
+   * @param cfg overall config (paths might not be correct, especially classpath and out fields should be ignored)
    * @param libClassPath
    * @param sourceFolder source, contains the class files
    * @param targetFolder target, might be the same source
    */
-  default void process(IFCAnalysis ana, String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {
-    process(libClassPath, sourceFolder, targetFolder);
+  default void process(IFCAnalysis ana, SDGConfig cfg, String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {
+    process(cfg, libClassPath, sourceFolder, targetFolder);
   }
 
   /**
    * Process a folder
-   *
+   *  @param cfg overall config (paths might not be correct, especially classpath and out fields should be ignored)
    * @param libClassPath
    * @param sourceFolder source, contains the class files
    * @param targetFolder target, might be the same source
    */
-  default void process(String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {}
+  default void process(SDGConfig cfg, String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {}
 
   /**
    * Find classes, methods and fields annotated with a JOANA annotation.

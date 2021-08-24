@@ -1,6 +1,6 @@
 package edu.kit.joana.api.sdg.opt;
 
-import edu.kit.joana.api.IFCAnalysis;
+import edu.kit.joana.api.sdg.SDGConfig;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,8 +14,8 @@ import java.nio.file.Path;
 public interface FilePass extends Pass {
 
   @Override
-  default void process(String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {
-    setup(libClassPath);
+  default void process(SDGConfig cfg, String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {
+    setup(cfg, libClassPath, sourceFolder);
     walk(sourceFolder, targetFolder, (s, t) -> {
       s.toFile().getParentFile().mkdirs();
       collect(s);
@@ -30,7 +30,9 @@ public interface FilePass extends Pass {
     });
   }
 
-  void setup(String libClassPath);
+  default void setup(String libClassPath) {}
+
+  default void setup(SDGConfig cfg, String libClassPath, Path sourceFolder) { setup(libClassPath); }
 
   void collect(Path file) throws IOException;
 

@@ -1,4 +1,7 @@
 git-commit
+summary_cpp
+*.tmp
+*.iml
 *.alias
 *.class
 *.dot

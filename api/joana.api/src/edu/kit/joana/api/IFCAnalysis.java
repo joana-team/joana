@@ -17,8 +17,8 @@ import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
-import edu.kit.joana.api.annotations.*;
 import edu.kit.joana.api.annotations.AnnotationType;
+import edu.kit.joana.api.annotations.*;
 import edu.kit.joana.api.annotations.cause.AnnotationCause;
 import edu.kit.joana.api.annotations.cause.JavaSinkAnnotation;
 import edu.kit.joana.api.annotations.cause.JavaSourceAnnotation;
@@ -125,7 +125,9 @@ public class IFCAnalysis {
 
 		switch (this.ifcType) {
 		case CLASSICAL_NI:
-			this.ifc = new SlicingBasedIFC(this.program.getSDG(), secLattice, new I2PForward(this.program.getSDG()), new I2PBackward(this.program.getSDG()));
+			this.ifc = new EitherIFC<>(this.program.getSDG(), secLattice, EitherIFC::containsDeclassifications,
+					BarrierIFCSlicer::new,
+					(sdg, lattice) -> new SlicingBasedIFC(sdg, secLattice, new I2PForward(sdg), new I2PBackward(sdg)));
 			if (timeSensitiveAnalysis) {
 				if (this.program.getSDG().getThreadsInfo() == null) {
 					CSDGPreprocessor.preprocessSDG(this.program.getSDG());

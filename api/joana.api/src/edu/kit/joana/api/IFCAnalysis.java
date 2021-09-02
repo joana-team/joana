@@ -657,14 +657,14 @@ public class IFCAnalysis {
 		}
 		assert sources != null;
 		assert sinks != null;
-		assert declasss != null;
+		assert ignoreDeclass || declasss != null;
 		return Pair.pair(Pair.pair(sources, sinks), declasss);
 	}
 
 	private void updateJavaSourceAnnotations(boolean ignoreDeclass) {
 		this.sources = ArrayListMultimap.create();
 		this.sinks  = ArrayListMultimap.create();
-		this.declasss = ArrayListMultimap.create();
+		this.declasss = ignoreDeclass ? null : ArrayListMultimap.create();
 		final TypeReference source = TypeReference.findOrCreate(
 		      ClassLoaderReference.Application,
 		      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Source.class.getCanonicalName()).toBCString(false)));

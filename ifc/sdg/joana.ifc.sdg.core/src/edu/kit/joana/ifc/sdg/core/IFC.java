@@ -11,19 +11,19 @@
  */
 package edu.kit.joana.ifc.sdg.core;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collection;
-
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressAnnouncer;
 import edu.kit.joana.ifc.sdg.core.interfaces.ProgressListener;
 import edu.kit.joana.ifc.sdg.core.violations.IViolation;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.lattice.IStaticLattice;
 import edu.kit.joana.ifc.sdg.lattice.NotInLatticeException;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collection;
 
 
 //import org.eclipse.core.runtime.IProgressMonitor;
@@ -148,4 +148,8 @@ public abstract class IFC<L> implements ProgressListener, ProgressAnnouncer {
 //		}
 //		return null;
 //	}
+
+	protected ArrayList<ProgressListener> getProgressListeners() {
+		return progressListeners;
+	}
 }

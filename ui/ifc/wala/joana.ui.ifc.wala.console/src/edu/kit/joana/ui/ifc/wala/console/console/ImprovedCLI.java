@@ -736,6 +736,14 @@ public class ImprovedCLI {
     boolean removeSinks(List<String> programParts);
 
     boolean removeSources(List<String> programParts);
+
+    default boolean resetSinks() {
+      return removeSinks(getSinks().stream().map(Pair::getFirst).collect(Collectors.toList()));
+    }
+
+    default boolean resetSources() {
+      return removeSinks(getSources().stream().map(Pair::getFirst).collect(Collectors.toList()));
+    }
   }
 
   static interface ClassSinksEnabled {
@@ -798,8 +806,9 @@ public class ImprovedCLI {
     }
   }
 
-  @Command(name = "sinks", description = "Annotate sinks", subcommands = {SinksCommand.CurrentCommand.class})
-  static class SinksCommand implements Callable<Integer> {
+  @Command(name = "sinks", description = "Annotate sinks", subcommands = {SinksCommand.CurrentCommand.class,
+      SinksCommand.ResetCommand.class })
+  public static class SinksCommand implements Callable<Integer> {
 
     @Spec Model.CommandSpec spec;
 
@@ -886,6 +895,18 @@ public class ImprovedCLI {
       }
       return remove(removed.stream().map(Pair::getFirst).collect(Collectors.toList()));
     }
+
+    @Command(name = "reset", description = "Remove all current ${PARENT-COMMAND-NAME}") static class ResetCommand
+        implements Callable<Integer> {
+      @ParentCommand SinksCommand parent;
+
+      @Override public Integer call() {
+        for (Pair<String, String> pair : parent.get()) {
+          parent.parent.out.println("Removed " + pair.getFirst());
+        }
+        return exit(parent.remove(parent.get().stream().map(Pair::getFirst).collect(Collectors.toList())));
+      }
+    }
   }
 
   @Command(name = "sources", description = "Annotate sources")
@@ -914,7 +935,6 @@ public class ImprovedCLI {
     boolean remove(List<String> programParts){
       return state.removeSources(programParts);
     }
-
   }
 
   public interface DeclassificationEnabled {
@@ -1052,9 +1072,14 @@ public class ImprovedCLI {
     }
 
     T getMixin(RunCommand command);
+
+    default boolean resetAnnotations() {
+      return resetSinks() && resetSources();
+    }
   }
 
-  @Command(name = "run", description = "Use annotations and entry point for a specific tag and run the analysis")
+  @Command(name = "run", description = "Use annotations and entry point for a specific tag and run the analysis. "
+      + "Does not reset all previously set sinks and sources by default, use the `--reset` option to enforce this.")
   static class RunCommand implements Callable<Integer> {
 
     RunEnabled state;
@@ -1065,11 +1090,20 @@ public class ImprovedCLI {
     @Parameters
     String tag;
 
+    @Option(names = "--reset",description = "resets all previously set sinks and sources")
+    boolean reset;
+
     public RunCommand(@State RunEnabled state){
       this.state = state;
       this.mixin = state.getMixin(this);
     }
+
     @Override public Integer call() throws Exception {
+      if (reset) {
+        if (!state.resetAnnotations()){
+          return ExitCode.SOFTWARE;
+        }
+      }
       if (!state.addAnnotations(tag)){
         return ExitCode.SOFTWARE;
       }

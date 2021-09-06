@@ -127,7 +127,7 @@ public final class SDGBuildPreparation {
 	/**
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
-	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters)
+	public static List<SDGProgramPart> searchProgramParts(PrintStream out, ClassHierarchy cha, boolean methods, boolean fields, boolean parameters, boolean returns)
 			throws IOException, ClassHierarchyException {
 		final List<SDGProgramPart> result = new ArrayList<>();
 		for (final IClass cls : cha) {
@@ -144,6 +144,9 @@ public final class SDGBuildPreparation {
 							result.add(new SDGFormalParameter(method, num, !m.isStatic() && i == 0 ? "this" : (num + ""),
 									JavaType.parseSingleTypeFromString(m.getParameterType(i).getName().toString(), JavaType.Format.BC)));
 						}
+					}
+					if (returns && !method.getSignature().getReturnType().toHRString().equals("void")){
+						result.add(method.getExit());
 					}
 				}
 				if (fields){

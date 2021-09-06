@@ -60,7 +60,7 @@ public class ImprovedCLI {
    * Supports classes, fields, methods, parameters
    *
    * @return null if not supported, classes: BCString, attributes: [class]#[attribute], methods: [class].[method signature],
-   * parameters: [method…]->[parameter index]
+   * method exits: [method…]->exit, parameters: [method…]->[parameter index]
    */
   public static String programPartToString(SDGProgramPart part){
     try {
@@ -80,8 +80,13 @@ public class ImprovedCLI {
         @Override protected String visitParameter(SDGFormalParameter p, Object data) {
           return visitMethod(p.getOwningMethod(), null) + "->" + p.getIndex();
         }
+
+        @Override protected String visitExit(SDGMethodExitNode e, Object data) {
+          return visitMethod(e.getOwningMethod(), null) + "->exit";
+        }
       }, null);
     } catch (NullPointerException ex) {
+      System.err.println(String.format("Ignoring %s, internal error", part));
       return null;
     }
   }
@@ -100,6 +105,10 @@ public class ImprovedCLI {
         String[] parts = str.split("->");
         return new SDGFormalParameter((SDGMethod) programPartFromString(parts[0]), Integer.parseInt(parts[1]), parts[1],
             JavaType.parseSingleTypeFromString("java.lang.Object"));
+      }
+      if (str.matches(".+->exit")) {
+        String[] parts = str.split("->");
+        return ((SDGMethod) programPartFromString(parts[0])).getExit();
       }
       return new SDGMethod(JavaMethodSignature.fromString(str), AnalysisScope.APPLICATION.toString(), false);
     }

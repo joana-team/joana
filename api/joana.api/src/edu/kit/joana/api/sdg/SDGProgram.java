@@ -412,7 +412,7 @@ public class SDGProgram {
 		final Collection<String> sourceOrSinkAnnotationName = 
 				Arrays.asList(new Class<?>[] { 
 					Source.class, Sink.class, Declassification.class,
-					Sources.class, Sinks.class, Declassifications.class
+					Sources.class, Sinks.class, Declassifications.class, ReturnValue.class
 				})
 				.stream().map( cl -> "L" + cl.getName().replace(".", "/")).collect(Collectors.toList());
 		for (IClass c : classes) {
@@ -436,7 +436,7 @@ public class SDGProgram {
 			BiConsumer<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>, Collection<? extends SDGProgramPart>> storeAnnotations = (pair, parts) -> {
 				for (SDGProgramPart part : parts) {
 					if (pair.getFirst().size() > 0) {
-						this.annotations.put(part, pair.getFirst());
+						this.annotations.computeIfAbsent(part, p -> new HashSet<>()).addAll(pair.getFirst());
 					}
 					if (pair.getSecond().size() > 0) {
 						this.miscAnnotations.computeIfAbsent(part, p -> new HashSet<>()).addAll(pair.getSecond());

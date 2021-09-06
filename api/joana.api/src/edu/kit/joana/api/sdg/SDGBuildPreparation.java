@@ -162,7 +162,7 @@ public final class SDGBuildPreparation {
 						}
 					}
 					if (returns && !method.getSignature().getReturnType().toHRString().equals("void")){
-						result.add(new SDGFormalParameter(method, -1, "return", method.getSignature().getReturnType()));
+						result.add(method.getExit());
 					}
 				}
 				if (fields){

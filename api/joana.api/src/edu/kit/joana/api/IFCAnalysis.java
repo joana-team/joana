@@ -52,6 +52,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IFCAnalysis {
 
@@ -686,6 +687,9 @@ public class IFCAnalysis {
 		final TypeReference sinksType = TypeReference.findOrCreate(
 			      ClassLoaderReference.Application,
 			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Sinks.class.getCanonicalName()).toBCString(false)));
+		final TypeReference returnValueType = TypeReference.findOrCreate(
+				ClassLoaderReference.Application,
+				TypeName.findOrCreate(JavaType.parseSingleTypeFromString(ReturnValue.class.getCanonicalName()).toBCString(false)));
 		final TypeReference declasssType = TypeReference.findOrCreate(
 			      ClassLoaderReference.Application,
 			      TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Declassifications.class.getCanonicalName()).toBCString(false)));
@@ -698,6 +702,19 @@ public class IFCAnalysis {
 				final Annotation a = p.getFirst();
 				final String sourceFile = p.getSecond();
 				List<Annotation> subs = new ArrayList<>();
+				if (a.getType().equals(returnValueType)) {
+					Stream.of("sources", "sinks").map(name -> (ArrayElementValue)a.getNamedArguments().get(name)).filter(val -> val != null)
+							.flatMap(val -> Arrays.stream(val.vals)).map(ann -> {
+						AnnotationAttribute elem = (AnnotationAttribute)ann;
+						return Annotation.makeWithNamed(TypeReference.findOrCreate(
+										ClassLoaderReference.Application, TypeName.findOrCreate(elem.type.replace(";", ""))),
+								elem.elementValues);
+					}).forEach(subA -> {
+						processSourceSinkDeclassification(subA, annotationPolicy,
+								positionDefinition, source, sink,
+								declass, ((SDGMethod)e.getKey()).getExit(), sourceFile, ignoreDeclass);
+					});
+				}
 				if (a.getType().equals(sourcesType) || a.getType().equals(sinksType) || a.getType().equals(declasssType)) {
 					Object[] subAnnotations = ((ArrayElementValue)a.getNamedArguments().get("value")).vals;
 					Arrays.stream(subAnnotations).forEach(ann -> {

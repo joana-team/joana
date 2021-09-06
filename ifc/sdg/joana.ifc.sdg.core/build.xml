@@ -34,16 +34,19 @@
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
+		<typedef resource="org/jetbrains/kotlin/ant/antlib.xml" classpath="${kotlin.lib}/kotlin-ant.jar"/>
 		<javac
-			includeantruntime="false"
-			srcdir="${dest.dir.sources}"
-			destdir="${dest.dir.classes}"
-			verbose="no"
-			source="1.8"
-			target="1.8"
-			encoding="utf-8"
-			classpathref="lib.path.ref"
-		/>
+				includeantruntime="false"
+				srcdir="${dest.dir.sources}"
+				destdir="${dest.dir.classes}"
+				verbose="no"
+				source="1.8"
+				target="1.8"
+				encoding="utf-8"
+				classpathref="lib.path.ref"
+				debug="true"
+				debuglevel="vars,lines,source"
+		><withKotlin/></javac>
 	</target>
 
 	<target name="spill_out_jars">
@@ -65,34 +68,55 @@
 
 	<target name="collect_wala_sources">
 		<copy todir="${dest.dir.sources}">
+			<fileset dir="${com.ibm.wala.core.base.dir}/src">
+				<filename name="**/*" />
+			</fileset>
+			<fileset dir="${com.ibm.wala.shrike.base.dir}/src">
+				<filename name="**/*" />
+			</fileset>
+			<!--
+                Needed for optional second type-inference. This is needed for replacing
+                variable-names in the generated SDG-file
+             -->
+			<fileset dir="${com.ibm.wala.cast.base.dir}/source">
+				<and>
+					<filename name="**/*" />
+					<not>
+						<or>
+							<filename name="**/plugin/**/*" />
+							<filename name="**/*Plugin*" />
+						</or>
+					</not>
+				</and>
+			</fileset>
 			<fileset dir="${com.ibm.wala.util.base.dir}/src">
-				<filename name="**/*.java" />
-            </fileset>
-   		</copy>
+				<filename name="**/*" />
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="collect_sources">
 		<copy todir="${dest.dir.sources}">
 			<!-- joana.contrib -->
 			<fileset dir="${joana.contrib.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*.*" />
 			</fileset>
 			<!-- joana.util -->
 			<fileset dir="${joana.util.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*.*" />
 			</fileset>
 			<!-- joana.ifc code -->
 			<fileset dir="${joana.ifc.sdg.mhpoptimization.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*.*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.graph.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*.*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.core.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*.*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.util.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*.*" />
 			</fileset>
 		</copy>
 	</target>

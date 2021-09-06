@@ -55,18 +55,19 @@
 			<fileset dir="${joana.dist.dir}" includes="joana.api.jar"/>
 			<fileset dir="${joana.dist.dir}" includes="joana.ui.ifc.wala.console.jar"/>
 		</path>
+		<typedef resource="org/jetbrains/kotlin/ant/antlib.xml" classpath="${kotlin.lib}/kotlin-ant.jar"/>
 		<javac
-			includeantruntime="false"
-			srcdir="src"
-			destdir="${dest.dir.classes}"
-			verbose="no"
-			source="1.8"
-			target="1.8"
-			encoding="utf-8"
-			classpathref="lib.path.ref"
-			debug="true"
-			debuglevel="vars,lines,source"
-		/>
+				includeantruntime="false"
+				srcdir="src"
+				destdir="${dest.dir.classes}"
+				verbose="no"
+				source="1.8"
+				target="1.8"
+				encoding="utf-8"
+				classpathref="lib.path.ref"
+				debug="true"
+				debuglevel="vars,lines,source"
+		><withKotlin/></javac>
 	</target>
 	
     <target name="joana.api">

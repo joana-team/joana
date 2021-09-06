@@ -12,7 +12,9 @@ import com.ibm.wala.util.collections.Iterator2List;
 import com.ibm.wala.util.strings.Atom;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
+import edu.kit.joana.api.sdg.opt.asm.BaseMethodDescriptor;
 import edu.kit.joana.api.sdg.opt.asm.DeletingMethodVisitor;
+import edu.kit.joana.api.sdg.opt.asm.HeuristicReflectionFinder;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.TypeNameUtils;
 import edu.kit.joana.wala.core.SDGBuilder;
@@ -68,9 +70,8 @@ public class OpenApiPreProcessorPass implements FilePass {
 
   /** java names of detected open api classes */
   private Set<String> openApiClasses;
-  /**
-   * possible method descriptors per type that appear in the class path, per java class name
-   */
+
+  private Set<ClassInfo> typesUsedInReflection;
 
   public OpenApiPreProcessorPass(OpenApiClientDetector detector, Config config) {
     this.detector = detector;
@@ -90,6 +91,10 @@ public class OpenApiPreProcessorPass implements FilePass {
           .map(TypeNameUtils::toJavaClassName)
           .collect(Collectors.toSet());
       checkForCalledNonOpenApiMethodsOfOpenApiClasses(cgr.cg);
+      HeuristicReflectionFinder heuristicReflectionFinder = new HeuristicReflectionFinder(sourceFolder, cgr, classInfoMap);
+      heuristicReflectionFinder.run();
+      typesUsedInReflection = heuristicReflectionFinder.getFoundTypes().stream().map(TypeNameUtils::toJavaClassName).map(classInfoMap::get).collect(
+          Collectors.toSet());
     } catch (CallGraphBuilderCancelException | ClassHierarchyException | IOException e) {
       e.printStackTrace();
     }
@@ -122,8 +127,9 @@ public class OpenApiPreProcessorPass implements FilePass {
     }
   }
 
+  /** important: reflection is handled properly here */
   private boolean isCalled(MethodDescriptor method) {
-    return !cgr.cg.getNodes(method.toRef()).isEmpty();
+    return method.toRef().map(ref -> !cgr.cg.getNodes(ref).isEmpty()).orElse(false);
   }
 
   public static Pair<Type, String> cgNodeToTypeMethodDescriptorPair(CGNode n) {
@@ -155,25 +161,21 @@ public class OpenApiPreProcessorPass implements FilePass {
     });
   }
 
-  private class MethodDescriptor {
-    final String methodClass;
-    final String methodName;
-    final String methodDescriptor;
+  private class MethodDescriptor extends BaseMethodDescriptor {
 
     private MethodDescriptor(String methodClass, String methodName, String methodDescriptor) {
-      this.methodClass = methodClass.startsWith("L") ? TypeNameUtils.toJavaClassName(methodClass) : methodClass;
-      this.methodName = methodName;
-      this.methodDescriptor = methodDescriptor;
+      super(methodClass, methodName, methodDescriptor);
     }
 
-    private MethodReference toRef() {
-      return cgr.cg.getClassHierarchy().lookupClass(TypeNameUtils.toInternalName(methodClass))
-          .getMethod(new Selector(Atom.findOrCreateUnicodeAtom(methodName), Descriptor.findOrCreateUTF8(methodDescriptor)))
-          .getReference();
+    private Optional<MethodReference> toRef() {
+      return Optional.ofNullable(cgr.cg.getClassHierarchy().lookupClass(TypeNameUtils.toInternalName(methodClass))).map(klass ->
+          klass.getMethod(new Selector(Atom.findOrCreateUnicodeAtom(methodName), Descriptor.findOrCreateUTF8(methodDescriptor))))
+          .map(IMethod::getReference);
     }
 
+    /** might return an empty set */
     private Set<CGNode> nodes() {
-      return cgr.cg.getNodes(toRef());
+      return toRef().map(ref -> cgr.cg.getNodes(ref)).orElse(Collections.emptySet());
     }
 
     @Override public String toString() {
@@ -182,8 +184,10 @@ public class OpenApiPreProcessorPass implements FilePass {
     }
   }
 
+  /** might return an empty set */
   private Set<Type> getReturnTypes(MethodDescriptor methodDescriptor) {
     return methodDescriptor.nodes().stream().flatMap(n -> {
+      System.out.println(cgr.pts.getHeapModel().getPointerKeyForReturnValue(n));
       return cgr.pts.getPointsToSet(cgr.pts.getHeapModel().getPointerKeyForReturnValue(n)).stream()
           .map(i -> Type.getType(i.getConcreteType().getName() + ";"));
     }).collect(Collectors.toSet());

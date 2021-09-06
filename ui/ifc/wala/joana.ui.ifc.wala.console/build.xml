@@ -77,17 +77,19 @@
 			<fileset dir="${joana.base.dir}/contrib/parameter-setter/build/libs" includes="parameter_setter-all-1.0-SNAPSHOT.jar" />
 			<pathelement path="${dest.dir.classes}" />
 		</path>
+		<typedef resource="org/jetbrains/kotlin/ant/antlib.xml" classpath="${kotlin.lib}/kotlin-ant.jar"/>
 		<javac
-			includeantruntime="false"
-			srcdir="${dest.dir.sources}"
-			destdir="${dest.dir.classes}"
-			verbose="no"
-			source="1.8"
-			target="1.8"
-      debug="true"
-      encoding="utf-8"
-			classpathref="lib.path.ref"
-		/>
+				includeantruntime="false"
+				srcdir="${dest.dir.sources}"
+				destdir="${dest.dir.classes}"
+				verbose="no"
+				source="1.8"
+				target="1.8"
+				encoding="utf-8"
+				classpathref="lib.path.ref"
+				debug="true"
+				debuglevel="vars,lines,source"
+		><withKotlin/></javac>
 	</target>
 
 	<target name="spill_out_jars">
@@ -155,26 +157,26 @@
         <copy todir="${dest.dir.sources}">
             <fileset dir="${com.ibm.wala.cast.base.dir}/source">
                 <and>
-                    <filename name="**/*.java" />
+                    <filename name="**/*" />
                     <not>
                         <or>
-                            <filename name="**/plugin/**/*.java" />
-                            <filename name="**/*Plugin*.java" />
+                            <filename name="**/plugin/**/*" />
+                            <filename name="**/*Plugin*" />
                         </or>
                     </not>
                 </and>
             </fileset>
 			<fileset dir="${com.ibm.wala.core.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${com.ibm.wala.shrike.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${com.ibm.wala.util.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
             </fileset>
             <fileset dir="${com.ibm.wala.dalvik.base.dir}/src">
-                <filename name="**/*.java" />
+                <filename name="**/*" />
             </fileset>
 		</copy>
 	</target>
@@ -183,54 +185,54 @@
 		<copy todir="${dest.dir.sources}">
 			<!-- joana.contrib -->
 			<fileset dir="${joana.contrib.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<!-- joana.util -->
 			<fileset dir="${joana.util.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<!-- joana.wala code -->
 			<fileset dir="${joana.wala.core.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.wala.flowless.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.wala.summary.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.wala.util.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<!-- joana.ifc code -->
 			<fileset dir="${joana.ifc.sdg.core.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.graph.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.mhpoptimization.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.util.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.ifc.sdg.irlsod.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<!-- joana.api code -->
 			<fileset dir="${joana.api.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.ui.annotations.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<!-- joana.ui code -->
 			<fileset dir="${joana.ui.ifc.wala.console.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 			<fileset dir="${joana.ui.ifc.sdg.graphviewer.base.dir}/src">
-				<filename name="**/*.java" />
+				<filename name="**/*" />
 			</fileset>
 		</copy>
 	</target>

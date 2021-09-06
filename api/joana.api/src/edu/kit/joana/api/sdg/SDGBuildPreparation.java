@@ -113,15 +113,7 @@ public final class SDGBuildPreparation {
 	 * The resulting SDGProgramParts might contain incomplete parent objects (especially the returned SDGAttribute objects)
 	 */
 	public static List<SDGProgramPart> searchProgramParts(PrintStream out, String classPath, boolean methods, boolean fields, boolean parameters){
-		try {
-			return searchProgramParts(out, getCachedClassHierarchy(classPath, out), methods, fields, parameters);
-		} catch (ClassHierarchyException e) {
-			out.println("Error while analyzing class structure!");
-			return Collections.emptyList();
-		} catch (IOException e) {
-			out.println("I/O error while searching entry methods!");
-			return Collections.emptyList();
-		}
+		return searchProgramParts(out, classPath, methods, fields, parameters);
 	}
 
 	/**

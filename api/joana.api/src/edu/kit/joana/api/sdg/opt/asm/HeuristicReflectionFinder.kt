@@ -41,7 +41,6 @@ class HeuristicReflectionFinder @JvmOverloads constructor(
     fun run() {
         processClassInfos()
         processFiles()
-        println(foundTypes)
     }
 
     /** gather information directly from the classInfoMap (generated via classgraph)  */
@@ -51,7 +50,6 @@ class HeuristicReflectionFinder @JvmOverloads constructor(
 
     private fun processClassInfo(info: ClassInfo): Set<Type> {
         val deps = info.classDependencies
-        //deps.stream().forEach { x: ClassInfo? -> System.err.println(x) }
         val params = info.typeSignature?.typeParameters
         return emptySet()
     }
@@ -83,7 +81,12 @@ class HeuristicReflectionFinder @JvmOverloads constructor(
             override fun visitLdcInsn(value: Any?) {
                 super.visitLdcInsn(value)
                 when (value) {
-                    is Type -> foundTypes.add(value)
+                    is Type -> {
+                        val type = if (value.sort == Type.ARRAY) value.elementType else value
+                        if (type.sort == Type.OBJECT) {
+                            foundTypes.add(type)
+                        }
+                    }
                 }
             }
         }

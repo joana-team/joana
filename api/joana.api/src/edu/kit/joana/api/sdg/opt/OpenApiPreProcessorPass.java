@@ -22,6 +22,7 @@ import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
 import edu.kit.joana.wala.util.NotImplementedException;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ClassInfoList;
 import nonapi.io.github.classgraph.classpath.SystemJarFinder;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -64,7 +65,7 @@ public class OpenApiPreProcessorPass implements FilePass {
   /** java class name → info */
   protected Map<String, ClassInfo> classInfoMap;
   private SDGBuilder.CGResult cgr;
-  private final boolean debug = true;
+  private final boolean debug = false;
 
   private final Config config;
 
@@ -94,7 +95,10 @@ public class OpenApiPreProcessorPass implements FilePass {
       checkForCalledNonOpenApiMethodsOfOpenApiClasses(cgr.cg);
       HeuristicReflectionFinder heuristicReflectionFinder = new HeuristicReflectionFinder(sourceFolder, cgr, classInfoMap);
       heuristicReflectionFinder.run();
-      typesUsedInReflection = heuristicReflectionFinder.getFoundTypes().stream().map(TypeNameUtils::toJavaClassName).map(classInfoMap::get).collect(
+      typesUsedInReflection = heuristicReflectionFinder.getFoundTypes().stream().map(TypeNameUtils::toJavaClassName).map(n -> {
+        ClassInfo klass = classInfoMap.get(n);
+        return klass;
+      }).collect(
           Collectors.toSet());
     } catch (CallGraphBuilderCancelException | ClassHierarchyException | IOException e) {
       e.printStackTrace();
@@ -185,12 +189,38 @@ public class OpenApiPreProcessorPass implements FilePass {
     }
   }
 
+  /** … self */
+  private Set<ClassInfo> getReflectionSubTypes(ClassInfo klass) {
+    ClassInfoList subclasses = klass.getSubclasses();
+    Set<ClassInfo> found = new HashSet<>();
+    Predicate<ClassInfo> valid = k -> k.isStandardClass() && !k.isAbstract();
+    if (typesUsedInReflection.contains(klass) && valid.test(klass)) {
+      found.add(klass);
+    }
+    if (!subclasses.isEmpty()) {
+      typesUsedInReflection.stream()
+          .filter(k -> k.isStandardClass() && !k.isAbstract() && subclasses.contains(k))
+          .forEach(found::add);
+    }
+    return found;
+  }
+
+  private Type classInfoToType(ClassInfo klass) {
+    return Type.getType(TypeNameUtils.toInternalName(klass.getName()));
+  }
+
   /** might return an empty set */
   private Set<Type> getReturnTypes(MethodDescriptor methodDescriptor) {
     return methodDescriptor.nodes().stream().flatMap(n -> {
-      System.out.println(cgr.pts.getHeapModel().getPointerKeyForReturnValue(n));
-      return cgr.pts.getPointsToSet(cgr.pts.getHeapModel().getPointerKeyForReturnValue(n)).stream()
-          .map(i -> Type.getType(i.getConcreteType().getName() + ";"));
+      List<Type> collectedTypes = cgr.pts.getPointsToSet(cgr.pts.getHeapModel().getPointerKeyForReturnValue(n)).stream()
+          .map(i -> Type.getType(i.getConcreteType().getName() + ";")).collect(Collectors.toList());
+      if (collectedTypes.isEmpty()) {
+        collectedTypes.addAll(Objects.requireNonNull(
+                getReflectionSubTypes(classInfoMap.get(TypeNameUtils.toJavaClassName(n.getMethod().getReturnType()))))
+            .stream().map(this::classInfoToType).collect(
+            Collectors.toList()));
+      }
+      return collectedTypes.stream();
     }).collect(Collectors.toSet());
   }
 
@@ -255,6 +285,14 @@ public class OpenApiPreProcessorPass implements FilePass {
       }
       return true;
     }).map(pairs::get).collect(Collectors.toSet());
+  }
+
+  /** remove all interfaces and abstract classes */
+  private Set<Type> findImplementingTypes(Set<Type> types) {
+    return types.stream().filter(t -> {
+      ClassInfo classInfo = classInfoMap.get(TypeNameUtils.toJavaClassName(t));
+      return classInfo.isStandardClass() && !classInfo.isAbstract();
+    }).collect(Collectors.toSet());
   }
 
   /**
@@ -442,7 +480,7 @@ public class OpenApiPreProcessorPass implements FilePass {
             return;
           }
           Type ret = Type.getObjectType(descriptor.split("\\)[L\\[]")[1].split(";")[0]);
-          Set<Type> retTypes = findUnrelatedSet(getReturnTypes(descr));
+          Set<Type> retTypes = findImplementingTypes(getReturnTypes(descr));
           //assert retTypes.size() > 0; // TODO: might happen with serealization, darn reflection :(
           org.objectweb.asm.MethodVisitor genMv = ModifierVisitor.super
               .visitMethod(ACC_PRIVATE | ACC_STATIC, generatedMethodName, generatedMethodDescriptor, null, new String[0]);

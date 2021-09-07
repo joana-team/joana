@@ -64,13 +64,14 @@ public class OpenApiPreProcessorPass implements FilePass {
   /** java class name → info */
   protected Map<String, ClassInfo> classInfoMap;
   private SDGBuilder.CGResult cgr;
-  private final boolean debug = false;
+  private final boolean debug = true;
 
   private final Config config;
 
   /** java names of detected open api classes */
   private Set<String> openApiClasses;
 
+  /** Types that might be used in reflection. An approximation for GSON related reflection. */
   private Set<ClassInfo> typesUsedInReflection;
 
   public OpenApiPreProcessorPass(OpenApiClientDetector detector, Config config) {
@@ -300,7 +301,7 @@ public class OpenApiPreProcessorPass implements FilePass {
   }
 
   @Override public void store(Path source, Path target) throws IOException {
-    if (debug) {
+    if (debug && false) {
       if (!source.endsWith("Node.class")) {
         return;
       }

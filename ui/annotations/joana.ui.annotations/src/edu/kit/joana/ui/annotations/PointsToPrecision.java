@@ -9,7 +9,6 @@ package edu.kit.joana.ui.annotations;
 
 /**
  * see {@code edu.kit.joana.wala.core.SDGBuilder.PointsToPrecision}
- * 
  */
 public enum PointsToPrecision {
 	RTA(false, "rapid type analysis"),

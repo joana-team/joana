@@ -7,9 +7,6 @@
  */
 package edu.kit.joana.ui.annotations;
 
-/**
- * TODO: @author Add your name here.
- */
 public enum PositionDefinition {
 	MANUAL, AUTO;
 }

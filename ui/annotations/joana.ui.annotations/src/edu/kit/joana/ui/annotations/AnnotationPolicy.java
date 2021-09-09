@@ -9,6 +9,6 @@ package edu.kit.joana.ui.annotations;
 
 /**
  * 
- * @author Martin Hecker <martin.hecker@kit.edu>
+ * @author Martin Hecker
  */
 public enum AnnotationPolicy { ANNOTATE_USAGES, ANNOTATE_CALLEE }

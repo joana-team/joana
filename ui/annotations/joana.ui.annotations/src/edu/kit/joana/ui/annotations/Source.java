@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 
 /**
  * 
- * @author Martin Hecker <martin.hecker@kit.edu>
+ * @author Martin Hecker
  */
 @Repeatable(Sources.class)
 @Retention(RetentionPolicy.CLASS)

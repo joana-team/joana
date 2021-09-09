@@ -10,7 +10,7 @@ package edu.kit.joana.ui.annotations;
 /**
  * Joana annotation helper methods.
  * 
- * @author Juergen Graf <juergen.graf@gmail.com>
+ * @author Juergen Graf
  */
 public final class Joana {
 

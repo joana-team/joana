@@ -393,6 +393,50 @@ public class ImprovedCLI {
     }
   }
 
+  interface MiscPreprocessorsEnabled {
+
+    void setUseInvokeDynamicRectifier(boolean enable);
+
+    boolean isInvokeDynamicRectifierUsed();
+  }
+
+  @Command(name = "miscPreproc", description = "Options for preprocessing that are not covered by other commands",
+      subcommands = { MiscPreprocessorsCommand.InfoCommand.class })
+  static class MiscPreprocessorsCommand implements Callable<Integer> {
+
+    @Spec Model.CommandSpec spec;
+
+    @ParentCommand CliCommands parent;
+
+    MiscPreprocessorsEnabled state;
+
+    MiscPreprocessorsCommand(@State MiscPreprocessorsEnabled state){
+      this.state = state;
+    }
+
+    @Command
+    void useInvokeDynamicRectifier(@Parameters(paramLabel = "enable", completionCandidates = BooleanCompletionCandidates.class)
+        boolean enable){
+      state.setUseInvokeDynamicRectifier(enable);
+    }
+
+    @Command(name = "info")
+    static class InfoCommand implements Runnable {
+      @ParentCommand
+      MiscPreprocessorsCommand parent;
+      @Override public void run() {
+        for (Pair<String, ?> p : Arrays.asList(
+            Pair.pair("useInvokeDynamicRectifier", parent.state.isInvokeDynamicRectifierUsed()))) {
+          System.out.println(String.format("%-20s = %s", p.getFirst(), p.getSecond().toString()));
+        }
+      }
+    }
+
+    @Override public Integer call() {
+      return parent.printUsage(spec);
+    }
+  }
+
   interface OpenAPIEnabled {
     boolean isOpenAPIEnabled();
     void enableOpenAPI();

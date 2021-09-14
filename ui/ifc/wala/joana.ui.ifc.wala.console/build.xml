@@ -3,7 +3,7 @@
 	<description>
     ifc console standalone jar
 	</description>
-	
+
 	<!-- set project related properties -->
 	<property file="project.properties" />
 	<property name="projectname" value="joana.ui.ifc.wala.console" />
@@ -22,7 +22,7 @@
 			jar="${joana.dist.dir}/${projectname}.jar"
 			alias="${keystore.alias}"
 			storepass="${keystore.pass}"
-			keystore="${keystore.file}" 
+			keystore="${keystore.file}"
                         storetype="${keystore.type}"
 		/>
 		<mkdir dir="${deploy.dir}/webstart-jars" />
@@ -32,7 +32,7 @@
 			</filelist>
 		</copy>
 	</target>
-	
+
 	<target name="webstart-site-setup" >
 		<mkdir dir="${deploy.dir}" />
 		<copy todir="${deploy.dir}">
@@ -71,6 +71,7 @@
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+			<fileset dir="${joana.contrib.base.dir}/gradle/deps" includes="*.jar" />
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
             <fileset dir="${com.ibm.wala.dalvik.base.dir}/lib" includes="*.jar" />
 			<fileset dir="${joana.ui.ifc.sdg.graphviewer.base.dir}/lib" includes="*.jar" />

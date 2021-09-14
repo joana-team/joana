@@ -34,6 +34,7 @@ public interface FilePass extends Pass {
 
   default void setup(SDGConfig cfg, String libClassPath, Path sourceFolder) { setup(libClassPath); }
 
+  /** might collect information and is called on every file */
   void collect(Path file) throws IOException;
 
   void store(Path source, Path target) throws IOException;

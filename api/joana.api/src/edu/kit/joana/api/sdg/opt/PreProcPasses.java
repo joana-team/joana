@@ -12,10 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +40,19 @@ public class PreProcPasses {
 
   public PreProcPasses(Pass... passes){
     this(Arrays.asList(passes));
+  }
+
+  public PreProcPasses add(Pass pass) {
+    List<Pass> newPasses = new ArrayList<>(passes);
+    newPasses.add(pass);
+    return new PreProcPasses(newPasses);
+  }
+
+  public PreProcPasses addConditionally(boolean condition, Supplier<Pass> supplier) {
+    if (condition) {
+      return add(supplier.get());
+    }
+    return this;
   }
 
   /**

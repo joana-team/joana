@@ -1,0 +1,20 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    runtime 'de.opal-project:opal-developer-tools_2.12:2.0.1'
+    runtime 'de.opal-project:opal-developer-tools_2.12:2.0.1:sources'
+    runtime 'de.opal-project:bytecode-representation_2.12:2.0.1:sources'
+}
+
+task deleteGraphicsAssets(type: Delete) {
+    delete fileTree(dir: "..", include: "*.jar")
+}
+
+task copyToLib(type: Copy) {
+    from configurations.runtime
+    into "deps"
+}

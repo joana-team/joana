@@ -13,7 +13,7 @@
 	<property name="dest.dir" value="${joana.dist.dir}/${projectname}" />
 	<property name="dest.dir.sources" location="${dest.dir}/sources" />
 	<property name="dest.dir.classes" location="${dest.dir}/classes" />
-	
+
 	<property name="main.class" value="edu.kit.joana.api.RunSingleFileIFC" />
 
 	<target name="fulljar" depends="git-head,compile,spill_out_jars,copy_non_java_files" description="generate the stand-alone jar file">
@@ -61,6 +61,7 @@
 	<target name="compile" depends="init,collect_wala_sources,collect_sources">
 		<path id="lib.path.ref">
 			<fileset dir="${joana.contrib.base.dir}" includes="*.jar" />
+			<fileset dir="${joana.contrib.base.dir}/gradle/deps" includes="*.jar" />
 			<fileset dir="${joana.base.dir}/contrib/parameter-setter/build/libs" includes="parameter_setter-all-1.0-SNAPSHOT.jar" />
 			<fileset dir="${joana.base.dir}/contrib/wala/com.ibm.wala.cast/lib" includes="*.jar" />
 			<pathelement path="${dest.dir.classes}" />

@@ -243,7 +243,7 @@ public class IFCConsole {
 		}
 	}
 /** @formatter:on */
-	
+
 	private static abstract class Command {
 
 		private final CMD cmd;
@@ -372,14 +372,14 @@ public class IFCConsole {
 	private Stubs.ExceptionalistConfig exceptionalistConfig = Stubs.ExceptionalistConfig.ENABLE;
 	private boolean recomputeSDG = true;
 	private ChopComputation chopComputation = ChopComputation.ALL;
-	private boolean onlyDirectFlow = false; 
-	
+	private boolean onlyDirectFlow = false;
+
 	private final List<String> script = new LinkedList<String>();
 	protected IFCType type = IFCType.CLASSICAL_NI;
 	protected boolean isTimeSensitive = false;
 	private PruningPolicy pruningPolicy = PruningPolicy.APPLICATION;
 	private boolean useByteCodeOptimizations = false;
-	private String optLibPath = "";
+	private String optLibPath = null;
 	private SetValueStore setValueStore = new SetValueStore();
 	private Map<SDGProgramPart, Pair<String, ValueToSet.Mode>> valuesToSet = new HashMap<>();
 	private String classPathAfterOpt = null;
@@ -393,6 +393,7 @@ public class IFCConsole {
 	private boolean annotateOverloadedMethods = false;
 	private boolean enableOpenApi = true;
 	private OpenApiPreProcessorPass.Config openApiPreProcConfig = OpenApiPreProcessorPass.Config.DEFAULT;
+	private boolean enableInvokeDynamicRectifier = true;
 
 	/**
 	 * BC strings
@@ -416,12 +417,12 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandFindCommand() {
 		return new Command(CMD.FIND_COMMAND) {
 			@Override
 			boolean execute(String[] args) {
-				java.util.regex.Pattern pattern = 
+				java.util.regex.Pattern pattern =
 						java.util.regex.Pattern.compile(args[1], java.util.regex.Pattern.CASE_INSENSITIVE);
 				for (String cmdName : repo.getCommands()) {
 					String msg = repo.getHelpMessage(cmdName);
@@ -443,7 +444,7 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandSearchEntryPoints() {
 		return new Command(CMD.SEARCH_ENTRY_POINTS) {
 
@@ -453,10 +454,10 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandSelectSources() {
 		return new Command(CMD.SELECT_SOURCES) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				return selectSources(args.length == 2 ? new Pattern(args[1], true, PatternType.ID, PatternType.SIGNATURE) : new Pattern());
@@ -466,39 +467,39 @@ public class IFCConsole {
 
 	private Command makeCommandSelectSinks() {
 		return new Command(CMD.SELECT_SINKS) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				return selectSinks(args.length == 2 ? new Pattern(args[1], true, PatternType.ID, PatternType.SIGNATURE) : new Pattern());
 			}
 		};
 	}
-	
+
 	private Command makeCommandUseEntryPoint() {
 		return new Command(CMD.USE_ENTRY_POINT) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				return makeCommandSelectSetValues().execute(args)
 				    && selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0])))
-						&& makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"}) 
-						&& makeCommandSelectSources().execute(args) 
+						&& makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"})
+						&& makeCommandSelectSources().execute(args)
 						&& makeCommandSelectSinks().execute(args)
 						&& makeCommandSelectDeclassifications().execute(args);
 			}
 		};
 	}
-	
+
 	private Command makeCommandRunEntryPointsYAML() {
 		return new Command(CMD.RUN_ENTRY_POINTS_YAML) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				return useEntryPointsYAML(args.length == 1 ? "-" : args[1], args.length <= 2 ? ".*" : args[2]);
 			}
 		};
 	}
-	
+
 	private Command makeCommandSelectEntry() {
 		return new Command(CMD.SELECT_ENTRY) {
 
@@ -512,7 +513,7 @@ public class IFCConsole {
 				if (sig != null) {
 					return selectEntry(sig);
 				}
-				
+
 				return false;
 			}
 		};
@@ -527,7 +528,7 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandSetClasspath() {
 		return new Command(CMD.SET_CLASSPATH) {
 
@@ -540,7 +541,7 @@ public class IFCConsole {
 
 		};
 	}
-	
+
 	private Command makeCommandSearchSources() {
 		return new Command(CMD.SEARCH_SOURCES) {
 
@@ -551,7 +552,7 @@ public class IFCConsole {
 
 		};
 	}
-	
+
 	private Command makeCommandSearchSinks() {
 		return new Command(CMD.SEARCH_SINKS) {
 
@@ -562,7 +563,7 @@ public class IFCConsole {
 
 		};
 	}
-	
+
 	private Command makeCommandSearchDeclassifications() {
 		return new Command(CMD.SEARCH_DECLASS) {
 
@@ -655,7 +656,7 @@ public class IFCConsole {
 					out.logln("invalid setting: " + args[1]);
 					return false;
 				}
-				
+
 				boolean b = "true".equals(args[1]);
 				setComputeInterferences(b);
 				out.logln("computeInterferences = " + args[1]);
@@ -724,10 +725,10 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandBuildSDGIfNeeded() {
 		return new Command(CMD.BUILD_SDG_IF_NEEDED) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				if (recomputeSDG) {
@@ -839,17 +840,17 @@ public class IFCConsole {
 
 	private Command makeCommandRunYaml() {
 		return new Command(CMD.RUN_YAML) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				return runAnalysisYAML(args.length == 1 ? "-" : args[1]);
 			}
 		};
 	}
-	
+
 	private Command makeCommandSetType() {
 		return new Command(CMD.SET_TYPE) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				IFCType newType = parseIFCType(args[1]);
@@ -862,10 +863,10 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandSetTimeSensitivity() {
 		return new Command(CMD.SET_TIME_SENSITIVITY) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				switch (args[1]) {
@@ -883,10 +884,10 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandOnlyDirectFlow() {
 		return new Command(CMD.ONLY_DIRECT_FLOW) {
-			
+
 			@Override
 			boolean execute(String[] args) {
 				switch (args[1]) {
@@ -906,7 +907,7 @@ public class IFCConsole {
 			}
 		};
 	}
-	
+
 	private Command makeCommandRun() {
 		return new Command(CMD.RUN) {
 			@Override
@@ -925,10 +926,10 @@ public class IFCConsole {
 						return doIFC(ifcType, timeSens);
 					}
 				}
-			}			
+			}
 		};
 	}
-	
+
 	private IFCType parseIFCType(String s) {
 		for (IFCType t : IFCType.values()) {
 			if (t.name().equals(s)) {
@@ -1232,7 +1233,7 @@ public class IFCConsole {
 		repo.addCommand(makeCommandSetTimeSensitivity());
 		repo.addCommand(makeCommandSetType());
 		repo.addCommand(makeCommandOnlyDirectFlow());
-		
+
 		repo.addCommand(makeCommandSetClasspath());
 		repo.addCommand(makeCommandSetExceptionAnalysis());
 		repo.addCommand(makeCommandSetPointsTo());
@@ -1359,7 +1360,7 @@ public class IFCConsole {
 			out.error("Level " + level1 + " is not greater than or equal to " + level2 + "!");
 			return false;
 		}
-		
+
 		SDGProgramPart toMark = getProgramPartFromSelectorString(programPartDesc, false);
 		if (toMark != null) {
 			out.error("Program part with name " + programPartDesc + " not found!");
@@ -1455,8 +1456,8 @@ public class IFCConsole {
 	public boolean searchEntryPointsOutYaml(String pattern) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
 		Pattern pat = pattern.isEmpty() ?
-				new Pattern() : 
-			new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE); 
+				new Pattern() :
+			new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE);
 		Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out, pat);
 		if (!result.isPresent()) {
 			out.error("No entry methods found.");
@@ -1494,12 +1495,12 @@ public class IFCConsole {
 		}
 		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond(), classSinkConsumer);
 	}
-	
+
 	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer) {
 		this.secLattice = IFCAnalysis.stdLattice;
 		return selectEntryPoint(pattern, classSinkConsumer, true);
 	}
-	
+
 	public boolean useEntryPointsYAML(String outputFile, String pattern) {
 		if (outputFile.equals("-")) {
 			return useEntryPointsYAML(out.getPrintStream(), pattern);
@@ -1511,10 +1512,10 @@ public class IFCConsole {
 			return false;
 		}
 	}
-	
+
 	public boolean useEntryPointsYAML(PrintStream stream, String pattern) {
 		YamlSequenceBuilder seq = Yaml.createYamlSequenceBuilder();
-		Optional<List<Pair<IMethod, Annotation>>> result = 
+		Optional<List<Pair<IMethod, Annotation>>> result =
 				loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
 		if (result.isPresent()) {
 			for (Pair<IMethod, Annotation> p : result.get()) {
@@ -1530,7 +1531,7 @@ public class IFCConsole {
 		out.error("No entry points found");
 		return false;
 	}
-	
+
 	public Optional<YamlMapping> useEntryPointYaml(IMethod method, Annotation annotation){
 		if (!selectEntryPoint(JavaMethodSignature.fromString(method.getSignature()), annotation, s -> ifcAnalysis.addSinkClasses(new String[0]))) {
 			return Optional.empty();
@@ -1545,7 +1546,7 @@ public class IFCConsole {
 		}
 		return runAnalysisYAML();
 	}
-	
+
 	public boolean runAnalysisYAML(String outputFile) {
 		if (outputFile.equals("-")) {
 			return runAnalysisYAML(out.getPrintStream());
@@ -1557,7 +1558,7 @@ public class IFCConsole {
 			return false;
 		}
 	}
-	
+
 	public boolean runAnalysisYAML(PrintStream output){
 		Optional<YamlMapping> map = runAnalysisYAML();
 		if (map.isPresent()) {
@@ -1585,7 +1586,7 @@ public class IFCConsole {
 		lastAnalysisResult.addAll(vios);
 
 		groupedIFlows.clear();
-		
+
 		mapBuilder = mapBuilder.add("entry_point_method", loc.getActiveEntry().toHRString());
 		SDGProgramPart entryPP = ifcAnalysis.getProgramPart(loc.getActiveEntry().toBCString());
 		if (getProgram().getIdManager().contains(entryPP)){
@@ -1724,7 +1725,7 @@ public class IFCConsole {
 							  .add("source", convertProgramPartToYaml(conf.getConflictEdge().getSource()))
 							  .add("target", convertProgramPartToYaml(conf.getConflictEdge().getTarget())).build());
 				}
-				
+
 				@Override
 				public void visitDataConflict(DataConflict<SDGProgramPart> dataConf) {
 					visitAbstractConflictLeak("data", dataConf);
@@ -1751,7 +1752,7 @@ public class IFCConsole {
 							  .add("influenced_by", convertProgramPartToYaml(binVio.getInfluencedBy()))
 							  .add("node", convertProgramPartToYaml(binVio.getNode()));
 				}
-				
+
 			});
 			output.add(String
 					.format("Security violation: %s (internal: %d security violations on the SDG node level)",
@@ -1765,7 +1766,7 @@ public class IFCConsole {
 		ifcAnalysis.getAnnManager().unapplyAllAnnotations();
 		return Optional.of(mapBuilder.build());
 	}
-	
+
 	public boolean selectEntryPoint(JavaMethodSignature sig, Annotation ann, Consumer<List<String>> classSinkConsumer) {
 		loc.selectEntry(sig);
 		if (ann == null){
@@ -1831,13 +1832,13 @@ public class IFCConsole {
 		recomputeSDG |= !uninitializedFieldTypeMatcher.equals(fieldTypeMatcher);
 	  this.uninitializedFieldTypeMatcher = fieldTypeMatcher;
 	}
-	
+
 	private boolean parseClassSinks(ArrayElementValue val, Consumer<List<String>> classSinkConsumer) {
 		ElementValue[] arr = val.vals;
 		classSinkConsumer.accept(Arrays.stream(arr).map(c -> (String)((ConstantElementValue)c).val).collect(Collectors.toList()));
 		return true;
 	}
-	
+
 	private boolean parseKind(ConstantElementValue kind, Optional<ConstantElementValue> file) {
 		switch ((EntryPointKind)kind.val) {
 		case UNKNOWN:
@@ -1886,7 +1887,7 @@ public class IFCConsole {
 		}
 		return true;
 	}
-	
+
 	private boolean parseLatticeAnnotation(ArrayElementValue levelsVal, ArrayElementValue latticeVal) {
 		final EditableLatticeSimple<String> specifiedLattice  = new EditableLatticeSimple<String>();
 		for (ElementValue o : levelsVal.vals) {
@@ -1929,7 +1930,7 @@ public class IFCConsole {
 		}
 		return true;
 	}
-	
+
 	private boolean parseDataSetsAnnotation(ArrayElementValue val) {
 		final Set<String> datasets  = new HashSet<>();
 		Object[] levels = (Object[]) val.vals;
@@ -1945,7 +1946,7 @@ public class IFCConsole {
 		ifcAnalysis.addAllJavaSourceIncludesAnnotations(pre.getFromOriginalMap(), pre);
 		return true;
 	}
-	
+
 	private boolean parseAdversariesAnnotation(ArrayElementValue val) {
 		final Set<String> datasets  = new HashSet<>();
 		Object[] levels = (Object[]) val.vals;
@@ -1961,7 +1962,7 @@ public class IFCConsole {
 		ifcAnalysis.addAllJavaSourceMayKnowAnnotations(pre.getFromOriginalMap(), new ReversedLattice<String>(pre));
 		return true;
 	}
-	
+
 	public boolean searchSinksAndSources(Optional<String> pattern, AnnotationType type) {
 		if (ifcAnalysis == null) {
 			out.error("Load or build SDG first!");
@@ -2011,7 +2012,7 @@ public class IFCConsole {
 		}
 		return res;
 	}
-	
+
 	public boolean selectSources(Pattern pattern) {
 		if (ifcAnalysis == null) {
 			out.error("Load or build SDG first!");
@@ -2024,7 +2025,7 @@ public class IFCConsole {
 		});
 		return true;
 	}
-	
+
 	public boolean selectSinks(Pattern pattern) {
 		if (ifcAnalysis == null) {
 			out.error("Load or build SDG first!");
@@ -2037,7 +2038,7 @@ public class IFCConsole {
 		});
 		return true;
 	}
-	
+
 	public List<Pair<IFCAnnotation, List<String>>> searchDeclassificationAnnotations(Optional<String> pattern) {
 		if (ifcAnalysis == null) {
 			out.error("Load or build SDG first!");
@@ -2057,7 +2058,7 @@ public class IFCConsole {
 				if (pattern.matchDeclassification(part, p.getFirst())) {
 					Declassification declass = p.getFirst();
 					res.add(Pair.pair(new IFCAnnotation(
-							declass.from() == null ? Level.HIGH : declass.from(), 
+							declass.from() == null ? Level.HIGH : declass.from(),
 							declass.to() == null ? Level.LOW : declass.to(),
 							part), Arrays.asList(p.getFirst().tags())));
 				}
@@ -2065,7 +2066,7 @@ public class IFCConsole {
 		});
 		return res;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public boolean showDeclassificationAnnotations(Optional<String> pattern) {
 		List<Pair<IFCAnnotation, List<String>>> annPairs = searchDeclassificationAnnotations(pattern);
@@ -2085,13 +2086,13 @@ public class IFCConsole {
 		out.logln(seq.toString());
 		return true;
 	}
-	
+
 	public boolean selectDeclassificationAnnotations(Optional<String> pattern) {
 		List<Pair<IFCAnnotation, List<String>>> annPairs = searchDeclassificationAnnotations(pattern);
 		annPairs.forEach(p -> ifcAnalysis.addAnnotation(p.getFirst()));
 		return true;
 	}
-	
+
 	public void setClasspath(String newClasspath) {
 		this.classPath = newClasspath;
 	}
@@ -2429,7 +2430,7 @@ public class IFCConsole {
 		}
 
 	}
-	
+
 	public List<String> findCommands(String needle){
 		List<String> commands = new ArrayList<>();
 		java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(needle, java.util.regex.Pattern.CASE_INSENSITIVE);
@@ -2554,7 +2555,7 @@ public class IFCConsole {
 	public void setProgressMonitor(IProgressMonitor progress) {
 		this.monitor = progress;
 	}
-	
+
 	public synchronized boolean buildSDGIfNeeded() {
 		if (recomputeSDG) {
 			return buildSDG();
@@ -2565,7 +2566,7 @@ public class IFCConsole {
 	public synchronized boolean buildSDG() {
 		return buildSDG(false, MHPType.NONE, ExceptionAnalysis.INTERPROC);
 	}
-	
+
 	private boolean buildSDGIfNeeded(boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA) {
 		if (recomputeSDG) {
 			return buildSDG(computeInterference, mhpType, exA);
@@ -2626,14 +2627,7 @@ public class IFCConsole {
 	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues){
 		try {
 			SDGConfig preConf = getSdgConfig(classPath, computeInterference, mhpType, exA);
-			if (this.valuesToSet.size() > 0){
-				classPath = new PreProcPasses(createSetValuePass()).process(null, preConf, "", classPath);
-				classPathAfterOpt = classPath;
-			}
-			if (enableOpenApi) {
-				classPath = new PreProcPasses(createOpenApiPreProcessorPass()).process(null, preConf, "", classPath);
-				classPathAfterOpt = classPath;
-			}
+			classPath = createPasses().process(ifcAnalysis, preConf, optLibPath == null ? "" : optLibPath, classPath);
 			SDGConfig config = getSdgConfig(classPath, computeInterference, mhpType, exA);
 			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
 			if (onlyDirectFlow) {
@@ -2684,8 +2678,15 @@ public class IFCConsole {
 	}
 
 	PreProcPasses createOptPasses(){
-		return new PreProcPasses(new ProGuardPass(),
-				new OpenApiPreProcessorPass(new OpenApiClientDetector(), openApiPreProcConfig));
+		return new PreProcPasses()
+				.addConditionally(enableInvokeDynamicRectifier, OPALInvokeDynamicRectifierPass::new)
+				.addConditionally(optLibPath != null, ProGuardPass::new);
+	}
+
+	PreProcPasses createPasses() {
+		return createOptPasses()
+				.addConditionally(valuesToSet.size() > 0, this::createSetValuePass)
+				.addConditionally(enableOpenApi, this::createOpenApiPreProcessorPass);
 	}
 
 	public synchronized boolean saveSDG(String path) {
@@ -2705,20 +2706,20 @@ public class IFCConsole {
 
 		return true;
 	}
-	
+
 	public synchronized boolean exportGraphML(String path) {
 		if (ifcAnalysis == null || ifcAnalysis.getProgram() == null) {
 			out.info("No active program.");
 		} else {
 			BufferedOutputStream bOut;
-			
+
 			try {
 				bOut = new BufferedOutputStream(new FileOutputStream(path));
 			} catch (FileNotFoundException e) {
 				out.error("I/O problem while exporting GraphML into file " + path + "!");
 				return false;
 			}
-			
+
 			final SDG sdg = ifcAnalysis.getProgram().getSDG();
 			try {
 				SDG2GraphML.convertHierachical(sdg, bOut);
@@ -2728,7 +2729,7 @@ public class IFCConsole {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -2740,7 +2741,7 @@ public class IFCConsole {
 		try {
 			sdg = SDG.readFrom(path, new SecurityNodeFactory());
 			mhp = mhpType.getMhpAnalysisConstructor().apply(sdg);
-			
+
 		} catch (IOException e) {
 			String errorMsg = "I/O error while reading sdg from file " + path;
 			if (e.getMessage() != null) {
@@ -2869,7 +2870,7 @@ public class IFCConsole {
 
     public boolean createChop(final SDGProgramPart source, final SDGProgramPart sink) {
         final SDGProgram program = getProgram();
-        
+
         if (source == null) {
             out.info("Chop: Source is null - aborted");
             return false;
@@ -3036,7 +3037,7 @@ public class IFCConsole {
 		if (ret) {
 			return true;
 		}
-		
+
 		Answer ans = out
 				.question("At least one of the selected program parts is already annotated. Do you want to overwrite these annotations?");
 		return ans == Answer.YES;
@@ -3267,7 +3268,7 @@ public class IFCConsole {
 			ImprovedCLI.SetValueEnabled, ImprovedCLI.BuildSDGEnabled, ImprovedCLI.RunAnalysisEnabled<AnalysisObject>, ImprovedCLI.ClassSinksEnabled,
 			ImprovedCLI.DeclassificationEnabled, ImprovedCLI.OptimizationEnabled, ImprovedCLI.SDGOptionsEnabled, ImprovedCLI.RunEnabled<AnalysisObject>,
 			ImprovedCLI.LoadSDGEnabled, ImprovedCLI.MiscAnnotationsEnabled, ImprovedCLI.SaveSDGEnabled, ImprovedCLI.ExportSDGEnabled,
-			ImprovedCLI.ViewEnabled, ImprovedCLI.OpenAPIEnabled {
+			ImprovedCLI.ViewEnabled, ImprovedCLI.OpenAPIEnabled, ImprovedCLI.MiscPreprocessorsEnabled {
 
 		Map<AnnotationType, Set<IFCAnnotation>> annotationsPerType = new HashMap<>();
 		List<SDGClass> sinkClasses = new ArrayList<>();
@@ -3630,6 +3631,14 @@ public class IFCConsole {
 
 		@Override public void disableOpenAPI() {
 			enableOpenApi = false;
+		}
+
+		@Override public void setUseInvokeDynamicRectifier(boolean enable) {
+			enableInvokeDynamicRectifier = enable;
+		}
+
+		@Override public boolean isInvokeDynamicRectifierUsed() {
+			return enableInvokeDynamicRectifier;
 		}
 	}
 

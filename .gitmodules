@@ -1,9 +1,10 @@
 [submodule "contrib/wala"]
 	path = contrib/wala
-	url = https://github.com/joana-team/WALA.git
+  url = https://github.com/joana-team/WALA.git
+  ignore = dirty
 [submodule "contrib/parameter-setter"]
 	path = contrib/parameter-setter
 	url = https://git.scc.kit.edu/gp1285/parameter-setter
 [submodule "contrib/exceptionalist"]
 	path = contrib/exceptionalist
-	url = https://git.scc.kit.edu/gp1285/exceptionalist
+  url = https://git.scc.kit.edu/gp1285/exceptionalist

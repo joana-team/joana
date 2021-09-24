@@ -14,19 +14,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Detects Java clients that are generated using the
- * "java" template and the openapi-generator, using
+ * Detects Java servers that are generated using the
+ * "jaxrs-cxf" template and the openapi-generator, using
  * a few heuristics.
  */
-public class OpenApiClientDetector {
+public class OpenApiServerDetector {
 
   private final String openApiPackage;
 
-  public OpenApiClientDetector() {
+  public OpenApiServerDetector() {
     this("");
   }
 
-  public OpenApiClientDetector(String openApiPackage) {
+  public OpenApiServerDetector(String openApiPackage) {
     this.openApiPackage = openApiPackage;
   }
 
@@ -123,7 +123,7 @@ public class OpenApiClientDetector {
         exceptions.length == 1 && exceptions[0].endsWith("ApiException");
   }
 
-  public Stream<com.ibm.wala.ipa.callgraph.CGNode> detectUnsupportedApiCalls(com.ibm.wala.ipa.callgraph.CallGraph cg) {
+  public Stream<CGNode> detectUnsupportedApiCalls(com.ibm.wala.ipa.callgraph.CallGraph cg) {
     Map<IClass, Set<CGNode>> called = new HashMap<>();
     Iterator2Collection.toList(cg.iterator()).stream().forEach(node -> {
       called.computeIfAbsent(node.getMethod().getDeclaringClass(), c -> new HashSet<>()).add(node);

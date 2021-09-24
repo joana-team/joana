@@ -12,32 +12,35 @@ import com.ibm.wala.util.collections.Iterator2List;
 import com.ibm.wala.util.strings.Atom;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
-import edu.kit.joana.api.sdg.opt.asm.BaseMethodDescriptor;
-import edu.kit.joana.api.sdg.opt.asm.DeletingMethodVisitor;
-import edu.kit.joana.api.sdg.opt.asm.HeuristicReflectionFinder;
+import edu.kit.joana.api.sdg.opt.asm.*;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.TypeNameUtils;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
-import edu.kit.joana.wala.util.NotImplementedException;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.MethodInfo;
 import nonapi.io.github.classgraph.classpath.SystemJarFinder;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Type;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.*;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+import static edu.kit.joana.util.Iterators.stream;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -50,63 +53,96 @@ public class OpenApiPreProcessorPass implements FilePass {
 
   public static class Config {
 
-    public static final Config DEFAULT = new Config(true, true);
+    public static final Config DEFAULT = new Config(true, true, false, true, 1);
 
     public final boolean deleteRestOfMethod;
     public final boolean deleteConstructorBody;
+    public final boolean ignorePrivateConstructors;
+    public final boolean useSingleConstructorPerType;
+    public final int maxLevel2Constructors;
 
-    public Config(boolean deleteRestOfMethod, boolean deleteConstructorBody) {
+    public Config(boolean deleteRestOfMethod, boolean deleteConstructorBody, boolean ignorePrivateConstructors,
+        boolean useSingleConstructorPerType, int maxLevel2Constructors) {
       this.deleteRestOfMethod = deleteRestOfMethod;
       this.deleteConstructorBody = deleteConstructorBody;
+      this.ignorePrivateConstructors = ignorePrivateConstructors;
+      this.useSingleConstructorPerType = useSingleConstructorPerType;
+      this.maxLevel2Constructors = maxLevel2Constructors;
+    }
+
+    @Override public boolean equals(Object o) {
+      if (this == o)
+        return true;
+      if (!(o instanceof Config))
+        return false;
+      Config config = (Config) o;
+      return deleteRestOfMethod == config.deleteRestOfMethod && deleteConstructorBody == config.deleteConstructorBody
+          && ignorePrivateConstructors == config.ignorePrivateConstructors
+          && useSingleConstructorPerType == config.useSingleConstructorPerType
+          && maxLevel2Constructors == config.maxLevel2Constructors;
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(deleteRestOfMethod, deleteConstructorBody, ignorePrivateConstructors, useSingleConstructorPerType,
+          maxLevel2Constructors);
     }
   }
 
-  protected final OpenApiClientDetector detector;
+  protected final OpenApiClientDetector clientDetector;
+  protected final OpenApiServerDetector serverDetector;
   /** java class name → info */
-  protected Map<String, ClassInfo> classInfoMap;
+  protected Class2ClassInfo classInfoMap;
   private SDGBuilder.CGResult cgr;
-  private final boolean debug = false;
+  private final boolean debug = true;
+  private final boolean debug2 = false;
 
   private final Config config;
 
   /** java names of detected open api classes */
-  private Set<String> openApiClasses;
+  private Set<String> openApiClientClasses;
 
   /** Types that might be used in reflection. An approximation for GSON related reflection. */
   private Set<ClassInfo> typesUsedInReflection;
 
-  public OpenApiPreProcessorPass(OpenApiClientDetector detector, Config config) {
-    this.detector = detector;
+  private Set<ClassInfo> concreteTypesUsedInReflection;
+
+  /** java class names */
+  private NameCreator classNames;
+
+  public OpenApiPreProcessorPass(OpenApiClientDetector clientDetector, Config config) {
+    this.clientDetector = clientDetector;
     this.config = config;
+    this.serverDetector = new OpenApiServerDetector();
   }
 
   @Override public void setup(SDGConfig cfg, String libClassPath, Path sourceFolder) {
-    classInfoMap = new ClassGraph().enableMethodInfo().overrideClasspath(
+    classInfoMap = new Class2ClassInfo(new ClassGraph().enableMethodInfo().overrideClasspath(
         libClassPath + (libClassPath.isEmpty() ? "" : ":") + SystemJarFinder.getJreRtJarPath() + ":" + sourceFolder)
-        .enableSystemJarsAndModules().enableInterClassDependencies().scan().getAllClassesAsMap();
+        .enableSystemJarsAndModules().enableInterClassDependencies().scan().getAllClassesAsMap());
+    classNames = new NameCreator(new HashSet<>(classInfoMap.keySet()));
     try {
       cfg.setClassPath(sourceFolder.toString());
       cfg.setPointsToPrecision(SDGBuilder.PointsToPrecision.TYPE_BASED);
       cgr = SDGProgram.buildCallGraph(cfg);
-
-      openApiClasses = cgr.cg.getClassHierarchy().getClasses().stream().filter(detector::isReallyOpenOpiClass)
+      openApiClientClasses = cgr.cg.getClassHierarchy().getClasses().stream().filter(clientDetector::isReallyOpenOpiClass)
           .map(TypeNameUtils::toJavaClassName)
           .collect(Collectors.toSet());
       checkForCalledNonOpenApiMethodsOfOpenApiClasses(cgr.cg);
       HeuristicReflectionFinder heuristicReflectionFinder = new HeuristicReflectionFinder(sourceFolder, cgr, classInfoMap);
       heuristicReflectionFinder.run();
-      typesUsedInReflection = heuristicReflectionFinder.getFoundTypes().stream().map(TypeNameUtils::toJavaClassName).map(n -> {
-        ClassInfo klass = classInfoMap.get(n);
-        return klass;
-      }).collect(
+      typesUsedInReflection = heuristicReflectionFinder.getFoundTypes().stream().map(TypeNameUtils::toJavaClassName)
+          .map(n -> classInfoMap.get(n)).filter(Objects::nonNull).collect(Collectors.toSet());
+      concreteTypesUsedInReflection = typesUsedInReflection.stream().filter(t -> !t.isAbstract() && !t.isInterface()).collect(
           Collectors.toSet());
+      clientDetector.detectUnsupportedApiCalls(cgr.cg).forEach(System.err::println);
+      serverDetector.setup(cgr.cg, classInfoMap.values());
     } catch (CallGraphBuilderCancelException | ClassHierarchyException | IOException e) {
       e.printStackTrace();
     }
   }
 
   public static class OpenApiInvariantException extends RuntimeException {
-    private List<IMethod> calledNonOpenApiMethodsOfOpenApiClasses;
+    private final List<IMethod> calledNonOpenApiMethodsOfOpenApiClasses;
 
     public OpenApiInvariantException(List<IMethod> calledNonOpenApiMethodsOfOpenApiClasses) {
       super("The following are non open api methods of open api classes that are called by non open api class methods: " +
@@ -122,10 +158,10 @@ public class OpenApiPreProcessorPass implements FilePass {
    */
   private void checkForCalledNonOpenApiMethodsOfOpenApiClasses(CallGraph cg) {
     List<IMethod> violatingMethods = StreamSupport.stream(cg.spliterator(), false).filter(
-            node -> openApiClasses.contains(node.getMethod().getDeclaringClass().getName().toString()) && // method is in open api class
-                !detector.isWrappableOpenApiMethod(node.getMethod()) && !node.getMethod().isInit() && !node.getMethod().isClinit()
+            node -> openApiClientClasses.contains(node.getMethod().getDeclaringClass().getName().toString()) && // method is in open api class
+                !clientDetector.isWrappableOpenApiMethod(node.getMethod()) && !node.getMethod().isInit() && !node.getMethod().isClinit()
                 && new Iterator2List<>(cg.getPredNodes(node), new ArrayList<>()).stream()   // checks for callers
-                .anyMatch(caller -> !openApiClasses.contains(caller.getMethod().getDeclaringClass().getName().toString())))
+                .anyMatch(caller -> !openApiClientClasses.contains(caller.getMethod().getDeclaringClass().getName().toString())))
         .map(CGNode::getMethod).collect(Collectors.toList());
     if (violatingMethods.size() > 0) {
       throw new OpenApiInvariantException(violatingMethods);
@@ -172,6 +208,18 @@ public class OpenApiPreProcessorPass implements FilePass {
       super(methodClass, methodName, methodDescriptor);
     }
 
+    public MethodDescriptor(MethodInfo methodInfo) {
+      super(methodInfo.getClassName(), methodInfo.getName(), methodInfo.getTypeDescriptorStr());
+    }
+
+    public MethodDescriptor(CGNode cgNode) {
+      this(cgNode.getMethod().getReference());
+    }
+
+    public MethodDescriptor(MethodReference method) {
+      super(TypeNameUtils.toJavaClassName(method.getDeclaringClass()), method.getName().toString(), method.getDescriptor().toString());
+    }
+
     private Optional<MethodReference> toRef() {
       return Optional.ofNullable(cgr.cg.getClassHierarchy().lookupClass(TypeNameUtils.toInternalName(methodClass))).map(klass ->
           klass.getMethod(new Selector(Atom.findOrCreateUnicodeAtom(methodName), Descriptor.findOrCreateUTF8(methodDescriptor))))
@@ -186,6 +234,12 @@ public class OpenApiPreProcessorPass implements FilePass {
     @Override public String toString() {
       return new StringJoiner(", ", MethodDescriptor.class.getSimpleName() + "[", "]").add("methodClass='" + methodClass + "'")
           .add("methodName='" + methodName + "'").add("methodDescriptor='" + methodDescriptor + "'").toString();
+    }
+
+    private MethodInfo toMethodInfo() {
+      return classInfoMap.get(methodClass).getMethodInfo(methodName)
+          .filter(m -> m.getTypeDescriptorStr().equals(methodDescriptor))
+          .get(0);
     }
   }
 
@@ -219,8 +273,17 @@ public class OpenApiPreProcessorPass implements FilePass {
                 getReflectionSubTypes(classInfoMap.get(TypeNameUtils.toJavaClassName(n.getMethod().getReturnType()))))
             .stream().map(this::classInfoToType).collect(
             Collectors.toList()));
+        collectedTypes.add(Type.getType(n.getMethod().getReturnType().getName().toString() + ";"));
       }
       return collectedTypes.stream();
+    }).collect(Collectors.toSet());
+  }
+
+  /** might return an empty set */
+  private Set<Type> getReturnTypesWoReflection(MethodDescriptor methodDescriptor) {
+    return methodDescriptor.nodes().stream().flatMap(n -> {
+      return cgr.pts.getPointsToSet(cgr.pts.getHeapModel().getPointerKeyForReturnValue(n)).stream()
+          .map(i -> Type.getType(i.getConcreteType().getName() + ";"));
     }).collect(Collectors.toSet());
   }
 
@@ -228,46 +291,6 @@ public class OpenApiPreProcessorPass implements FilePass {
     List<T> l = new ArrayList<>();
     iterator.forEachRemaining(l::add);
     return l;
-  }
-
-  /**
-   * Augments the possible constructors
-   */
-  class PossibleConstructors {
-    final Map<Type, Set<String>> map;
-
-    PossibleConstructors(Map<Type, Set<String>> map) {
-      this.map = map;
-    }
-
-    PossibleConstructors forTypes(Collection<Type> types) {
-      Map<Type, Set<String>> out = new HashMap<>();
-      for (Type type : types) {
-        forType(type, out);
-      }
-      return new PossibleConstructors(out);
-    }
-
-    PossibleConstructors forType(Type type) {
-      Map<Type, Set<String>> out = new HashMap<>();
-      forType(type, out);
-      return new PossibleConstructors(out);
-    }
-
-    private void forType(Type type, Map<Type, Set<String>> out) {
-      // find all implementing types
-      ClassInfo classInfo = classInfoMap.get(TypeNameUtils.toJavaClassName(type));
-      (classInfo.isInterface() ? classInfo.getClassesImplementing() : classInfo.getSubclasses()).stream()
-          .map(c -> Type.getType(TypeNameUtils.javaClassNameToInternalName(c.getName()))).filter(t -> map.containsKey(t) && !out.containsKey(t))
-          .forEach(t -> out.put(t, map.get(t)));
-      if (classInfo.isStandardClass() && !classInfo.isAbstract() && map.containsKey(type) && !out.containsKey(type)) {
-        out.put(type, map.get(type));
-      }
-    }
-
-    @Override public String toString() {
-      return map.toString();
-    }
   }
 
   /**
@@ -302,16 +325,21 @@ public class OpenApiPreProcessorPass implements FilePass {
    * @return
    */
   private PossibleConstructors possibleConstructorsCalledIn(MethodDescriptor methodDescriptor) {
-    return new PossibleConstructors(worklist(methodDescriptor.nodes(),
-        n -> iteratorToCollection(cgr.cg.getSuccNodes(n)).stream().filter(c -> c.getMethod().isInit())
-            .map(OpenApiPreProcessorPass::cgNodeToTypeMethodDescriptorPair).collect(Collectors.toList()),
-        n -> iteratorToCollection(cgr.cg.getSuccNodes(n))).stream().collect(pairGroupingCollector()));
+    return new PossibleConstructors(classInfoMap, config, methodDescriptor.toRef().map(d -> worklist(cgr.cg.getNodes(d),
+        no -> iteratorToCollection(cgr.cg.getSuccNodes(no)),
+        no -> iteratorToCollection(cgr.cg.getSuccNodes(no))).stream()
+            .map(CGNode::getMethod)
+            .filter(m -> m.isInit() && !m.getDeclaringClass().isAbstract()))
+        .orElseGet(Stream::empty)
+        .map(m -> Pair.pair(Type.getType(m.getDeclaringClass().getName().toString() + ";"),
+            m.getDescriptor().toString()))
+        .collect(pairGroupingCollector()), concreteTypesUsedInReflection);
   }
 
   public static <N, R> Set<R> worklist(Iterable<N> init, Function<N, Iterable<R>> process, Function<N, Iterable<N>> next) {
     Set<R> set = new HashSet<>();
     worklist(init, n -> {
-      if (StreamSupport.stream(process.apply(n).spliterator(), false).filter(set::add).count() > 0) {
+      if (StreamSupport.stream(process.apply(n).spliterator(), false).anyMatch(set::add)) {
         return next.apply(n);
       }
       return Collections.emptySet();
@@ -338,32 +366,63 @@ public class OpenApiPreProcessorPass implements FilePass {
   @Override public void collect(Path file) throws IOException {
   }
 
-  @Override public void store(Path source, Path target) throws IOException {
-    if (debug && false) {
-      if (!source.endsWith("Node.class")) {
-        return;
-      }
-      target = Paths.get("/tmp/Node.class");
+  @Override public void store(Path source, Path target, Path targetBase) throws IOException {
+    if (debug) {
+      Path newTargetBase = Paths.get("/tmp/oa");
+      Path newTarget = newTargetBase.resolve(targetBase.relativize(target));
+      storeImpl(source, newTarget, newTargetBase);
+      Files.createDirectories(target.getParent());
+      Files.copy(newTarget, target);
+    } else {
+      storeImpl(source, target, targetBase);
     }
+  }
+
+  private void storeImpl(Path source, Path target, Path targetBase) throws IOException {
     ClassReader cr = new ClassReader(Files.newInputStream(source));
     ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
-    ModifierVisitor mod = new ModifierVisitor(cw, detector);
+    ModifierVisitor mod = new ModifierVisitor(cw, targetBase, clientDetector,
+        new DummyGeneratorStore(targetBase, "edu.kit.joana.gen", classNames, config));
     cr.accept(mod, ClassReader.EXPAND_FRAMES);
     Files.createDirectories(target.getParent());
     Files.newOutputStream(target).write(cw.toByteArray());
   }
 
+  @Override public void process(SDGConfig cfg, String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {
+    if (debug) {
+      FileUtils.deleteDirectory(Paths.get("/tmp/oa").toFile());
+    }
+    FilePass.super.process(cfg, libClassPath, sourceFolder, targetFolder);
+    if (debug) {
+      try {
+        Files.createDirectories(targetFolder);
+        FileUtils.copyDirectory(Paths.get("/tmp/oa").toFile(), targetFolder.toFile());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  @Override public void teardown() {
+  }
+
   class ModifierVisitor extends ClassVisitor {
 
+    private final Path basePath;
     private final OpenApiClientDetector detector;
+    private final DummyGeneratorStore dummyGeneratorStore;
     /** important: "L$klass;" is the real internal name */
     private String klass;
     private String javaKlassName;
     private Set<String> usedMethodNames;
+    /** used for all-method-invokes on server objects */
+    private final Map<ClassInfo, MethodDescriptor> allInvokeMethods = new HashMap<>();
 
-    public ModifierVisitor(ClassVisitor cv, OpenApiClientDetector detector) {
+    public ModifierVisitor(ClassVisitor cv, Path basePath, OpenApiClientDetector detector, DummyGeneratorStore dummyGeneratorStore) {
       super(ASM8, cv);
+      this.basePath = basePath;
       this.detector = detector;
+      this.dummyGeneratorStore = dummyGeneratorStore;
     }
 
     @Override public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -375,7 +434,11 @@ public class OpenApiPreProcessorPass implements FilePass {
     }
 
     private String createNewName(Type retType) {
-      String candidate = "____$$__gen" + retType.toString().replaceAll("[^a-zA-Z]", "");
+      return createNewName("gen" + retType.toString().replaceAll("[^a-zA-Z]", ""));
+    }
+
+    private String createNewName(String namePart) {
+      String candidate = "____$$__" + namePart.replaceAll("[^a-z_0-9A-Z]", "");
       if (usedMethodNames == null) {
         return candidate + Math.random();
       }
@@ -386,35 +449,59 @@ public class OpenApiPreProcessorPass implements FilePass {
       return candidate;
     }
 
+    private MethodDescriptor getAllInvokeMethod(ClassInfo apiInterface) {
+      return allInvokeMethods.computeIfAbsent(apiInterface, inter -> {
+        String name = createNewName("all");
+        String descr = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class));
+        return new MethodDescriptor(klass, name, descr);
+      });
+    }
+
     @Override public org.objectweb.asm.MethodVisitor visitMethod(int access, String methodName, String descriptor, String signature,
         String[] exceptions) {
       MethodDescriptor descr = new MethodDescriptor(javaKlassName, methodName, descriptor);
-      if (openApiClasses.contains(javaKlassName) && methodName.equals("<init>") && config.deleteConstructorBody) { // a constructor
+      if (openApiClientClasses.contains(javaKlassName) && methodName.equals("<init>") && config.deleteConstructorBody) { // a constructor
         return new DeletingMethodVisitor(api, true);
       }
-      if (!isCalled(descr) && !debug) {
+      if (!isCalled(descr) && !debug2) {
         return cv.visitMethod(access, methodName, descriptor, signature, exceptions);
       }
-      if (!openApiClasses.contains(javaKlassName) ||
-          (access & ACC_PUBLIC) == 0 || (access & ACC_STATIC) != 0 || (access & ACC_ABSTRACT) != 0 || (access & ACC_NATIVE) != 0
-          || !detector.isWrappableOpenApiMethod(javaKlassName, methodName, descriptor, signature, exceptions)) {
-        if (!debug) {
+      boolean isOpenApiMethod =
+          openApiClientClasses.contains(javaKlassName) && (access & ACC_PUBLIC) != 0 && (access & ACC_STATIC) == 0
+              && (access & ACC_ABSTRACT) == 0 && (access & ACC_NATIVE) == 0 && detector.isWrappableOpenApiMethod(javaKlassName,
+              methodName, descriptor, signature, exceptions);
+      boolean isServerEndPointCallingMethod = serverDetector.isPossibleEndpointCallingMethod(descr);
+      if (!isOpenApiMethod && !isServerEndPointCallingMethod) {
+        if (!debug2) {
           return cv.visitMethod(access, methodName, descriptor, signature, exceptions);
         }
       }
-      System.out.println("Transformed method " + methodName);
+      System.out.println("Transformed method " + methodName + "." + methodName);
       org.objectweb.asm.MethodVisitor cvVis = cv.visitMethod(access, methodName, descriptor, signature, exceptions);
+      return isOpenApiMethod ?
+          getClientMethodTransformer(access, descriptor, descr, cvVis) :
+          getServerEndpointCallerTransformer(access, descriptor, descr, cvVis,
+              serverDetector.apiClasses.stream()
+              .map(classInfoMap::get).collect(Collectors.toMap(k -> k, this::getAllInvokeMethod)) /* TODO: be context sensitive */);
+    }
+
+    /**
+     * Create visitor to transform the body of OpenApi client methods:
+     * They then return a newly created return object without a dependency on any method parameter
+     */
+    @NotNull private DeletingMethodVisitor getClientMethodTransformer(int access, String descriptor, MethodDescriptor descr,
+        MethodVisitor cvVis) {
       return new DeletingMethodVisitor(api, new LocalVariablesSorter(access, descriptor, cvVis), config.deleteRestOfMethod) {
 
-        String generatedMethodName = null;
-        String generatedMethodDescriptor = null;
+        @Nullable
+        BaseMethodDescriptor dummyMethod = null;
         int lastInstruction = -1;
-        private final org.objectweb.asm.Label start = new org.objectweb.asm.Label();
-        private final org.objectweb.asm.Label end = new org.objectweb.asm.Label();
-        private final org.objectweb.asm.Label handler = new org.objectweb.asm.Label();
+        private final Label start = new Label();
+        private final Label end = new Label();
+        private final Label handler = new Label();
 
         @Override public void visitCode() {
-          generatedMethodDescriptor = null;
+          dummyMethod = null;
           mv.visitCode();
           if (!config.deleteRestOfMethod) {
             mv.visitTryCatchBlock(start, end, handler, "java/lang/Throwable");
@@ -434,7 +521,7 @@ public class OpenApiPreProcessorPass implements FilePass {
             mv.visitLabel(end);
             mv.visitLabel(handler);
             mv.visitInsn(NOP);
-            org.objectweb.asm.Label handlerEnd = new org.objectweb.asm.Label();
+            Label handlerEnd = new Label();
             mv.visitJumpInsn(GOTO, handlerEnd);
             mv.visitLabel(handlerEnd);
             mv.visitInsn(NOP);
@@ -462,10 +549,7 @@ public class OpenApiPreProcessorPass implements FilePass {
               mv.visitInsn(FCONST_1);
               break;
             case ARETURN:
-              Type ret = Type.getObjectType(descriptor.split("\\)[L\\[]")[1].split(";")[0]);
-              generatedMethodName = createNewName(ret);
-              generatedMethodDescriptor = "()" + ret;
-              mv.visitMethodInsn(INVOKESTATIC, klass, generatedMethodName, generatedMethodDescriptor, false);
+              callDummyMethod();
             }
             mv.visitInsn(opcode);
           } else if (!config.deleteRestOfMethod) {
@@ -474,231 +558,188 @@ public class OpenApiPreProcessorPass implements FilePass {
           lastInstruction = opcode;
         }
 
-        @Override public void visitEnd() {
-          mv.visitEnd();
-          if (generatedMethodDescriptor == null) {
-            return;
+        private void callDummyMethod() {
+          if (dummyMethod == null) {
+            dummyMethod = createDummyMethod();
           }
-          Type ret = Type.getObjectType(descriptor.split("\\)[L\\[]")[1].split(";")[0]);
-          Set<Type> retTypes = findImplementingTypes(getReturnTypes(descr));
-          //assert retTypes.size() > 0; // TODO: might happen with serealization, darn reflection :(
-          org.objectweb.asm.MethodVisitor genMv = ModifierVisitor.super
-              .visitMethod(ACC_PRIVATE | ACC_STATIC, generatedMethodName, generatedMethodDescriptor, null, new String[0]);
-          final DummyGenerator generator = new DummyGenerator(
-              new LocalVariablesSorter(ACC_PRIVATE | ACC_STATIC, generatedMethodDescriptor, genMv),
-              possibleConstructorsCalledIn(descr));
-          genMv.visitCode();
-          int retLocal = ((LocalVariablesSorter) mv).newLocal(ret);
-          genMv.visitInsn(ACONST_NULL);
-          genMv.visitVarInsn(ASTORE, retLocal);
-          generator.createDummyInitCodeForComplexType(retLocal, retTypes);
-          genMv.visitVarInsn(ALOAD, retLocal);
-          genMv.visitInsn(ARETURN);
-          genMv.visitEnd();
+          mv.visitMethodInsn(INVOKESTATIC, TypeNameUtils.toInternalNameWithoutSemicolonAndL(dummyMethod.methodClass),
+              dummyMethod.methodName, dummyMethod.methodDescriptor, false);
+        }
+
+        private BaseMethodDescriptor createDummyMethod() {
+          Set<Type> retTypes = getReturnTypesWoReflection(descr);//findImplementingTypes(getReturnTypes(descr));
+          //assert retTypes.size() > 0; // TODO: might happen with serialization, darn reflection :(
+
+          PossibleConstructors possibleConstructors = possibleConstructorsCalledIn(descr);
+          return dummyGeneratorStore.createClassForTypes(possibleConstructors,
+              Type.getReturnType(descr.methodDescriptor), retTypes);
         }
       };
     }
 
-  }
+    /**
+     * Idea: search for calls to server endpoint methods with OpenApi implementations
+     * (like <code>Endpoint.publish(address, implementor, new LoggingFeature())</code> and prepend them by a call
+     * to method that calls server api methods.
+     *
+     * for each call to a possible endpoint method it
+     * 1. stores all argument in new local variables (pop as many arguments as a method has)
+     * 2. creates an `if (isinstance(param, Api1)) {…}` cascade for every Object typed argument of the method
+     *    in which the appropriate allInvoke method is called
+     */
+    private MethodVisitor getServerEndpointCallerTransformer(int access, String descriptor,
+        MethodDescriptor descr, MethodVisitor cvVis, Map<ClassInfo, MethodDescriptor> allInvokeMethods) {
+      LocalVariablesSorter lmv = new LocalVariablesSorter(access, descriptor, cvVis);
+      return new MethodVisitor(api, lmv) {
 
-  /**
-   * Creator of dummy values
-   * <p>
-   * Does not have to deal with checked exceptions:
-   * https://mail.openjdk.java.net/pipermail/coin-dev/2009-May/001861.html
-   */
-  class DummyGenerator {
-    private final LocalVariablesSorter mv;
-    private final PossibleConstructors possibleConstructors;
-    private final Map<Type, Optional<Integer>> localForType;
+        @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+          MethodDescriptor methodDescriptor = new MethodDescriptor("L" + owner + ";", name, descriptor);
+          if (serverDetector.isPossibleEndPointMethod(methodDescriptor)) {
+            MethodInfo methodInfo = methodDescriptor.toMethodInfo();
+            // we know here that the called method is a possible endpoint method
+            // first: store all arguments in new local variables
+            List<Pair<Type, Integer>> localVariables = Arrays.stream(methodInfo.getParameterInfo()).map(p -> {
+              Type type = Type.getType(TypeNameUtils.toInternalName(p.getTypeSignatureOrTypeDescriptor().toString()));
+              int local = lmv.newLocal(type);
+              lmv.visitVarInsn(type.getOpcode(ISTORE), local);
+              return Pair.pair(type, local);
+            }).collect(Collectors.toList());
 
-    public DummyGenerator(LocalVariablesSorter mv, PossibleConstructors possibleConstructors) {
-      this.mv = mv;
-      this.possibleConstructors = possibleConstructors;
-      this.localForType = new HashMap<>();
-    }
-
-    class ClassNotFoundInMapException extends RuntimeException {
-
-    }
-
-    public void createDummyInitCodeForType(Type type) {
-      if (localForType.containsKey(type)) {
-        Optional<Integer> local = localForType.get(type);
-        if (local.isPresent()) { // we already have a local variable
-          mv.visitVarInsn(ALOAD, local.get());
-        } else {
-          mv.visitInsn(ACONST_NULL); // we're currently working on it. Break circles using null for now
+            // push locals back onto the stack
+            localVariables.forEach(p -> lmv.visitVarInsn(p.getFirst().getOpcode(ILOAD), p.getSecond()));
+          }
+          super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
-        return;
-      }
-      switch (type.getDescriptor().charAt(0)) {
-      case 'B':
-      case 'C':
-      case 'I':
-      case 'S':
-      case 'Z':
-        mv.visitInsn(ICONST_1);
-        return;
-      case 'D':
-        mv.visitInsn(DCONST_1);
-        return;
-      case 'F':
-        mv.visitInsn(FCONST_1);
-        return;
-      case 'J':
-        mv.visitInsn(LCONST_1);
-        return;
-      case 'L':
-      case '[':
-        localForType.put(type, Optional.empty());
-        int newLocal = mv.newLocal(type);
-        createDummyInitCodeForComplexType(newLocal, Collections.singleton(type));
-        localForType.put(type, Optional.of(newLocal));
-        return;
-      case 'V':
-        return;
-      }
-      throw new RuntimeException();
+      };
+    }
+
+    @Override public void visitEnd() {
+      allInvokeMethods.forEach((k, m) -> createAllInvokeMethodForSingleApi(k, m, cv));
+      super.visitEnd();
     }
 
     /**
-     * either array or object type
+     * Create a method that calls all api methods on its only argument
      */
-    private void createDummyInitCodeForComplexType(int local, Set<Type> types) {
-      List<Runnable> constructorCallers = types.stream().flatMap(type -> {
-        if (type.getSort() == Type.ARRAY) {
-          return Stream.of(() -> {
-            createDummyInitCodeForArrayType(type);
-            mv.visitVarInsn(ASTORE, local);
-          });
-        }
-        if (type.getDescriptor().equals("Ljava/lang/String;")) { // special case for strings
-          return Stream.of(() -> {
-            mv.visitLdcInsn("non empty string");
-            mv.visitVarInsn(ASTORE, local);
-          });
-        }
-        return possibleConstructors.forType(type).map.entrySet().stream()
-            .flatMap(e -> e.getValue().stream().map(d -> new MethodDescriptor(e.getKey().getClassName(), "<init>", d)))
-            .map(d -> (Runnable) () -> {
-              try {
-                callConstructor(d);
-                mv.visitVarInsn(ASTORE, local);
-              } catch (ClassNotFoundInMapException ex) {
-                mv.visitInsn(ACONST_NULL);
-              }
-            });
-      }).collect(Collectors.toList());
-      mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "random", "()D", false);
-      mv.visitLdcInsn((double) constructorCallers.size());
-      mv.visitInsn(DMUL);
-      mv.visitInsn(D2I);
-      int randLocal = mv.newLocal(Type.INT_TYPE);
-      mv.visitVarInsn(ISTORE, randLocal);
-      int i = 0;
-      for (Runnable constructorCaller : constructorCallers) {
-        org.objectweb.asm.Label end = new org.objectweb.asm.Label();
-        mv.visitVarInsn(ILOAD, randLocal);
-        mv.visitLdcInsn(i);
-        mv.visitJumpInsn(IF_ICMPNE, end);
-        constructorCaller.run();
-        mv.visitJumpInsn(GOTO, end);
-        mv.visitLabel(end);
-        i++;
-      }
-    }
-
-    private void callConstructor(MethodDescriptor constructor) {
-      mv.visitTypeInsn(NEW, constructor.methodClass);
-      mv.visitInsn(DUP);
-      for (Type param : Type.getMethodType(constructor.methodDescriptor).getArgumentTypes()) {
-        createDummyInitCodeForType(param);
-      }
-      mv.visitMethodInsn(INVOKESPECIAL, constructor.methodClass, "<init>", constructor.methodDescriptor, false);
+    private void createAllInvokeMethodForSingleApi(ClassInfo apiImplClass, MethodDescriptor method, ClassVisitor cv) {
+      Type apiClassType = Type.getType(TypeNameUtils.toInternalName(apiImplClass.getName()));
+      String generatedMethodName = createNewName(apiImplClass.getName());
+      String generatedMethodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, apiClassType);
+      /*MethodVisitor genMv = ModifierVisitor.super
+          .visitMethod(ACC_PRIVATE, generatedMethodName, generatedMethodDescriptor, null, new String[0]);
+      final DummyGenerator generator = new DummyGenerator(
+          new LocalVariablesSorter(ACC_PRIVATE, generatedMethodDescriptor, genMv),
+          possibleConstructorsCalledIn(descr));
+      // start method
+      genMv.visitCode();
+      int retLocal = ((LocalVariablesSorter) mv).newLocal(ret);
+      genMv.visitInsn(ACONST_NULL);
+      genMv.visitVarInsn(ASTORE, retLocal);
+      generator.createDummyInitCodeForComplexType(retLocal, retTypes);
+      genMv.visitVarInsn(ALOAD, retLocal);
+      genMv.visitInsn(ARETURN);
+      // end method
+      genMv.visitEnd();*/
     }
 
     /**
-     * idea: T[] a = Math.random() < 0.5 ? new boolean[]{T} : new boolean[]{T, T};
-     * <p>
-     * to different arrays to trip of alias analyses…
+     * Create a method that calls all api methods
+     *
+     * @return its name
      */
-    private void createDummyInitCodeForArrayType(Type type) {
-      String elementTypeDescriptor = type.getElementType().getDescriptor();
-      Type subElementType = Type.getType(
-          IntStream.range(0, type.getDimensions()).mapToObj(i -> "[").collect(Collectors.joining("")) + type.getElementType()
-              .getDescriptor());
-      mv.visitMethodInsn(INVOKESTATIC, "java/lang/Math", "random", "()D", false);
-      mv.visitLdcInsn(new Double("0.5"));
-      mv.visitInsn(DCMPG);
-      org.objectweb.asm.Label l1 = new org.objectweb.asm.Label();
-      mv.visitJumpInsn(IFGE, l1);
-      mv.visitInsn(ICONST_1);
-      mv.visitMultiANewArrayInsn(elementTypeDescriptor, type.getDimensions());
-      mv.visitInsn(DUP);
-      mv.visitInsn(ICONST_0);
-      createDummyInitCodeForType(subElementType);
-      storeIntoArray(subElementType);
-      org.objectweb.asm.Label l2 = new org.objectweb.asm.Label();
-      mv.visitJumpInsn(GOTO, l2);
-      mv.visitLabel(l1);
-      mv.visitInsn(ICONST_2);
-      mv.visitIntInsn(NEWARRAY, T_BOOLEAN);
-      mv.visitInsn(DUP);
-      mv.visitInsn(ICONST_0);
-      createDummyInitCodeForType(subElementType);
-      storeIntoArray(subElementType);
-      mv.visitInsn(DUP);
-      mv.visitInsn(ICONST_1);
-      createDummyInitCodeForType(subElementType);
-      storeIntoArray(subElementType);
-      mv.visitLabel(l2);
-      mv.visitVarInsn(ASTORE, 1);
-      org.objectweb.asm.Label l3 = new org.objectweb.asm.Label();
-      mv.visitLabel(l3);
+    private String createAllInvokeMethod(ClassInfo apiImplClass, ClassVisitor cv) {
+      return "";
     }
-
-    /**
-     * Create code to store the current stack element into an array
-     */
-    void storeIntoArray(Type type) {
-      switch (type.getDescriptor().charAt(0)) {
-      case 'B':
-      case 'Z':
-        mv.visitInsn(BASTORE);
-        break;
-      case 'C':
-        mv.visitInsn(CASTORE);
-        break;
-      case 'I':
-        mv.visitInsn(IASTORE);
-        break;
-      case 'S':
-        mv.visitInsn(SASTORE);
-        break;
-      case 'D':
-        mv.visitInsn(DASTORE);
-        break;
-      case 'F':
-        mv.visitInsn(FASTORE);
-        break;
-      case 'J':
-        mv.visitInsn(LASTORE);
-        break;
-      case 'L':
-      case '[':
-        mv.visitInsn(AASTORE);
-        break;
-      default:
-        throw new NotImplementedException();
-      }
-    }
-  }
-
-  @Override public void teardown() {
   }
 
   @Override public boolean requiresKnowledgeOnAnnotations() {
     return false;
+  }
+
+  public class OpenApiServerDetector {
+
+    // all class names are java class names
+
+    private Set<String> apiClasses;
+
+    /** implementing class → implementing api classes */
+    private Map<String, Set<String>> implementingClasses;
+
+    private Set<MethodDescriptor> possibleEndPointMethods;
+
+    private Set<MethodDescriptor> possibleEndPointCallers;
+
+    public void setup(CallGraph cg, Collection<ClassInfo> klasses) {
+      apiClasses = klasses.stream().filter(this::isApiClass)
+          .map(ClassInfo::getName).collect(Collectors.toSet());
+      implementingClasses = klasses.stream()
+          .filter(k -> isImplementingClass(apiClasses, k))
+          .collect(Collectors.toMap(ClassInfo::getName, k -> k.getInterfaces().stream()
+              .map(ClassInfo::getName)
+              .filter(apiClasses::contains)
+              .collect(Collectors.toSet())));
+      possibleEndPointMethods = getPossibleEndPointMethods(klasses);
+      possibleEndPointCallers = getCallersOfMethods(possibleEndPointMethods, cg);
+      if (debug) {
+        System.out.println("possibleEndPointMethods = " + possibleEndPointMethods);
+        System.out.println("possibleEndPointCallers = " + possibleEndPointCallers);
+        System.out.println("apiClasses = " + apiClasses);
+        System.out.println("implementingClasses = " + implementingClasses);
+      }
+    }
+
+    private Set<MethodDescriptor> getPossibleEndPointMethods(Collection<ClassInfo> klasses) {
+      return klasses.stream().filter(this::isPossibleEndPointClass)
+          .flatMap(k -> k.getDeclaredMethodInfo().stream().filter(this::isPossibleEndPointMethod))
+          .map(MethodDescriptor::new).collect(Collectors.toSet());
+    }
+
+    private Set<MethodDescriptor> getCallersOfMethods(Set<MethodDescriptor> endpoints, CallGraph cg) {
+      return endpoints.stream()
+          .flatMap(e -> e.toRef()
+              .map(ee -> cg.getNodes(ee).stream())
+              .orElse(Stream.empty()))
+          .flatMap(node -> stream(cg.getPredNodes(node)))
+          .map(MethodDescriptor::new)
+          .collect(Collectors.toSet());
+    }
+
+    private boolean isPossibleEndPointClass(ClassInfo klass) {
+      return klass.getPackageName().startsWith("javax.xml.ws") && !klass.isAnnotation();
+    }
+
+    private boolean isPossibleEndPointMethod(MethodInfo method) {
+      return Arrays.stream(method.getParameterInfo()).anyMatch(p -> p.getTypeDescriptor().toString().equals("java.lang.Object")) &&
+          !Modifier.isPrivate(method.getModifiers());
+    }
+
+    /** checks both class and method */
+    public boolean isPossibleEndPointMethod(MethodDescriptor descriptor) {
+      MethodInfo methodInfo = descriptor.toMethodInfo();
+      return isPossibleEndPointClass(methodInfo.getClassInfo()) && isPossibleEndPointMethod(methodInfo);
+    }
+
+    private boolean isApiClass(ClassInfo klass) {
+      return klass.isInterface() && klass.getName().endsWith("Api") &&
+          klass.hasAnnotation("io.swagger.annotations.Api") &&
+          klass.getMethodInfo().stream().anyMatch(this::isApiMethod);
+    }
+
+    private boolean isImplementingClass(Set<String> apiClasses, ClassInfo klass) {
+      return klass.isStandardClass() &&
+          cgr.cg.getClassHierarchy().lookupClass(TypeNameUtils.toInternalName(klass.getName())) != null &&
+          klass.getInterfaces().stream().anyMatch(k -> apiClasses.contains(k.getName()));
+    }
+
+    private boolean isApiMethod(MethodInfo method) {
+      return method.getAnnotationInfo().stream().anyMatch(a -> a.getName().matches("javax\\.ws\\.rs\\.[A-Z]+")) &&
+          method.hasAnnotation("io.swagger.annotations.ApiResponses") &&
+          method.hasAnnotation("io.swagger.annotations.ApiOperation") &&
+          !Modifier.isPrivate(method.getModifiers());
+    }
+
+    public boolean isPossibleEndpointCallingMethod(MethodDescriptor method) {
+      return possibleEndPointCallers.contains(method);
+    }
   }
 }

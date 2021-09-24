@@ -120,6 +120,5 @@ class HeuristicReflectionFinder @JvmOverloads constructor(
         ): MethodVisitor {
             return methodVisitor
         }
-
     }
 }

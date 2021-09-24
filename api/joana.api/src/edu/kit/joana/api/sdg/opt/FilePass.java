@@ -1,6 +1,7 @@
 package edu.kit.joana.api.sdg.opt;
 
 import edu.kit.joana.api.sdg.SDGConfig;
+import kotlin.NotImplementedError;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +17,7 @@ public interface FilePass extends Pass {
   @Override
   default void process(SDGConfig cfg, String libClassPath, Path sourceFolder, Path targetFolder) throws IOException {
     setup(cfg, libClassPath, sourceFolder);
-    walk(sourceFolder, targetFolder, (s, t) -> {
+    walk(sourceFolder, targetFolder, (s, t, r) -> {
       s.toFile().getParentFile().mkdirs();
       collect(s);
     });
@@ -24,9 +25,9 @@ public interface FilePass extends Pass {
     teardown();
   }
 
-  default void walk(Path sourceFolder, Path targetFolder, ThrowingBiConsumer<Path, Path> func) throws IOException {
+  default void walk(Path sourceFolder, Path targetFolder, ThrowingTriConsumer<Path, Path, Path> func) throws IOException {
     Pass.walk(sourceFolder, f -> {
-      func.accept(f, targetFolder.resolve(sourceFolder.relativize(f)));
+      func.accept(f, targetFolder.resolve(sourceFolder.relativize(f)), targetFolder);
     });
   }
 
@@ -37,7 +38,14 @@ public interface FilePass extends Pass {
   /** might collect information and is called on every file */
   void collect(Path file) throws IOException;
 
-  void store(Path source, Path target) throws IOException;
+  /** implementation of one of the store methods is required */
+  default void store(Path source, Path target) throws IOException {
+    throw new NotImplementedError();
+  }
+
+  default void store(Path source, Path target, Path baseTargetPath) throws IOException {
+    store(source, target);
+  }
 
   void teardown();
 }

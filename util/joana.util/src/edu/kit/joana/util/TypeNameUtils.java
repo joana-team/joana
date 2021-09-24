@@ -60,4 +60,28 @@ public class TypeNameUtils {
   public static String toInternalName(String klass) {
     return javaClassNameToInternalName(klass);
   }
+
+  /** remove semicolon at the end */
+  public static String removeSemicolon(String klass) {
+    if (klass.charAt(klass.length() - 1) == ';') {
+      return klass.substring(0, klass.length() - 1);
+    }
+    return klass;
+  }
+
+  /** remove prepended 'L' for internal names */
+  public static String removeL(String klass) {
+    assert !klass.contains(".");
+    if (klass.charAt(0) == 'L') {
+      return klass.substring(1);
+    }
+    return klass;
+  }
+
+  /**
+   * Required for class names for class creation and method calling
+   */
+  public static String toInternalNameWithoutSemicolonAndL(String klass) {
+    return removeL(removeSemicolon(javaClassNameToInternalName(klass)));
+  }
 }

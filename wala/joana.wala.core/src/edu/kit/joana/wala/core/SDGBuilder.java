@@ -65,7 +65,6 @@ import edu.kit.joana.wala.core.killdef.IFieldsMayMod;
 import edu.kit.joana.wala.core.killdef.LocalKillingDefs;
 import edu.kit.joana.wala.core.killdef.impl.FieldsMayModComputation;
 import edu.kit.joana.wala.core.killdef.impl.SimpleFieldsMayMod;
-import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
 import edu.kit.joana.wala.core.params.FlatHeapParams;
 import edu.kit.joana.wala.core.params.SearchFieldsOfPrunedCalls;
 import edu.kit.joana.wala.core.params.StaticFieldParams;
@@ -600,8 +599,6 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 	private static void computeSummaryEdges(PrintStream out, ISummaryComputer summaryComputer, WorkPackage<SDG> pack, boolean isParallel, IProgressMonitor progress,
 			CallGraph cg) throws CancelException {
-		new OpenApiClientDetector().detectUsedClientOperations(cg).forEach(System.out::println);
-		new OpenApiClientDetector().detectUnsupportedApiCalls(cg).forEach(System.err::println);
 		summaryComputer.compute(pack, isParallel, progress);
 		out.print(".");
 	}

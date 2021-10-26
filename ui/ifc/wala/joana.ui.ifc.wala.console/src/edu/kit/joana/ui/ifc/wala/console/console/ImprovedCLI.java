@@ -1614,7 +1614,6 @@ public class ImprovedCLI {
     }
   }
 
-
   public static void run(String[] args, Object state, boolean interactive) {
     OuterCommand command = new OuterCommand(state);
     if (interactive){
@@ -1622,6 +1621,11 @@ public class ImprovedCLI {
       command.run();
     }
     System.exit(new CommandLine(command).execute(args));
+  }
+
+  public static boolean process(String[] args, Object state) {
+    OuterCommand command = new OuterCommand(state);
+    return new CommandLine(command).execute(args) == 0;
   }
 
   static class Dummy

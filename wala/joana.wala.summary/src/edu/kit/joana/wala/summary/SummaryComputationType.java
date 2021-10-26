@@ -18,15 +18,15 @@ public enum SummaryComputationType {
 	SIMON_SCC(new SummaryComputer2()),
 	@Deprecated
 	SIMON_PARALLEL_SCC(new AlwaysParallel(new SummaryComputer2()));
-	
-	
+
+
 	public static final SummaryComputationType DEFAULT = JOANA_CLASSIC_SCC;
 	private final ISummaryComputer summaryComputer;
-	
+
 	private SummaryComputationType(ISummaryComputer summaryComputer) {
 		this.summaryComputer = summaryComputer;
 	}
-	
+
 	public ISummaryComputer getSummaryComputer() {
 		new SummaryComputer2() {
 			/* (non-Javadoc)
@@ -41,13 +41,13 @@ public enum SummaryComputationType {
 		};
 		return summaryComputer;
 	}
-	
+
 	private static class AlwaysParallel implements ISummaryComputer {
 		private final ISummaryComputer other;
 		AlwaysParallel(ISummaryComputer other) {
 			this.other = other;
 		}
-		
+
 		@Override
 		public int compute(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException {
 			return other.compute(pack, true, progress);

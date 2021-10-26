@@ -90,6 +90,7 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import org.jgrapht.DirectedGraph;
 
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.*;
@@ -432,36 +433,173 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 		return builder;
 	}
 
+	/**
+	 * Wraps the SDG creation and the summary creation
+	 */
+	public static class SDGSummaryBuilder {
+
+		private final SDGBuilderConfig cfg;
+		private final CallGraph cg;
+		private final SDG sdg;
+		private final WorkPackage<SDG> pack;
+		private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
+
+		public SDGSummaryBuilder(SDGBuilderConfig cfg, CallGraph cg, WorkPackage<SDG> pack) {
+			this.cfg = cfg;
+			this.cg = cg;
+			this.sdg = pack.getGraph();
+			this.pack = pack;
+		}
+
+		public static SDGSummaryBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
+				final PointerAnalysis<InstanceKey> pts) throws CancelException, UnsoundGraphException {
+			return create(cfg, walaCG, pts);
+		}
+
+		public static SDGSummaryBuilder create(final SDGBuilderConfig cfg, IProgressMonitor monitor) throws CancelException, UnsoundGraphException {
+			return create(cfg, null, null, monitor);
+		}
+
+		public static SDGSummaryBuilder create(final SDGBuilderConfig cfg, @Nullable final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
+				@Nullable final PointerAnalysis<InstanceKey> pts, IProgressMonitor monitor) throws CancelException, UnsoundGraphException {
+			SDG sdg = null;
+			WorkPackage<SDG> pack = null;
+
+			CallGraph cg = null;
+
+			/* additional scope so SDGBuilder object can be garbage collected */{
+				SDGBuilder builder = new SDGBuilder(cfg);
+				assert (walaCG == null) == (pts == null);
+				if (pts == null) {
+					builder.run(monitor);
+				} else {
+					builder.run(walaCG, pts, monitor);
+				}
+				sdg = convertToJoana(cfg.out, builder, monitor, false);
+				cg = builder.cg;
+				if (cfg.abortAfterCG) return null;
+				pack = createSummaryWorkPackage(cfg.out, builder, sdg, monitor);
+				builder = null;
+			}
+			return new SDGSummaryBuilder(cfg, cg, pack);
+		}
+
+		public static Pair<SDGSummaryBuilder, SDGBuildArtifacts> createKeepArtifacts(final SDGBuilderConfig cfg, IProgressMonitor monitor) throws CancelException, UnsoundGraphException {
+			return createKeepArtifacts(cfg, null, null, monitor);
+		}
+
+		public static Pair<SDGSummaryBuilder, SDGBuildArtifacts> createKeepArtifacts(final SDGBuilderConfig cfg, @Nullable final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
+				@Nullable final PointerAnalysis<InstanceKey> pts, IProgressMonitor monitor) throws CancelException, UnsoundGraphException {
+			SDG sdg = null;
+			WorkPackage<SDG> pack = null;
+
+			CallGraph cg = null;
+			SDGBuilder builder = new SDGBuilder(cfg);
+			/* additional scope so SDGBuilder object can be garbage collected */{
+
+				assert (walaCG == null) == (pts == null);
+				if (pts == null) {
+					builder.run(monitor);
+				} else {
+					builder.run(walaCG, pts, monitor);
+				}
+				sdg = convertToJoana(cfg.out, builder, monitor, false);
+				cg = builder.cg;
+				if (cfg.abortAfterCG) return null;
+				pack = createSummaryWorkPackage(cfg.out, builder, sdg, monitor);
+			}
+			return Pair.make(new SDGSummaryBuilder(cfg, cg, pack), builder);
+		}
+
+		public SDGSummaryBuilder monitor(IProgressMonitor monitor) {
+			this.monitor = monitor;
+			return this;
+		}
+
+		public SDG computeSummary() throws CancelException {
+			return computeSummary(Optional.empty());
+		}
+
+		public SDG computeSummary(Optional<Set<Integer>> initialWorklistEntries) throws CancelException {
+			final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
+			pack.setInitialWorklistEntries(initialWorklistEntries.map(TIntHashSet::new));
+			if (cfg.computeSummary) {
+
+				if (cfg.accessPath) {
+					computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, monitor);
+				} else {
+					computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, monitor, cg);
+				}
+			}
+			return sdg;
+		}
+
+		public SDGSummaryAdder toSummaryAdder(Set<Integer> careForSummaryEdgesOfCgIds) {
+			return new SDGSummaryAdder(this, careForSummaryEdgesOfCgIds);
+		}
+
+		public SDG getSdg() {
+			return sdg;
+		}
+
+		public CallGraph getCallGraph() {
+			return cg;
+		}
+	}
+
+	/**
+	 * Add summary egdes over different runs
+	 */
+	public static class SDGSummaryAdder {
+
+		private final SDGSummaryBuilder sdgSummaryBuilder;
+		private SDG.FormalSummaryEdgeMap lastEdges = new SDG.FormalSummaryEdgeMap(Collections.emptyMap());
+		private Set<Integer> cgIdsForSummaryEdges;
+
+		public SDGSummaryAdder(SDGSummaryBuilder sdgSummaryBuilder, Set<Integer> careForSummaryEdgesOfCgIds) {
+			this.sdgSummaryBuilder = sdgSummaryBuilder;
+			this.cgIdsForSummaryEdges = careForSummaryEdgesOfCgIds;
+			assert cgIdsForSummaryEdges.size() > 0;
+			assert (sdgSummaryBuilder.cfg.summaryComputationType.getSummaryComputer().getFeatures() &
+					ISummaryComputer.SUPPORTS_INITIAL_WORKLIST) != 0;
+		}
+
+		public static class Result {
+			private final SDG.FormalSummaryEdgeMap lastEdges;
+			private final SDG.FormalSummaryEdgeMap newEdges;
+
+			public Result(SDG.FormalSummaryEdgeMap lastEdges, SDG.FormalSummaryEdgeMap newEdges) {
+				this.lastEdges = lastEdges;
+				this.newEdges = newEdges;
+			}
+
+			public SDG.FormalSummaryEdgeMap difference() {
+				return newEdges;
+			}
+		}
+
+		/** look in callerIds nodes for summary edges of the passed other nodes and map them to formin → formout */
+		public Result compute(Set<Integer> callerIds, Optional<Set<Integer>> initialWorklistEntries) throws CancelException {
+			SDG sdg = sdgSummaryBuilder.computeSummary(initialWorklistEntries);
+			SDG.FormalSummaryEdgeMap summaryEdges = sdg.getFormalSummaryEdges(callerIds, cgIdsForSummaryEdges);
+			SDG.FormalSummaryEdgeMap difference = summaryEdges.remove(lastEdges);
+			Result result = new Result(lastEdges, difference);
+			lastEdges = summaryEdges;
+			return result;
+		}
+
+		public SDGSummaryBuilder getBuilder() {
+			return sdgSummaryBuilder;
+		}
+
+		public SDG getSDG() {
+			return getBuilder().sdg;
+		}
+	}
+
 	public static SDG build(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
 			final PointerAnalysis<InstanceKey> pts) throws UnsoundGraphException, CancelException {
-		SDG sdg = null;
-		WorkPackage<SDG> pack = null;
-		IProgressMonitor progress = NullProgressMonitor.INSTANCE;
-
-		CallGraph cg = null;
-
-		/* additional scope so SDGBuilder object can be garbage collected */{
-			SDGBuilder builder = new SDGBuilder(cfg);
-			builder.run(walaCG, pts, progress);
-			sdg = convertToJoana(cfg.out, builder, progress, false);
-			cg = builder.cg;
-			if (cfg.computeSummary) {
-				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
-			}
-			builder = null;
-		}
-
-		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
-
-		if (cfg.computeSummary) {
-			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
-			} else {
-				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress, cg);
-			}
-		}
-
-		return sdg;
+		return SDGSummaryBuilder.create(cfg, walaCG, pts).computeSummary();
 	}
 
 	public static SDGBuilder create(final SDGBuilderConfig cfg, final com.ibm.wala.ipa.callgraph.CallGraph walaCG,
@@ -475,36 +613,10 @@ public class SDGBuilder implements CallGraphFilter, SDGBuildArtifacts {
 
 
 	public static SDG build(final SDGBuilderConfig cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException {
-		SDG sdg = null;
-		WorkPackage<SDG> pack = null;
-		CallGraph cg = null;
-		/* additional scope so SDGBuilder object can be garbage collected */{
-			SDGBuilder builder = new SDGBuilder(cfg);
-			builder.run(progress);
-			cg = builder.cg;
-			if (cfg.abortAfterCG) return null;
-			sdg = convertToJoana(cfg.out, builder, progress, false);
-
-			if (cfg.computeSummary) {
-				pack = createSummaryWorkPackage(cfg.out, builder, sdg, progress);
-			}
-			builder = null;
-		}
-		
-		final ISummaryComputer summaryComputer = cfg.summaryComputationType.getSummaryComputer();
-
-		if (cfg.computeSummary) {
-			if (cfg.accessPath) {
-				computeDataAndAliasSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress);
-			} else {
-				computeSummaryEdges(cfg.out, summaryComputer, pack, cfg.doParallel, progress, cg);
-			}
-		}
-
-		return sdg;
+		return SDGSummaryBuilder.create(cfg, null, null, progress).computeSummary();
 	}
 
-	
+
 	public static Pair<SDG, SDGBuildArtifacts> buildAndKeepBuildArtifacts(final SDGBuilderConfig cfg, IProgressMonitor progress)
 			throws UnsoundGraphException, CancelException {
 		SDG sdg = null;

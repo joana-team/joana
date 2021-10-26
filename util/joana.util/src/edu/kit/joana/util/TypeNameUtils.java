@@ -84,4 +84,8 @@ public class TypeNameUtils {
   public static String toInternalNameWithoutSemicolonAndL(String klass) {
     return removeL(removeSemicolon(javaClassNameToInternalName(klass)));
   }
+
+  public static String toInternalNameWithoutSemicolonAndL(Type type) {
+    return removeL(removeSemicolon(toInternalName(toJavaClassName(type))));
+  }
 }

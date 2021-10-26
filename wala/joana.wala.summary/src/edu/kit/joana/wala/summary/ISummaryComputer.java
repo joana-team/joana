@@ -13,10 +13,13 @@ import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import edu.kit.joana.ifc.sdg.graph.SDG;
 
 public interface ISummaryComputer {
+	/** required for OpenApi stuff */
+	public final int SUPPORTS_INITIAL_WORKLIST = 0x1;
 	public int compute                (WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException;
 	public int computeAdjustedAliasDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException;
 	public int computePureDataDep     (WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException;
 	public int computeFullAliasDataDep(WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException;
 	public int computeNoAliasDataDep  (WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException;
 	public int computeHeapDataDep     (WorkPackage<SDG> pack, boolean parallel, IProgressMonitor progress) throws CancelException;
+	public default int getFeatures() { return 0; }
 }

@@ -3,10 +3,12 @@ package edu.kit.joana.wala.core.openapi;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.collections.Iterator2List;
 import com.ibm.wala.util.collections.Iterator2Set;
+import edu.kit.joana.util.TypeNameUtils;
 import edu.kit.joana.wala.core.CallGraph;
 
 import java.util.*;
@@ -30,34 +32,28 @@ public class OpenApiServerDetector {
     this.openApiPackage = openApiPackage;
   }
 
-  public boolean isOpenApiClass(String name) {
+  private boolean isOpenApiClass(String name) {
     return (openApiPackage.length() == 0 || name.startsWith(openApiPackage + ".")) && name.endsWith("Api");
   }
 
-  public boolean isOpenApiClass(TypeReference type) {
+  private boolean isOpenApiClass(TypeReference type) {
     return type.isClassType() && isOpenApiClass(type.getName().toString().replace("/", "."));
   }
 
   /**
    * Only applies to public methods, all other methods are not wrappable by default
    */
-  public boolean isWrappableOpenApiMethod(String className, String methodName, String returnType) {
-    return isOpenApiClass(className) && !returnType.equals("okhttp3.Call") && !returnType.endsWith("ApiResponse");
+  private boolean isOpenApiServerMethod(String className, String methodName, String returnType) {
+    return isOpenApiClass(className) && !returnType.equals("okhttp3.Call") && !returnType.endsWith(".ApiResponse");
   }
 
-  public boolean isWrappableOpenApiMethod(IMethod method) {
-    try {
-      return
-          isWrappableOpenApiMethod(method.getDeclaringClass().getName().toString().replace("/", ".").substring(1),
-              method.getName().toString(),
-              method.getReturnType().getName().toString().replace("/", ".").substring(1))
-              && method.isPublic() && !method.isAbstract() && !method.isInit() && !method
-              .isClinit() && !method.isNative() && method.getDeclaredExceptions() != null && Arrays
-              .stream(method.getDeclaredExceptions()).allMatch(t -> t.getName().toString().endsWith("ApiException"));
-    } catch (com.ibm.wala.shrikeCT.InvalidClassFileException e) {
-      e.printStackTrace();
-    }
-    return false;
+  public boolean isOpenApiServerMethod(IMethod method) {
+    return
+        isOpenApiServerMethod(method.getDeclaringClass().getName().toString().replace("/", ".").substring(1),
+            method.getName().toString(),
+            method.getReturnType().getName().toString().replace("/", ".").substring(1))
+            && method.isPublic() && method.isAbstract() && !method.isInit() && !method
+            .isClinit() && !method.isNative();
   }
 
   /**
@@ -66,8 +62,8 @@ public class OpenApiServerDetector {
    * @param method
    * @return
    */
-  public String getOperationIdString(IMethod method) throws IllegalArgumentException {
-    if (!isWrappableOpenApiMethod(method)) {
+  private String getOperationIdString(IMethod method) throws IllegalArgumentException {
+    if (!isOpenApiServerMethod(method)) {
       throw new IllegalArgumentException();
     }
     return method.getName().toString();
@@ -77,7 +73,7 @@ public class OpenApiServerDetector {
    * Returns a normalized tag
    */
   public String getTag(IMethod method) throws IllegalArgumentException {
-    if (!isWrappableOpenApiMethod(method)) {
+    if (!isOpenApiServerMethod(method)) {
       throw new IllegalArgumentException();
     }
     String className = method.getDeclaringClass().getName().getClassName().toString();
@@ -89,13 +85,13 @@ public class OpenApiServerDetector {
   }
 
   public Set<OperationId> detectUsedClientOperations(CallGraph cg) {
-    return cg.vertexSet().stream().map(node -> node.node.getMethod()).filter(this::isWrappableOpenApiMethod).map(this::getOperationId).collect(
+    return cg.vertexSet().stream().map(node -> node.node.getMethod()).filter(this::isOpenApiServerMethod).map(this::getOperationId).collect(
         Collectors.toSet());
   }
 
   /** Also checks that at least one API like method exists */
   public boolean isReallyOpenOpiClass(IClass klass) {
-    return isOpenApiClass(klass.getReference()) && klass.getDeclaredMethods().stream().anyMatch(this::isWrappableOpenApiMethod);
+    return isOpenApiClass(klass.getReference()) && klass.getDeclaredMethods().stream().anyMatch(this::isOpenApiServerMethod);
   }
 
   /**
@@ -108,7 +104,7 @@ public class OpenApiServerDetector {
     });
     return called.entrySet().stream().filter(e -> isReallyOpenOpiClass(e.getKey()))
         .flatMap(e -> e.getValue().stream()).filter(n -> {
-          if (isWrappableOpenApiMethod(n.getMethod()) || n.getMethod().isInit()) {
+          if (isOpenApiServerMethod(n.getMethod()) || n.getMethod().isInit()) {
             return false;
           }
           Iterator2List<CGNode> callers = Iterator2Set.toList(cg.getOrig().getPredNodes(n));
@@ -116,8 +112,8 @@ public class OpenApiServerDetector {
         });
   }
 
-  public boolean isWrappableOpenApiMethod(String klassName, String methodName, String descriptor, String signature, String[] exceptions) {
-    return isWrappableOpenApiMethod(klassName.replace("/", "."), methodName,
+  public boolean isOpenApiServerMethod(String klassName, String methodName, String descriptor, String signature, String[] exceptions) {
+    return isOpenApiServerMethod(klassName.replace("/", "."), methodName,
         descriptor.split("\\)")[1].split(";")[0].substring(1).replace('/', '.'))
         && !methodName.equals("<init>") && !methodName.equals("<clinit>") && exceptions != null &&
         exceptions.length == 1 && exceptions[0].endsWith("ApiException");
@@ -130,11 +126,30 @@ public class OpenApiServerDetector {
     });
     return called.entrySet().stream().filter(e -> isReallyOpenOpiClass(e.getKey()))
         .flatMap(e -> e.getValue().stream()).filter(n -> {
-          if (isWrappableOpenApiMethod(n.getMethod()) || n.getMethod().isInit()) {
+          if (isOpenApiServerMethod(n.getMethod()) || n.getMethod().isInit()) {
             return false;
           }
           Iterator2List<CGNode> callers = Iterator2Set.toList(cg.getPredNodes(n));
           return callers.stream().anyMatch(caller -> !caller.getMethod().getDeclaringClass().equals(n.getMethod().getDeclaringClass()));
         });
+  }
+
+  private static boolean hasAnnotation(IMethod method, String javaClassName) {
+    return method.getAnnotations().stream()
+        .anyMatch(a -> TypeNameUtils.toJavaClassName(a.getType().getName().toString() + ";").equals(javaClassName));
+  }
+
+  private static boolean isApiServerMethod(IMethod method) {
+    return method.getAnnotations().stream()
+        .anyMatch(a -> TypeNameUtils.toJavaClassName(a.getType().getName().toString() + ";").matches("javax\\.ws\\.rs\\.[A-Z]+")) &&
+        hasAnnotation(method, "io.swagger.annotations.ApiResponses") &&
+        hasAnnotation(method, "io.swagger.annotations.ApiOperation") &&
+        !method.isPrivate();
+  }
+
+
+  public Optional<IMethod> getImplementingServerMethod(IMethod method) {
+    return Stream.concat(method.getDeclaringClass().getAllImplementedInterfaces().stream(), Stream.of(method.getDeclaringClass().getSuperclass()))
+        .map(c -> c.getMethod(new Selector(method.getName(), method.getDescriptor()))).filter(Objects::nonNull).filter(OpenApiServerDetector::isApiServerMethod).findFirst();
   }
 }

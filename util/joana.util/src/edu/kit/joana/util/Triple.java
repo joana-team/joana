@@ -72,4 +72,16 @@ public class Triple<S, T, R> {
 		Objects.requireNonNull(right);
 		return triple(left, middle, right);
 	}
+
+	public S getFirst() {
+		return left;
+	}
+
+	public T getSecond() {
+		return middle;
+	}
+
+	public R getThird() {
+		return right;
+	}
 }

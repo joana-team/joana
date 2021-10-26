@@ -10,6 +10,8 @@ import java.lang.reflect.Modifier
 import java.util.* // ktlint-disable no-wildcard-imports
 import java.util.stream.Collectors
 import java.util.stream.Stream
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 fun ClassInfo.toType(): Type {
     return Type.getType(TypeNameUtils.toInternalName(name))
@@ -23,11 +25,11 @@ val ClassInfo.children: ClassInfoList
 /**
  * Possible constructors per class, has support for dealing with types obtained via reflection heuristics
  */
-class PossibleConstructors(
+class PossibleConstructors @JvmOverloads constructor(
     private val classInfoMap: Class2ClassInfo,
     private val config: OpenApiPreProcessorPass.Config,
-    private val map: Map<Type, Set<String>>,
-    private val typesUsedInReflection: Set<ClassInfo>
+    private val map: Map<Type, Set<String>> = HashMap(),
+    private val typesUsedInReflection: Set<ClassInfo> = HashSet()
 ) : Map<Type, Set<String>> by map {
     fun forType(type: Type): PossibleConstructors {
         val out: MutableMap<Type, Set<String>> = HashMap()
@@ -59,24 +61,31 @@ class PossibleConstructors(
         val klass = classInfoMap[TypeNameUtils.toJavaClassName(type)]
         val cons = Stream.concat(
             map.getOrDefault(type, emptySet()).stream(),
-            if (typesUsedInReflection.contains(klass)) klass!!.constructorInfo.stream()
-                .filter { x: MethodInfo -> !x.isNative && (!Modifier.isPrivate(x.modifiers) || !config.ignorePrivateConstructors) }
-                .map { obj: MethodInfo -> obj.typeDescriptorStr } else Stream.empty()
+            if (typesUsedInReflection.contains(klass)) getOwnConstructors(klass!!).stream() else Stream.empty()
         ).collect(Collectors.toSet())
         return if (config.useSingleConstructorPerType) {
             cons.stream().sorted(Comparator.comparingInt { obj: String -> obj.length }).limit(1).collect(Collectors.toSet())
         } else cons
     }
 
+    private fun getOwnConstructors(klass: ClassInfo) = klass.constructorInfo.stream()
+        .filter { x: MethodInfo -> !x.isNative && (!Modifier.isPrivate(x.modifiers) || !config.ignorePrivateConstructors) }
+        .map { obj: MethodInfo -> obj.typeDescriptorStr }.collect(Collectors.toSet())
+
     fun methodDescriptorStream(): Stream<BaseMethodDescriptor> {
         return map.entries.stream()
-            .flatMap { (key, value) ->
-                value.stream().map { d: String? ->
-                    BaseMethodDescriptor(
-                        key.toString(), "<init>", d
-                    )
-                }
+            .flatMap { (type, constructorDescriptors) ->
+                constructorsToMethodDescriptors(type, constructorDescriptors)
             }
+    }
+
+    private fun constructorsToMethodDescriptors(
+        type: Type,
+        constructorDescriptors: Set<String>
+    ) = constructorDescriptors.stream().map { d: String? ->
+        BaseMethodDescriptor(
+            type.toString(), "<init>", d
+        )
     }
 
     override fun toString(): String {
@@ -84,6 +93,11 @@ class PossibleConstructors(
     }
 
     fun hasConstructors(type: Type) = !get(type).isNullOrEmpty()
+
+    /** important: assumes class info map and config are equal */
+    fun combine(other: PossibleConstructors): PossibleConstructors {
+        return PossibleConstructors(classInfoMap, config, map + other.map, typesUsedInReflection + other.typesUsedInReflection)
+    }
 
     /**
      * Like a type hierarchy, but contains only classes with possible constructors
@@ -153,4 +167,16 @@ class PossibleConstructors(
     }
 
     override fun hashCode() = Objects.hash(classInfoMap, config, map, typesUsedInReflection)
+
+    fun findOwnConstructors(type: Type): Set<String> {
+        return classInfoMap.get(type)?.let {
+            if (it.isStandardClass && !it.isAbstract) {
+                getOwnConstructors(it)
+            } else {
+                emptySet()
+            }
+        } ?: emptySet()
+    }
+
+    fun findOwnConstructorDescriptors(type: Type) = constructorsToMethodDescriptors(type, findOwnConstructors(type))
 }

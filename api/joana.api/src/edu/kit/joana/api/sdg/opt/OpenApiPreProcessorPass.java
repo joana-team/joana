@@ -13,14 +13,15 @@ import com.ibm.wala.util.strings.Atom;
 import edu.kit.joana.api.sdg.SDGConfig;
 import edu.kit.joana.api.sdg.SDGProgram;
 import edu.kit.joana.api.sdg.opt.asm.*;
+import edu.kit.joana.ui.annotations.openapi.InvokeAllRegisteredOpenApiServerMethods;
+import edu.kit.joana.ui.annotations.openapi.ModifiedOpenApiClientMethod;
+import edu.kit.joana.ui.annotations.openapi.RegisteredOpenApiServerMethod;
+import edu.kit.joana.util.Iterators;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.TypeNameUtils;
 import edu.kit.joana.wala.core.SDGBuilder;
 import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ClassInfoList;
-import io.github.classgraph.MethodInfo;
+import io.github.classgraph.*;
 import nonapi.io.github.classgraph.classpath.SystemJarFinder;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static edu.kit.joana.util.Iterators.stream;
 import static org.objectweb.asm.Opcodes.*;
 
 /**
@@ -53,21 +53,27 @@ public class OpenApiPreProcessorPass implements FilePass {
 
   public static class Config {
 
-    public static final Config DEFAULT = new Config(true, true, false, true, 1);
+    public static final Config DEFAULT = new Config(true, true, false, false, true);
 
     public final boolean deleteRestOfMethod;
     public final boolean deleteConstructorBody;
     public final boolean ignorePrivateConstructors;
     public final boolean useSingleConstructorPerType;
-    public final int maxLevel2Constructors;
+    /**
+     * reduces the precision by ignoring the collected constructors and just using "native" annotated methods
+     * for creating instances of types
+     */
+    public final boolean useNativeMethods;
+    /** ignore all information besides the type*/
+    public final boolean useBasicNativeMethod = true;
 
     public Config(boolean deleteRestOfMethod, boolean deleteConstructorBody, boolean ignorePrivateConstructors,
-        boolean useSingleConstructorPerType, int maxLevel2Constructors) {
+        boolean useSingleConstructorPerType, boolean useNativeMethods) {
       this.deleteRestOfMethod = deleteRestOfMethod;
       this.deleteConstructorBody = deleteConstructorBody;
       this.ignorePrivateConstructors = ignorePrivateConstructors;
       this.useSingleConstructorPerType = useSingleConstructorPerType;
-      this.maxLevel2Constructors = maxLevel2Constructors;
+      this.useNativeMethods = useNativeMethods;
     }
 
     @Override public boolean equals(Object o) {
@@ -79,12 +85,12 @@ public class OpenApiPreProcessorPass implements FilePass {
       return deleteRestOfMethod == config.deleteRestOfMethod && deleteConstructorBody == config.deleteConstructorBody
           && ignorePrivateConstructors == config.ignorePrivateConstructors
           && useSingleConstructorPerType == config.useSingleConstructorPerType
-          && maxLevel2Constructors == config.maxLevel2Constructors;
+          && useNativeMethods == config.useNativeMethods;
     }
 
     @Override public int hashCode() {
       return Objects.hash(deleteRestOfMethod, deleteConstructorBody, ignorePrivateConstructors, useSingleConstructorPerType,
-          maxLevel2Constructors);
+          useNativeMethods);
     }
   }
 
@@ -118,7 +124,7 @@ public class OpenApiPreProcessorPass implements FilePass {
   @Override public void setup(SDGConfig cfg, String libClassPath, Path sourceFolder) {
     classInfoMap = new Class2ClassInfo(new ClassGraph().enableMethodInfo().overrideClasspath(
         libClassPath + (libClassPath.isEmpty() ? "" : ":") + SystemJarFinder.getJreRtJarPath() + ":" + sourceFolder)
-        .enableSystemJarsAndModules().enableInterClassDependencies().scan().getAllClassesAsMap());
+        .enableSystemJarsAndModules().enableInterClassDependencies().enableMethodInfo().scan().getAllClassesAsMap());
     classNames = new NameCreator(new HashSet<>(classInfoMap.keySet()));
     try {
       cfg.setClassPath(sourceFolder.toString());
@@ -236,10 +242,18 @@ public class OpenApiPreProcessorPass implements FilePass {
           .add("methodName='" + methodName + "'").add("methodDescriptor='" + methodDescriptor + "'").toString();
     }
 
+    /** might be null, e.g. for methods of {@link java.lang.Object}*/
+    @Nullable
     private MethodInfo toMethodInfo() {
-      return classInfoMap.get(methodClass).getMethodInfo(methodName)
-          .filter(m -> m.getTypeDescriptorStr().equals(methodDescriptor))
-          .get(0);
+      ClassInfo info = classInfoMap.get(methodClass);
+      if (info == null) {
+        return null;
+      }
+      MethodInfoList methods = info.getMethodInfo(methodName).filter(m -> m.getTypeDescriptorStr().equals(methodDescriptor));
+      if (methods.isEmpty()) {
+        return null;
+      }
+      return methods.get(0);
     }
   }
 
@@ -393,6 +407,7 @@ public class OpenApiPreProcessorPass implements FilePass {
       FileUtils.deleteDirectory(Paths.get("/tmp/oa").toFile());
     }
     FilePass.super.process(cfg, libClassPath, sourceFolder, targetFolder);
+    storeNeededFiles(targetFolder);
     if (debug) {
       try {
         Files.createDirectories(targetFolder);
@@ -401,6 +416,49 @@ public class OpenApiPreProcessorPass implements FilePass {
         e.printStackTrace();
       }
     }
+  }
+
+  private void storeNeededFiles(Path path) {
+    try {
+      createAnnotationIfNotPresent(path, Type.getType(ModifiedOpenApiClientMethod.class));
+      createAnnotationIfNotPresent(path, Type.getType(RegisteredOpenApiServerMethod.class));
+      createAnnotationIfNotPresent(path, Type.getType(InvokeAllRegisteredOpenApiServerMethods.class));
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  private void createAnnotationIfNotPresent(Path basePath, Type type) throws IOException {
+    Path path = basePath.resolve(TypeNameUtils.toInternalNameWithoutSemicolonAndL(type) + ".class");
+    if (Files.exists(path)) {
+      return;
+    }
+    Files.createDirectories(path.getParent());
+    ClassWriter cw = new ClassWriter(0);
+    FieldVisitor fv;
+    MethodVisitor mv;
+    AnnotationVisitor av0;
+
+    cw.visit(52, ACC_PUBLIC + ACC_ANNOTATION + ACC_ABSTRACT + ACC_INTERFACE,
+        TypeNameUtils.toInternalNameWithoutSemicolonAndL(type.toString()), null, "java/lang/Object",
+        new String[] { "java/lang/annotation/Annotation" });
+
+    {
+      av0 = cw.visitAnnotation("Ljava/lang/annotation/Retention;", true);
+      av0.visitEnum("value", "Ljava/lang/annotation/RetentionPolicy;", "CLASS");
+      av0.visitEnd();
+    }
+    {
+      av0 = cw.visitAnnotation("Ljava/lang/annotation/Target;", true);
+      {
+        AnnotationVisitor av1 = av0.visitArray("value");
+        av1.visitEnum(null, "Ljava/lang/annotation/ElementType;", "METHOD");
+        av1.visitEnd();
+      }
+      av0.visitEnd();
+    }
+    cw.visitEnd();
+    Files.newOutputStream(path).write(cw.toByteArray());
   }
 
   @Override public void teardown() {
@@ -417,6 +475,8 @@ public class OpenApiPreProcessorPass implements FilePass {
     private Set<String> usedMethodNames;
     /** used for all-method-invokes on server objects */
     private final Map<ClassInfo, MethodDescriptor> allInvokeMethods = new HashMap<>();
+
+    private PossibleConstructors possibleConstructorsForServers = new PossibleConstructors(classInfoMap, config);
 
     public ModifierVisitor(ClassVisitor cv, Path basePath, OpenApiClientDetector detector, DummyGeneratorStore dummyGeneratorStore) {
       super(ASM8, cv);
@@ -452,37 +512,42 @@ public class OpenApiPreProcessorPass implements FilePass {
     private MethodDescriptor getAllInvokeMethod(ClassInfo apiInterface) {
       return allInvokeMethods.computeIfAbsent(apiInterface, inter -> {
         String name = createNewName("all");
-        String descr = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class));
-        return new MethodDescriptor(klass, name, descr);
+        String descr = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(TypeNameUtils.toInternalName(apiInterface.getName())));
+        return new MethodDescriptor("L" + klass + ";", name, descr);
       });
     }
 
     @Override public org.objectweb.asm.MethodVisitor visitMethod(int access, String methodName, String descriptor, String signature,
         String[] exceptions) {
       MethodDescriptor descr = new MethodDescriptor(javaKlassName, methodName, descriptor);
+      boolean isPossibleServerImplMethod = serverDetector.isPossibleImplMethod(descr);
+      if (isPossibleServerImplMethod) {
+        System.out.println("Annotated Api impl method " + klass + "." + methodName);
+        return getServerMethodTransformer(access, descriptor, descr,
+            cv.visitMethod(access, methodName, descriptor, signature, exceptions));
+      }
       if (openApiClientClasses.contains(javaKlassName) && methodName.equals("<init>") && config.deleteConstructorBody) { // a constructor
         return new DeletingMethodVisitor(api, true);
       }
       if (!isCalled(descr) && !debug2) {
         return cv.visitMethod(access, methodName, descriptor, signature, exceptions);
       }
-      boolean isOpenApiMethod =
+      boolean isOpenApiClientMethod =
           openApiClientClasses.contains(javaKlassName) && (access & ACC_PUBLIC) != 0 && (access & ACC_STATIC) == 0
               && (access & ACC_ABSTRACT) == 0 && (access & ACC_NATIVE) == 0 && detector.isWrappableOpenApiMethod(javaKlassName,
               methodName, descriptor, signature, exceptions);
       boolean isServerEndPointCallingMethod = serverDetector.isPossibleEndpointCallingMethod(descr);
-      if (!isOpenApiMethod && !isServerEndPointCallingMethod) {
-        if (!debug2) {
-          return cv.visitMethod(access, methodName, descriptor, signature, exceptions);
-        }
-      }
-      System.out.println("Transformed method " + methodName + "." + methodName);
       org.objectweb.asm.MethodVisitor cvVis = cv.visitMethod(access, methodName, descriptor, signature, exceptions);
-      return isOpenApiMethod ?
-          getClientMethodTransformer(access, descriptor, descr, cvVis) :
-          getServerEndpointCallerTransformer(access, descriptor, descr, cvVis,
-              serverDetector.apiClasses.stream()
-              .map(classInfoMap::get).collect(Collectors.toMap(k -> k, this::getAllInvokeMethod)) /* TODO: be context sensitive */);
+      if (isOpenApiClientMethod) {
+        System.out.println("Transformed client method " + klass + "." + methodName);
+        return getClientMethodTransformer(access, descriptor, descr, cvVis);
+      } else if (isServerEndPointCallingMethod) {
+        System.out.println("Transformed endpoint caller method " + klass + "." + methodName);
+        return getServerEndpointCallerTransformer(access, descriptor, descr, cvVis,
+            serverDetector.apiClasses.stream()
+                .map(classInfoMap::get).collect(Collectors.toMap(k -> k, this::getAllInvokeMethod)) /* TODO: be context sensitive */);
+      }
+      return cvVis;
     }
 
     /**
@@ -502,6 +567,7 @@ public class OpenApiPreProcessorPass implements FilePass {
 
         @Override public void visitCode() {
           dummyMethod = null;
+          mv.visitAnnotation(Type.getType(ModifiedOpenApiClientMethod.class).toString(), true).visitEnd();
           mv.visitCode();
           if (!config.deleteRestOfMethod) {
             mv.visitTryCatchBlock(start, end, handler, "java/lang/Throwable");
@@ -535,22 +601,7 @@ public class OpenApiPreProcessorPass implements FilePass {
             if (!config.deleteRestOfMethod) {
               mv.visitInsn(POP);
             }
-            switch (opcode) {
-            case IRETURN:
-              mv.visitInsn(ICONST_1);
-              break;
-            case DRETURN:
-              mv.visitInsn(DCONST_1);
-              break;
-            case LRETURN:
-              mv.visitInsn(LCONST_1);
-              break;
-            case FRETURN:
-              mv.visitInsn(FCONST_1);
-              break;
-            case ARETURN:
-              callDummyMethod();
-            }
+            callDummyMethod();
             mv.visitInsn(opcode);
           } else if (!config.deleteRestOfMethod) {
             mv.visitInsn(opcode);
@@ -571,11 +622,12 @@ public class OpenApiPreProcessorPass implements FilePass {
           //assert retTypes.size() > 0; // TODO: might happen with serialization, darn reflection :(
 
           PossibleConstructors possibleConstructors = possibleConstructorsCalledIn(descr);
-          return dummyGeneratorStore.createClassForTypes(possibleConstructors,
-              Type.getReturnType(descr.methodDescriptor), retTypes);
+          return dummyGeneratorStore.createDummyCreatorMethodForTypes(possibleConstructors,
+              Type.getReturnType(descr.methodDescriptor), Optional.of(retTypes));
         }
       };
     }
+
 
     /**
      * Idea: search for calls to server endpoint methods with OpenApi implementations
@@ -590,6 +642,7 @@ public class OpenApiPreProcessorPass implements FilePass {
     private MethodVisitor getServerEndpointCallerTransformer(int access, String descriptor,
         MethodDescriptor descr, MethodVisitor cvVis, Map<ClassInfo, MethodDescriptor> allInvokeMethods) {
       LocalVariablesSorter lmv = new LocalVariablesSorter(access, descriptor, cvVis);
+      possibleConstructorsForServers = possibleConstructorsForServers.combine(possibleConstructorsCalledIn(descr));
       return new MethodVisitor(api, lmv) {
 
         @Override public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
@@ -598,12 +651,34 @@ public class OpenApiPreProcessorPass implements FilePass {
             MethodInfo methodInfo = methodDescriptor.toMethodInfo();
             // we know here that the called method is a possible endpoint method
             // first: store all arguments in new local variables
-            List<Pair<Type, Integer>> localVariables = Arrays.stream(methodInfo.getParameterInfo()).map(p -> {
-              Type type = Type.getType(TypeNameUtils.toInternalName(p.getTypeSignatureOrTypeDescriptor().toString()));
+            List<Pair<Type, Integer>> localVariables = Arrays.stream(methodInfo.getParameterInfo())
+                .map(p -> Type.getType(TypeNameUtils.toInternalName(p.getTypeSignatureOrTypeDescriptor().toString())))
+                .map(type -> {
               int local = lmv.newLocal(type);
               lmv.visitVarInsn(type.getOpcode(ISTORE), local);
               return Pair.pair(type, local);
-            }).collect(Collectors.toList());
+            }).collect(Collectors.toList());   // (type, local variable)
+
+            // collect all object typed parameters, they might be the API endpoint
+            List<Pair<Type, Integer>> apiParameters = localVariables.stream()
+                .filter(p -> p.getFirst().equals(Type.getType(Object.class))).collect(Collectors.toList());;
+            // create `if (isinstance(param, Api1)) {}` chain for every suitable parameter
+            for (Pair<Type, Integer> apiParameter : apiParameters) {
+              allInvokeMethods.forEach((classInfo, allInvokeMethod) -> {
+                Label endLabel = new Label();
+                // load parameter
+                lmv.visitVarInsn(apiParameter.getFirst().getOpcode(ILOAD), apiParameter.getSecond());
+                // if instanceof
+                lmv.visitTypeInsn(INSTANCEOF, TypeNameUtils.toInternalNameWithoutSemicolonAndL(classInfo.getName()));
+                lmv.visitJumpInsn(IFEQ, endLabel);
+                // call method
+                lmv.visitVarInsn(apiParameter.getFirst().getOpcode(ILOAD), apiParameter.getSecond());
+                lmv.visitTypeInsn(CHECKCAST, TypeNameUtils.toInternalNameWithoutSemicolonAndL(apiParameter.getFirst()));
+                lmv.visitMethodInsn(INVOKESTATIC, TypeNameUtils.toInternalNameWithoutSemicolonAndL(allInvokeMethod.methodClass),
+                    allInvokeMethod.methodName, allInvokeMethod.methodDescriptor, false);
+                lmv.visitLabel(endLabel);
+              });
+            }
 
             // push locals back onto the stack
             localVariables.forEach(p -> lmv.visitVarInsn(p.getFirst().getOpcode(ILOAD), p.getSecond()));
@@ -614,8 +689,8 @@ public class OpenApiPreProcessorPass implements FilePass {
     }
 
     @Override public void visitEnd() {
-      allInvokeMethods.forEach((k, m) -> createAllInvokeMethodForSingleApi(k, m, cv));
       super.visitEnd();
+      allInvokeMethods.forEach((k, m) -> createAllInvokeMethodForSingleApi(k, m, cv));
     }
 
     /**
@@ -623,32 +698,47 @@ public class OpenApiPreProcessorPass implements FilePass {
      */
     private void createAllInvokeMethodForSingleApi(ClassInfo apiImplClass, MethodDescriptor method, ClassVisitor cv) {
       Type apiClassType = Type.getType(TypeNameUtils.toInternalName(apiImplClass.getName()));
-      String generatedMethodName = createNewName(apiImplClass.getName());
-      String generatedMethodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, apiClassType);
-      /*MethodVisitor genMv = ModifierVisitor.super
-          .visitMethod(ACC_PRIVATE, generatedMethodName, generatedMethodDescriptor, null, new String[0]);
-      final DummyGenerator generator = new DummyGenerator(
-          new LocalVariablesSorter(ACC_PRIVATE, generatedMethodDescriptor, genMv),
-          possibleConstructorsCalledIn(descr));
+      MethodVisitor genMv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC, method.methodName, method.methodDescriptor, null, new String[0]);
       // start method
+      genMv.visitAnnotation(Type.getType(InvokeAllRegisteredOpenApiServerMethods.class).toString(), true).visitEnd();
       genMv.visitCode();
-      int retLocal = ((LocalVariablesSorter) mv).newLocal(ret);
-      genMv.visitInsn(ACONST_NULL);
-      genMv.visitVarInsn(ASTORE, retLocal);
-      generator.createDummyInitCodeForComplexType(retLocal, retTypes);
-      genMv.visitVarInsn(ALOAD, retLocal);
-      genMv.visitInsn(ARETURN);
-      // end method
-      genMv.visitEnd();*/
+      // call all API methods of the impl class with the passed parameter (local variable 1)
+      apiImplClass.getMethodInfo().stream().filter(serverDetector::isApiMethod).forEach(m -> {
+        // load parameter, we call the method on
+        genMv.visitVarInsn(apiClassType.getOpcode(ILOAD), 0);
+        // push dummy arguments
+        for (MethodParameterInfo param : m.getParameterInfo()) {
+          Type paramType = Type.getType(TypeNameUtils.toInternalName(param.getTypeDescriptor().toString()));
+          BaseMethodDescriptor dummyMethod = dummyGeneratorStore.createDummyCreatorMethodForTypes(possibleConstructorsForServers,
+              paramType, Optional.empty());
+          genMv.visitMethodInsn(INVOKESTATIC, TypeNameUtils.toInternalNameWithoutSemicolonAndL(dummyMethod.methodClass),
+              dummyMethod.methodName, dummyMethod.methodDescriptor, false);
+        }
+        // call method
+        genMv.visitMethodInsn(INVOKEINTERFACE, TypeNameUtils.toInternalNameWithoutSemicolonAndL(apiClassType),
+            m.getName(), m.getTypeDescriptorStr(), false);
+        Type resultType = Type.getReturnType(m.getTypeDescriptorStr());
+        if (resultType != Type.VOID_TYPE) {
+          if (resultType == Type.DOUBLE_TYPE || resultType == Type.LONG_TYPE) {
+            genMv.visitInsn(POP2);
+          } else {
+            genMv.visitInsn(POP);
+          }
+        }
+      });
+      genMv.visitInsn(RETURN);
+      genMv.visitMaxs(1, 1);
+      genMv.visitEnd();
     }
 
-    /**
-     * Create a method that calls all api methods
-     *
-     * @return its name
-     */
-    private String createAllInvokeMethod(ClassInfo apiImplClass, ClassVisitor cv) {
-      return "";
+    private MethodVisitor getServerMethodTransformer(int access, String descriptor, MethodDescriptor descr,
+        MethodVisitor cvVis) {
+      return new MethodVisitor(api, cvVis) {
+        @Override public void visitCode() {
+          visitAnnotation(Type.getType(RegisteredOpenApiServerMethod.class).toString(), true).visitEnd();
+          super.visitCode();
+        }
+      };
     }
   }
 
@@ -699,7 +789,7 @@ public class OpenApiPreProcessorPass implements FilePass {
           .flatMap(e -> e.toRef()
               .map(ee -> cg.getNodes(ee).stream())
               .orElse(Stream.empty()))
-          .flatMap(node -> stream(cg.getPredNodes(node)))
+          .flatMap(node -> Iterators.stream(cg.getPredNodes(node)))
           .map(MethodDescriptor::new)
           .collect(Collectors.toSet());
     }
@@ -713,10 +803,11 @@ public class OpenApiPreProcessorPass implements FilePass {
           !Modifier.isPrivate(method.getModifiers());
     }
 
-    /** checks both class and method */
+    /** checks both class and method. End point methods are methods that belong to the javax.xml.ws package,
+     * like Endpoint.publish */
     public boolean isPossibleEndPointMethod(MethodDescriptor descriptor) {
       MethodInfo methodInfo = descriptor.toMethodInfo();
-      return isPossibleEndPointClass(methodInfo.getClassInfo()) && isPossibleEndPointMethod(methodInfo);
+      return methodInfo != null && isPossibleEndPointClass(methodInfo.getClassInfo()) && isPossibleEndPointMethod(methodInfo);
     }
 
     private boolean isApiClass(ClassInfo klass) {
@@ -741,5 +832,18 @@ public class OpenApiPreProcessorPass implements FilePass {
     public boolean isPossibleEndpointCallingMethod(MethodDescriptor method) {
       return possibleEndPointCallers.contains(method);
     }
+
+    public boolean isPossibleImplMethod(MethodDescriptor descr) {
+      MethodInfo methodInfo = descr.toMethodInfo();
+      return methodInfo != null && isPossibleImplMethod(methodInfo);
+    }
+
+    public boolean isPossibleImplMethod(MethodInfo method) {
+      ClassInfo klass = method.getClassInfo();
+      return implementingClasses.getOrDefault(klass.getName(), Collections.emptySet()).stream().map(classInfoMap::get)
+          .anyMatch(inter -> inter.getDeclaredMethodInfo().get(method.getName()).stream()
+              .anyMatch(m -> method.getTypeDescriptor().equals(m.getTypeDescriptor()) && isApiMethod(m)));
+    }
+
   }
 }

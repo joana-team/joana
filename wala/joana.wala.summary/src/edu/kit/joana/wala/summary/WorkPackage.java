@@ -7,16 +7,6 @@
  */
 package edu.kit.joana.wala.summary;
 
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
-
-import org.jgrapht.DirectedGraph;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -30,6 +20,12 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import org.jgrapht.DirectedGraph;
+
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.util.*;
 
 /**
  * @author Juergen Graf <graf@kit.edu>
@@ -262,6 +258,8 @@ public class WorkPackage<G extends DirectedGraph<SDGNode, SDGEdge> & EfficientGr
 	private final TIntObjectMap<List<SDGNode>> out2in;
 	private boolean immutable = false;
 	private final boolean rememberReached;
+	/** initial entries of the worklist or none (if the default worklist contents should be used */
+	private Optional<TIntSet> initialWorklistEntries = Optional.empty();
 
 	private WorkPackage(G subgraph, Set<EntryPoint> entries, String name,
 			TIntSet relevantProcs, TIntSet fullyConnected, TIntObjectMap<List<SDGNode>> out2in,
@@ -387,6 +385,15 @@ public class WorkPackage<G extends DirectedGraph<SDGNode, SDGEdge> & EfficientGr
 
 	public boolean isFinished() {
 		return immutable;
+	}
+
+	public WorkPackage<G> setInitialWorklistEntries(Optional<TIntSet> initialWorklistEntries) {
+		this.initialWorklistEntries = initialWorklistEntries;
+		return this;
+	}
+
+	public Optional<TIntSet> getInitialWorklistEntries() {
+		return initialWorklistEntries;
 	}
 
 }

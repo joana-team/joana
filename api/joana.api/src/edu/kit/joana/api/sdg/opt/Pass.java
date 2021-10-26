@@ -67,4 +67,8 @@ public interface Pass {
   }
 
   boolean requiresKnowledgeOnAnnotations();
+
+  default String getName() {
+    return getClass().getSimpleName();
+  }
 }

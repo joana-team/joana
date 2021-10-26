@@ -10,31 +10,20 @@ package edu.kit.joana.ifc.sdg.graph;
  * Created on Feb 25, 2004
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
+import edu.kit.joana.util.Pair;
+import edu.kit.joana.util.SourceLocation;
+import edu.kit.joana.util.collections.SimpleVector;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import org.antlr.runtime.ANTLRFileStream;
 import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 
-import edu.kit.joana.util.SourceLocation;
-import edu.kit.joana.util.collections.ArrayMap;
-import edu.kit.joana.util.collections.SimpleVector;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a concurrent system dependence graph (cSDG).
@@ -45,11 +34,11 @@ import gnu.trove.map.hash.TIntObjectHashMap;
  * @see SDGNode.NodeFactory
  */
 public class SDG extends JoanaGraph implements Cloneable {
-   
+
 	private static final long serialVersionUID = -4724356840088243978L;
 
     public static final int DEFAULT_VERSION = 1;
-    
+
     /** Indicates if the SDG contains precise source code info. */
 	private boolean joanaCompiler;
 
@@ -347,26 +336,26 @@ public class SDG extends JoanaGraph implements Cloneable {
     		return entryCache.get(node.getProc());
     	}
     }
-    
+
     public synchronized SDGNode getEntry(SDGNode node) {
     	final SDGNode entry = entryNodes.get(node.getProc());
-    	
+
     	assert entry.equals(getEntrySlow(node));
-    	
+
     	return entry;
     }
 
-    
+
     @Override
     public synchronized SDGNode getExit(SDGNode node) {
     	final SDGNode exit = exitNodes.get(node.getProc());
-    	
+
     	final SDGNode exitSlow;
     	assert ((exitSlow = getExitSlow(node)) == null) || exit.equals(exitSlow);
-    	
+
     	return exit;
     }
-    
+
     public synchronized SDGNode getExitSlow(SDGNode node){
     	if (exitCache.get(node.getProc()) == null) {
 	        SDGNode entry = getEntry(node);
@@ -457,7 +446,7 @@ public class SDG extends JoanaGraph implements Cloneable {
 				}
 			}
 		}
-		
+
 		fo.add(getExit(entry));
 
 		return fo;
@@ -747,6 +736,15 @@ public class SDG extends JoanaGraph implements Cloneable {
 	}
 
 	/**
+	 * Returns all summary edges of the given cg node
+	 */
+		public Collection<SDGEdge> getFormalInOutSummaryEdges(Set<Integer> callerIds, int cgId) {
+			return getFormalInsOfProcedure(getSDGNode(cgId)).stream()
+					.flatMap(n -> outgoingEdgesOf(n).stream().filter(e -> e.getKind() == SDGEdge.Kind.SUMMARY))
+					.collect(Collectors.toList());
+		}
+
+	/**
 	 * Returns n random nodes of this graph.
 	 * Used for evaluations.
 	 * Throws an IllegalArgumentException in case n > #nodes.
@@ -764,7 +762,7 @@ public class SDG extends JoanaGraph implements Cloneable {
 
 		return nodes.subList(0, n);
 	}
-	
+
 	/**
 	 * Returns n random nodes of this graph.
 	 * Used for evaluations.
@@ -932,13 +930,13 @@ public class SDG extends JoanaGraph implements Cloneable {
 		} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
-		
+
 		sdg.trimToSize();
-	
+
 		final int sepIndex = sdgFile.lastIndexOf(File.separator);
 		String fileName = (sepIndex > 0 ? sdgFile.substring(sepIndex) : sdgFile);
 		sdg.setFileName(fileName);
-	
+
 		return sdg;
 	}
 
@@ -964,7 +962,7 @@ public class SDG extends JoanaGraph implements Cloneable {
     	} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
-    	
+
     	sdg.trimToSize();
 
     	final int sepIndex = sdgFile.lastIndexOf(File.separator);
@@ -994,12 +992,61 @@ public class SDG extends JoanaGraph implements Cloneable {
     	} finally {
 			SourceLocation.clearSourceLocationPool();
 		}
-    	
+
     	sdg.trimToSize();
 
     	// no filename can be set here. -> Set to null initially.
 
     	return sdg;
     }
-}
 
+		public static class FormalSummaryEdgeMap {
+			/** procedure entry node → summary edges (but form in → form out) */
+			public final Map<SDGNode, Set<Pair<SDGNode, SDGNode>>> map;
+
+			public FormalSummaryEdgeMap(Map<SDGNode, Set<Pair<SDGNode, SDGNode>>> map) {
+				this.map = map;
+			}
+
+			public FormalSummaryEdgeMap remove(FormalSummaryEdgeMap old) {
+				Map<SDGNode, Set<Pair<SDGNode, SDGNode>>> newMap = new HashMap<>();
+				for (SDGNode sdgNode : map.keySet()) {
+					if (old.map.containsKey(sdgNode)) {
+						Set<Pair<SDGNode, SDGNode>> edges = new HashSet<>(map.get(sdgNode));
+						edges.removeAll(old.map.get(sdgNode));
+						if (edges.size() > 0) {
+							newMap.put(sdgNode, edges);
+						}
+					} else {
+						newMap.put(sdgNode, map.get(sdgNode));
+					}
+				}
+				return new FormalSummaryEdgeMap(newMap);
+			}
+		}
+
+		/** returns the summary edges for specific nodes (formal in → formal out) called in callerIds */
+		public FormalSummaryEdgeMap getFormalSummaryEdges(Set<Integer> callerIds, Set<Integer> cgIds) {
+			Map<SDGNode, Set<Pair<SDGNode, SDGNode>>> edges = new HashMap<>();
+			for (Integer cgId : cgIds) {
+				SDGNode cgEntryNode = getSDGNode(cgId);
+				Set<Pair<SDGNode, SDGNode>> sums = new HashSet<>();
+				for (SDGNode call : getCallers(cgEntryNode)) {
+					for (SDGNode formalIn : getFormalInsOfProcedure(cgEntryNode)) {
+						SDGNode actualIn = getActualIn(call, formalIn);
+						if (actualIn == null) {
+							continue;
+						}
+						sums.addAll(getOutgoingEdgesOfKind(actualIn, SDGEdge.Kind.SUMMARY).stream().map(SDGEdge::getTarget)
+								.flatMap(ao -> getFormalOuts(ao).stream()
+										.filter(fo -> fo.getProc() == formalIn.getProc()).map(fo -> Pair.pair(formalIn, fo)))
+								.collect(Collectors.toSet()));
+					}
+				}
+				if (!sums.isEmpty()) {
+					edges.put(cgEntryNode, sums);
+				}
+			}
+			return new FormalSummaryEdgeMap(edges);
+		}
+}

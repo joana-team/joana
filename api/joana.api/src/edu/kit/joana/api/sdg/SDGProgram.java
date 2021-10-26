@@ -51,10 +51,7 @@ import edu.kit.joana.ifc.sdg.util.JavaMethodSignature;
 import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.ui.annotations.*;
-import edu.kit.joana.util.Log;
-import edu.kit.joana.util.Logger;
-import edu.kit.joana.util.Pair;
-import edu.kit.joana.util.Stubs;
+import edu.kit.joana.util.*;
 import edu.kit.joana.util.io.IOFactory;
 import edu.kit.joana.wala.core.NullProgressMonitor;
 import edu.kit.joana.wala.core.SDGBuildArtifacts;
@@ -66,6 +63,7 @@ import edu.kit.joana.wala.util.PrettyWalaNames;
 import edu.kit.joana.wala.util.pointsto.ExtendedAnalysisOptions;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -124,7 +122,7 @@ public class SDGProgram {
 				return new ClassLoader(clsLoader);
 			}
 		}
-		
+
 		public static ClassLoader fromString(String clsLoader) {
 			if (clsLoader.equals("Application")) {
 				return APPLICATION;
@@ -280,7 +278,7 @@ public class SDGProgram {
 		return createSDGProgram(config, IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()),
 				NullProgressMonitor.INSTANCE);
 	}
-	
+
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		return createSDGProgram(config, out, monitor, null);
@@ -303,6 +301,16 @@ public class SDGProgram {
 		return new SDGBuilder.CGResult(callgraph, cgb.getPointerAnalysis());
 	}
 
+	public static SDGBuildPreparation.IntermediateSDGSummaryBuilder createSDGSummaryBuilder(SDGConfig config)
+			throws ClassHierarchyException, UnsoundGraphException, IOException, CancelException {
+		return createSDGSummaryBuilder(config, IOFactory.createUTF8PrintStream(new ByteArrayOutputStream()), NullProgressMonitor.INSTANCE, new NullPrintStream());
+	}
+
+	public static SDGBuildPreparation.IntermediateSDGSummaryBuilder createSDGSummaryBuilder(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
+			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
+		return SDGBuildPreparation.computeAndKeepBuildArtifactsPart1(out, makeBuildPreparationConfig(config), monitor);
+	}
+
 	public static SDGProgram createSDGProgram(SDGConfig config, PrintStream out, IProgressMonitor monitor, OutputStream sdgFileOut)
 			throws ClassHierarchyException, IOException, UnsoundGraphException, CancelException {
 		monitor.beginTask("build SDG", 20);
@@ -310,22 +318,29 @@ public class SDGProgram {
 		if (notifier != null) {
 			notifier.sdgStarted();
 		}
-		final com.ibm.wala.util.collections.Pair<SDG, SDGBuildArtifacts> p =
-				SDGBuildPreparation.computeAndKeepBuildArtifacts(out, makeBuildPreparationConfig(config), monitor);
-		final SDG sdg = p.fst;
-		final SDGBuildArtifacts buildArtifacts = p.snd;
+		SDGBuildPreparation.IntermediateSDGSummaryBuilder sdgSummaryBuilder = createSDGSummaryBuilder(config, out, monitor, sdgFileOut);
+		return createSDGProgram(sdgSummaryBuilder.compute(), config, out, sdgFileOut, notifier);
+	}
+
+	@NotNull public static SDGProgram createSDGProgram(SDGBuildPreparation.IntermediateSDG pairWithComputedSummaries,
+			SDGConfig config, PrintStream out, OutputStream sdgFileOut, ConstructionNotifier notifier)
+			throws CancelException, IOException, ClassHierarchyException, UnsoundGraphException {
+		final SDGBuildPreparation.IntermediateSDG p =
+				SDGBuildPreparation.computeAndKeepBuildArtifactsPart2(pairWithComputedSummaries, out);
+		final SDG sdg = p.sdg;
+		final SDGBuildArtifacts buildArtifacts = p.artifacts;
 
 		if (config.computeInterferences()) {
 			CSDGPreprocessor.preprocessSDG(sdg);
 		}
-		
+
 		final MHPAnalysis mhpAnalysis = config.getMhpType().getMhpAnalysisConstructor().apply(sdg);
 		assert (mhpAnalysis == null) == (config.getMhpType() == MHPType.NONE);
-		
+
 		if (config.computeInterferences()) {
 			PruneInterferences.pruneInterferences(sdg, mhpAnalysis);
 		}
-		
+
 		if (notifier != null) {
 			notifier.sdgFinished();
 			notifier.numberOfCGNodes(buildArtifacts.getNonPrunedWalaCallGraph().getNumberOfNodes(), buildArtifacts.getWalaCallGraph().getNumberOfNodes());
@@ -338,7 +353,7 @@ public class SDGProgram {
 			if (notifier != null) {
 				notifier.stripControlDepsFinished();
 			}
-			
+
 		}
 		if (sdgFileOut != null) {
 			SDGSerializer.toPDGFormat(sdg, sdgFileOut);
@@ -353,18 +368,17 @@ public class SDGProgram {
 		if (config.isSkipSDGProgramPart()) {
 			return ret;
 		}
-		
-		
+
 		final IClassHierarchy ch  = buildArtifacts.getClassHierarchy();
-		final CallGraph callGraph = buildArtifacts.getWalaCallGraph(); 
+		final CallGraph callGraph = buildArtifacts.getWalaCallGraph();
 		ret.fillWithAnnotations(ch, findClassesRelevantForAnnotation(ch, callGraph));
 		return ret;
 	}
-	
+
 	private void setClassHierarchy(IClassHierarchy ch) {
 		this.ch = ch;
 	}
-	
+
 	public IClassHierarchy getClassHierarchy(){
 		return ch;
 	}
@@ -379,7 +393,7 @@ public class SDGProgram {
 					classes.add(cl);
 				}
 			}
-			
+
 			@Override
 			public void visitPut(SSAPutInstruction instruction) {
 				final IClass cl = ch.lookupClass(instruction.getDeclaredFieldType());
@@ -388,29 +402,29 @@ public class SDGProgram {
 				}
 			}
 		};
-		
+
 		// TODO: is this enough in general?!?!?
 		for (CGNode cgnode : callGraph) {
 			final IClass cl = cgnode.getMethod().getDeclaringClass();
 			assert cl != null;
-			
+
 			if (!(cl instanceof FakeRootClass) && !cl.isArrayClass()) {
 				classes.add(cl);
 			}
-			
+
 			final IR ir = cgnode.getIR();
 			if (ir != null) {
 				ir.visitNormalInstructions(collectReferencedClasses);
 			}
 		}
 		return classes;
-		
+
 	}
 
 	public void fillWithAnnotations(IClassHierarchy cha, Iterable<IClass> classes) {
 		collectedAllNodesForMiscAnnotations = false;
-		final Collection<String> sourceOrSinkAnnotationName = 
-				Arrays.asList(new Class<?>[] { 
+		final Collection<String> sourceOrSinkAnnotationName =
+				Arrays.asList(new Class<?>[] {
 					Source.class, Sink.class, Declassification.class,
 					Sources.class, Sinks.class, Declassifications.class, ReturnValue.class
 				})
@@ -460,7 +474,7 @@ public class SDGProgram {
 			}
 
 			for (IMethod m : c.getAllMethods()) {
-				
+
 				if (m.getAnnotations() != null) {
 					Optional<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>> relAndNonRel = splitAnnotations
 							.apply(m.getAnnotations());
@@ -478,7 +492,7 @@ public class SDGProgram {
 						debug.outln("Annotated: " + jt + ":::" + m.getName() + " with " + m.getAnnotations());
 					}
 				}
-				
+
 				if (m instanceof ShrikeCTMethod) {
 					ShrikeCTMethod method = (ShrikeCTMethod) m;
 					Collection<SDGMethod> methods = Collections.emptyList();
@@ -487,7 +501,7 @@ public class SDGProgram {
 					for(Collection<Annotation> parameter : method.getParameterAnnotations() ) {
 						Optional<Pair<Collection<Pair<Annotation, String>>, Collection<Annotation>>> relAndNonRel = splitAnnotations.apply(parameter);
 						if (relAndNonRel.isPresent()) {
-							if (methods.isEmpty()) { 
+							if (methods.isEmpty()) {
 								final Set<IMethod> implementors = cha.getPossibleTargets(m.getReference());
 								methods = implementors.stream().flatMap(
 										mImpl -> this.getMethods(JavaMethodSignature.fromString(mImpl.getSignature())).stream()
@@ -506,16 +520,16 @@ public class SDGProgram {
 						}
 						parameterNumber++;
 					}
-					
+
 					try {
-						final Collection<TypeAnnotation> localVarAnnotations = 
+						final Collection<TypeAnnotation> localVarAnnotations =
 						method.getTypeAnnotationsAtCode(true)
 							.stream()
 							.filter(a -> a.getTargetType() == TargetType.LOCAL_VARIABLE)
 							.collect(Collectors.toList());
-						
+
 						if (!localVarAnnotations.isEmpty()) {
-							if (methods.isEmpty()) { 
+							if (methods.isEmpty()) {
 								methods = this.getMethods(JavaMethodSignature.fromString(m.getSignature()));
 							}
 							for (TypeAnnotation ta : localVarAnnotations) {
@@ -538,7 +552,7 @@ public class SDGProgram {
 										} else {
 											debug.outln("Warning: Variable "
 											   + localVarTarget + " in "
-											   + JavaMethodSignature.fromString(m.getSignature()) 
+											   + JavaMethodSignature.fromString(m.getSignature())
 											   + "not found. Did you try to annotate an 'ephemeral' Variable such as 'int x = p' where 'x' is never used in the method?"
 											);
 										}
@@ -649,7 +663,7 @@ public class SDGProgram {
 	public MHPAnalysis getMhpAnalysis() {
 		return mhpAnalysis;
 	}
-	
+
 
 	public Map<SDGProgramPart, Collection<Pair<Annotation,String>>> getJavaSourceAnnotations() {
 		return annotations;
@@ -713,7 +727,7 @@ public class SDGProgram {
 		build();
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, bcIndex);
 	}
-	
+
 	/**
 	 * Get instructions by label, i.e. the label of the corresponding sdg node. Precisely, all
 	 *
@@ -726,12 +740,12 @@ public class SDGProgram {
 		return classRes.getInstruction(methodSig.getDeclaringType(), methodSig, labelRegEx);
 	}
 
-	
+
 	public Collection<SDGLocalVariable> getLocalVariables(JavaMethodSignature methodSig, String varName) {
 		build();
 		return classRes.getLocalVariable(methodSig.getDeclaringType(), methodSig, varName);
 	}
-	
+
 	public Collection<SDGCall> getCallsToMethod(JavaMethodSignature tgt) {
 		Collection<SDGCall> ret = new LinkedList<SDGCall>();
 		build();
@@ -1071,7 +1085,7 @@ public class SDGProgram {
 				}
 			}
 		}
-		
+
 		private Collection<SDGInstruction> getInstructions(String instr) {
 			if (!instr.contains(":")) {
 				return null;
@@ -1253,7 +1267,7 @@ class SDGClassResolver {
 
 		return ret;
 	}
-	
+
 	public Collection<SDGLocalVariable> getLocalVariable(JavaType typeName, JavaMethodSignature methodSig, String varName) {
 		Collection<SDGMethod> ms = getMethod(typeName, methodSig);
 		Collection<SDGLocalVariable> ret = new LinkedList<SDGLocalVariable>();

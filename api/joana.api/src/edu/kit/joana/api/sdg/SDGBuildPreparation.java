@@ -238,7 +238,7 @@ public final class SDGBuildPreparation {
 		}
 
 		// Nimmt unnoetige Klassen raus
-		
+
 		SetOfClasses exclusions =
 				new FileOfClasses(new ByteArrayInputStream(IOFactory.createUTF8Bytes(cfg.exclusions)));
 		scope.setExclusions(exclusions);
@@ -253,7 +253,7 @@ public final class SDGBuildPreparation {
 	}
 
 	/**
-	 * This method constructs a minimal analysis scope with {@link SDGBuildPreparation.STD_EXCLUSION_REG_EXP standard exclusions}
+	 * This method constructs a minimal analysis scope with SDGBuildPreparation.STD_EXCLUSION_REG_EXP standard exclusions
 	 * and JRE1.4 stubs.
 	 * @param appClassPaths application class path - may contain multiple items, separated by ';'
 	 * @return a minimal analysis scope with JRE1.4 stubs
@@ -268,7 +268,7 @@ public final class SDGBuildPreparation {
 	 * This method constructs a minimal analysis scope. The user may decide which stubs and exclusions to use
 	 * @param appClassPaths application class path - may contain multiple items, separated by ';'
 	 * @param stubs stubs to use
-	 * @param exclusionsRegexp exclusions to use -- for the expected format, see {@link SDGBuilder.STD_EXCLUSION_REG_EXP}
+	 * @param exclusionsRegexp exclusions to use -- for the expected format, see SDGBuilder.STD_EXCLUSION_REG_EXP
 	 * @return a minimal analysis scope user chosen stubs and exclusions
 	 * @throws IOException
 	 */
@@ -325,7 +325,7 @@ public final class SDGBuildPreparation {
 
 	    // Methode in der Klassenhierarchie suchen
 		final MethodReference mr = StringStuff.makeMethodReference(Language.JAVA, cfg.entryMethod);
-		
+
 		IMethod m = cha.resolveMethod(mr);
 		if (m == null) {
 			fail("could not resolve " + mr);
@@ -448,19 +448,75 @@ public final class SDGBuildPreparation {
 
 		return ret;
 	}
-	
-	public static Pair<SDG, SDGBuildArtifacts> computeAndKeepBuildArtifacts(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
+
+	public static IntermediateSDG computeAndKeepBuildArtifacts(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
+		IntermediateSDGSummaryBuilder pair = computeAndKeepBuildArtifactsPart1(out, cfg,
+				progress);
+		return computeAndKeepBuildArtifactsPart2(pair.compute(), out);
+	}
+
+	public static class IntermediateSDGSummaryBuilder {
+		public final SDGSummaryBuilder builder;
+		public final SDGBuildArtifacts artifacts;
+		public final long startTime;
+		public final PrintStream out;
+
+		public IntermediateSDGSummaryBuilder(SDGSummaryBuilder builder, SDGBuildArtifacts artifacts, long startTime, PrintStream out) {
+			this.builder = builder;
+			this.artifacts = artifacts;
+			this.startTime = startTime;
+			this.out = out;
+		}
+
+		public IntermediateSDGSummaryBuilder(Pair<SDGSummaryBuilder, SDGBuildArtifacts> pair, long startTime, PrintStream out) {
+			this.builder = pair.fst;
+			this.artifacts = pair.snd;
+			this.startTime = startTime;
+			this.out = out;
+		}
+
+		public IntermediateSDG compute() throws CancelException {
+			return new IntermediateSDG(builder.computeSummary(), artifacts, startTime, out);
+		}
+
+		/** does not compute anything */
+		public IntermediateSDG getSDG() throws CancelException {
+			return new IntermediateSDG(builder.getSdg(), artifacts, startTime, out);
+		}
+	}
+
+	public static class IntermediateSDG {
+		public final SDG sdg;
+		public final SDGBuildArtifacts artifacts;
+		public final long startTime;
+		public final PrintStream out;
+
+		public IntermediateSDG(SDG sdg, SDGBuildArtifacts artifacts, long startTime, PrintStream out) {
+			this.sdg = sdg;
+			this.artifacts = artifacts;
+			this.startTime = startTime;
+			this.out = out;
+		}
+
+		public PrintStream getOut() {
+			return out;
+		}
+	}
+
+	public static IntermediateSDGSummaryBuilder computeAndKeepBuildArtifactsPart1(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		long startTime = p.fst;
 		SDGBuilder.SDGBuilderConfig scfg = p.snd;
 		out.print("Building system dependence graph... ");
-		final Pair<SDG, SDGBuildArtifacts> ret = SDGBuilder.buildAndKeepBuildArtifacts(scfg, progress);
-		postpareBuild(startTime, out);
-//		SDGVerifier.verify(sdg, false, true);
-
-		return ret;
+		return new IntermediateSDGSummaryBuilder(SDGSummaryBuilder.createKeepArtifacts(scfg, progress), startTime, out);
 	}
-	
+
+	/** summaries have to be computed before */
+	public static IntermediateSDG computeAndKeepBuildArtifactsPart2(IntermediateSDG intermediateSDG, PrintStream out) throws UnsoundGraphException, CancelException, IOException, ClassHierarchyException {
+		postpareBuild(intermediateSDG.startTime, out);
+		return intermediateSDG;
+	}
+
 	public static SDGBuilder createBuilder(PrintStream out, Config cfg, IProgressMonitor progress) throws UnsoundGraphException, CancelException, ClassHierarchyException, IOException {
 		Pair<Long, SDGBuilder.SDGBuilderConfig> p = prepareBuild(out, cfg, progress);
 		return SDGBuilder.onlyCreate(p.snd);

@@ -165,6 +165,14 @@ public final class GraphViewer {
 		}
 	}
 
+	public static void launch(SDG sdg){
+		launch(sdg, true, () -> {}, true);
+	}
+
+	public static void launchInNewThread(SDG sdg){
+		new Thread(() -> launch(sdg)).start();
+	}
+
 	/**
 	 * Launch the graph viewer for a given sdg
 	 */

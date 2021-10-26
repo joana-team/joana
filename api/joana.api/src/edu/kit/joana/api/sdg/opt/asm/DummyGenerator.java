@@ -3,10 +3,7 @@ package edu.kit.joana.api.sdg.opt.asm;
 import edu.kit.joana.api.sdg.opt.OpenApiPreProcessorPass;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.TypeNameUtils;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
 import java.io.IOException;
@@ -59,6 +56,10 @@ public class DummyGenerator {
       this.newCallBack = newCallBack;
     }
 
+    public DummyMethodNames(String fullClassName) {
+      this(fullClassName, (t, s) -> {});
+    }
+
     public String getMethodName(Type type) {
       return typeToName.computeIfAbsent(type, t -> {
         String newName = nameCreator.create(t.toString());
@@ -78,11 +79,11 @@ public class DummyGenerator {
   public DummyGenerator(OpenApiPreProcessorPass.Config config, PossibleConstructors possibleConstructors) {
     this.config = config;
     this.possibleConstructors = possibleConstructors;
-    this.possibleConstructorsTypeTree = possibleConstructors.createTypeTree();
+    this.possibleConstructorsTypeTree = config.useNativeMethods ? null : possibleConstructors.createTypeTree();
   }
 
   public BaseMethodDescriptor createClassForTypes(Path basePath, String pkg, NameCreator classNames, Type mainType,
-      Set<Type> subTypes) {
+      Optional<Set<Type>> subTypes) {
     Pair<BaseMethodDescriptor, byte[]> pair = createClassForTypes(pkg, classNames.create("Gen" + mainType), mainType, subTypes);
     Path classFile = basePath.resolve(pair.getFirst().methodClass.replace('.', '/') + ".class");
     try {
@@ -94,17 +95,18 @@ public class DummyGenerator {
     return pair.getFirst();
   }
 
-  Pair<BaseMethodDescriptor, byte[]> createClassForTypes(String pkg, NameCreator classNames, Type mainType,
-      Set<Type> subTypes) {
+  private Pair<BaseMethodDescriptor, byte[]> createClassForTypes(String pkg, NameCreator classNames, Type mainType,
+      Optional<Set<Type>> subTypes) {
     return createClassForTypes(pkg, classNames.create("Gen" + mainType), mainType, subTypes);
   }
 
-  Pair<BaseMethodDescriptor, byte[]> createClassForTypes(String pkg, String className, Type mainType, Set<Type> subTypes) {
+  private Pair<BaseMethodDescriptor, byte[]> createClassForTypes(String pkg, String className, Type mainType, Optional<Set<Type>> subTypes) {
     ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-    cw.visit(V1_7, ACC_PUBLIC + ACC_FINAL + ACC_SUPER, pkg.replace('.', '/') + "/" + className, null, "java/lang/Object", null);
+    cw.visit(V1_8, ACC_PUBLIC + ACC_FINAL + ACC_SUPER, pkg.replace('.', '/') + "/" + className, null, "java/lang/Object", null);
     String fullClassName = pkg + "." + className;
     createDefaultConstructor(cw, fullClassName);
-    String methodName = createMethodsForTypes(fullClassName, (returnType, name) -> {
+    String methodName = config.useNativeMethods ? createNativeMethods(cw, new DummyMethodNames(fullClassName), mainType, subTypes)
+        : createMethodsForTypes(fullClassName, (returnType, name) -> {
       Type methodType = Type.getMethodType(returnType);
       return new LocalVariablesSorter(ACC_PUBLIC + ACC_STATIC, methodType.getDescriptor(),
           cw.visitMethod(ACC_PUBLIC + ACC_STATIC, name, methodType.getDescriptor(), null, null));
@@ -112,6 +114,39 @@ public class DummyGenerator {
     cw.visitEnd();
     return Pair.pair(new BaseMethodDescriptor(fullClassName, methodName, Type.getMethodDescriptor(mainType)), cw.toByteArray());
   }
+
+  private String createNativeMethods(ClassWriter cw, DummyMethodNames methodNames, Type mainType, Optional<Set<Type>> subTypes) {
+    return subTypes.isPresent() && !config.useBasicNativeMethod ?
+        createNativeMethods(cw, methodNames, mainType, subTypes.get()) :
+        createNativeMethod(cw, methodNames, mainType);
+  }
+
+  private String createNativeMethods(ClassWriter cw, DummyMethodNames methodNames, Type mainType, Set<Type> subTypes) {
+    String name = methodNames.getMethodName(mainType);
+    int access = ACC_NATIVE | ACC_STATIC | ACC_PUBLIC;
+    String descriptor = "()" + mainType.toString();
+    MethodVisitor mv = cw.visitMethod(access, name, descriptor, null,
+        null);
+    LocalVariablesSorter lmv = new LocalVariablesSorter(access, descriptor, mv);
+    lmv.visitCode();
+    randomDecision(lmv, mainType, subTypes.stream().map(t ->
+        (Consumer<LocalVariablesSorter>)
+            ((LocalVariablesSorter mvv) ->
+                mvv.visitMethodInsn(INVOKESTATIC, TypeNameUtils.toInternalNameWithoutSemicolonAndL(methodNames.fullClassName),
+                    methodNames.getMethodName(t), "()" + t.getDescriptor(), false))).collect(Collectors.toList()));
+    lmv.visitInsn(mainType.getOpcode(IRETURN));
+    lmv.visitMaxs(1, 1);
+    lmv.visitEnd();
+    return name;
+  }
+
+  /** creates a simple static native method with the passed return type and returns its name */
+  private String createNativeMethod(ClassWriter cw, DummyMethodNames methodNames, Type type) {
+    String name = methodNames.getMethodName(type);
+    cw.visitMethod(ACC_NATIVE | ACC_STATIC | ACC_PUBLIC, name, "()" + type.toString(), null, null).visitEnd();
+    return name;
+  }
+
 
   private void createDefaultConstructor(ClassWriter cw, String fullClassName) {
     MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
@@ -139,10 +174,10 @@ public class DummyGenerator {
   /**
    * returns the name of the method that produces the dummy values for the main type
    */
-  String createMethodsForTypes(String fullClassName, MethodCreator methodCreator, Type mainType, Set<Type> subTypes) {
+  private String createMethodsForTypes(String fullClassName, MethodCreator methodCreator, Type mainType, Optional<Set<Type>> subTypes) {
     Set<Pair<Type, String>> newNames = new HashSet<>();
     DummyMethodNames names = new DummyMethodNames(fullClassName, (t, n) -> newNames.add(Pair.pair(t, n)));
-    createMethod(methodCreator.create(mainType, MAIN_FUNCTION_NAME), names, mainType, Optional.of(subTypes));
+    createMethod(methodCreator.create(mainType, MAIN_FUNCTION_NAME), names, mainType, subTypes);
     while (!newNames.isEmpty()) {
       Set<Pair<Type, String>> oldNewNames = new HashSet<>(newNames);
       newNames.clear();
@@ -151,7 +186,7 @@ public class DummyGenerator {
     return MAIN_FUNCTION_NAME;
   }
 
-  void createMethod(LocalVariablesSorter mv, DummyMethodNames methodNames, Type type, Optional<Set<Type>> subTypes) {
+  private void createMethod(LocalVariablesSorter mv, DummyMethodNames methodNames, Type type, Optional<Set<Type>> subTypes) {
     if (type.getSort() == Type.ARRAY) {
       assert !subTypes.isPresent() || (subTypes.get().size() == 1 && subTypes.get().contains(type));
       createArrayMethod(mv, methodNames, type);
@@ -197,15 +232,18 @@ public class DummyGenerator {
 
   private void createObjectMethod(LocalVariablesSorter mv, DummyMethodNames methodNames, Type type) {
     mv.visitCode();
-    Stream<Consumer<LocalVariablesSorter>> directConsumers = possibleConstructors.hasConstructors(type) ?
-        possibleConstructors.forType(type).methodDescriptorStream()
-            .map(d -> (Consumer<LocalVariablesSorter>) (imv -> callConstructor(imv, methodNames, d))) :
-        Stream.empty();
+    Stream<Consumer<LocalVariablesSorter>> directConsumers = (possibleConstructors.hasConstructors(type) ?
+        possibleConstructors.forType(type).methodDescriptorStream() : possibleConstructors.findOwnConstructorDescriptors(type))
+            .map(d -> (Consumer<LocalVariablesSorter>) (imv -> callConstructor(imv, methodNames, d)));
     Stream<Consumer<LocalVariablesSorter>> childConsumers = possibleConstructorsTypeTree.getSubTypes(type).stream()
         .map(t -> (Consumer<LocalVariablesSorter>) (imv -> {
           pushDummyObjectCall(imv, methodNames, t);
         }));
-    randomDecision(mv, type, Stream.concat(directConsumers, childConsumers).collect(Collectors.toList()));
+    List<Consumer<LocalVariablesSorter>> cons = Stream.concat(directConsumers, childConsumers).collect(Collectors.toList());
+    if (cons.isEmpty()) {
+      cons = Collections.singletonList(imv -> pushDummyObjectCall(imv, methodNames, type));
+    }
+    randomDecision(mv, type, cons);
     mv.visitInsn(ARETURN);
     mv.visitEnd();
   }
@@ -267,8 +305,7 @@ public class DummyGenerator {
       } else {
         pushDummyObjectCall(mv, methodNames, type);
       }
-    }
-    if (type.getSort() == Type.ARRAY) {
+    } else if (type.getSort() == Type.ARRAY) {
       pushDummyObjectCall(mv, methodNames, type);
     } else {
       mv.visitInsn(type.getOpcode(ICONST_1));

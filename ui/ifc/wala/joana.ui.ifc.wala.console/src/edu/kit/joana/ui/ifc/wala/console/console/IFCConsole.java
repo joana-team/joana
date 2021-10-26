@@ -56,6 +56,7 @@ import edu.kit.joana.ui.ifc.wala.console.console.Pattern.PatternType;
 import edu.kit.joana.ui.ifc.wala.console.gui.tree.ProgramPartToString;
 import edu.kit.joana.ui.ifc.wala.console.io.*;
 import edu.kit.joana.ui.ifc.wala.console.io.IFCConsoleOutput.Answer;
+import edu.kit.joana.util.NullPrintStream;
 import edu.kit.joana.util.Pair;
 import edu.kit.joana.util.Stubs;
 import edu.kit.joana.util.Triple;
@@ -75,6 +76,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static edu.kit.joana.api.sdg.SDGBuildPreparation.searchProgramParts;
@@ -2624,16 +2626,50 @@ public class IFCConsole {
 		return createSDG(classPath, computeInterference, mhpType, exA, true);
 	}
 
-	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues){
+	private Optional<SDGProgram> createSDG(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues) {
+		Optional<Pair<SDGBuildPreparation.IntermediateSDGSummaryBuilder, SDGConfig>> opt = createSDGBuilder(classPath,
+				computeInterference, mhpType, exA, setValues);
+		if (opt.isPresent()) {
+			try {
+				return createSDGProgram(opt.get().mapFirst(SDGBuildPreparation.IntermediateSDGSummaryBuilder::compute));
+			} catch (CancelException e) {
+				e.printStackTrace();
+				return Optional.empty();
+			}
+		}
+		return Optional.empty();
+	}
+
+	public Optional<Pair<SDGBuildPreparation.IntermediateSDGSummaryBuilder, SDGConfig>> createSDGBuilder() {
+		return createSDGBuilder(classPathAfterOpt != null ? classPathAfterOpt : classPath);
+	}
+
+	private Optional<Pair<SDGBuildPreparation.IntermediateSDGSummaryBuilder, SDGConfig>> createSDGBuilder(String classPath) {
+		try {
+			if (useByteCodeOptimizations) {
+				if (this.valuesToSet.size() > 0){
+					classPath = new PreProcPasses(createSetValuePass()).process(null, getSdgConfig(), "", classPath);
+					classPathAfterOpt = classPath;
+				}
+				PreProcPasses passes = createOptPasses();
+					classPathAfterOpt = passes.process(ifcAnalysis, getSdgConfig(), optLibPath,
+							classPathAfterOpt == null ? classPath : classPathAfterOpt);
+
+			}
+			useByteCodeOptimizations = false;
+			return createSDGBuilder(classPathAfterOpt == null ? classPath : classPathAfterOpt, computeInterference, mhpType, excAnalysis, true);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return Optional.empty();
+		}
+	}
+
+	private Optional<Pair<SDGBuildPreparation.IntermediateSDGSummaryBuilder, SDGConfig>> createSDGBuilder(String classPath, boolean computeInterference, MHPType mhpType, ExceptionAnalysis exA, boolean setValues) {
 		try {
 			SDGConfig preConf = getSdgConfig(classPath, computeInterference, mhpType, exA);
 			classPath = createPasses().process(ifcAnalysis, preConf, optLibPath == null ? "" : optLibPath, classPath);
 			SDGConfig config = getSdgConfig(classPath, computeInterference, mhpType, exA);
-			SDGProgram program = SDGProgram.createSDGProgram(config, out.getPrintStream(), monitor);
-			if (onlyDirectFlow) {
-				SDGProgram.throwAwayControlDeps(program.getSDG());
-			}
-			return Optional.of(program);
+			return Optional.of(Pair.pair(SDGProgram.createSDGSummaryBuilder(config, out.getPrintStream(), monitor, out.getPrintStream()), config));
 		} catch (ClassHierarchyException e) {
 			out.error(e.getMessage());
 			return Optional.empty();
@@ -2650,6 +2686,32 @@ public class IFCConsole {
 			out.error("\nResulting SDG is not sound: " + e.getMessage());
 			return Optional.empty();
 		}
+	}
+
+	public Optional<SDGProgram> createSDGProgram(Pair<SDGBuildPreparation.IntermediateSDG, SDGConfig> builderAndConfigWithCompSums) {
+		try {
+			SDGProgram program = SDGProgram.createSDGProgram(builderAndConfigWithCompSums.getFirst(), builderAndConfigWithCompSums.getSecond(),
+					builderAndConfigWithCompSums.getFirst().getOut(), null, builderAndConfigWithCompSums.getSecond().getNotifier());
+			if (onlyDirectFlow) {
+					SDGProgram.throwAwayControlDeps(program.getSDG());
+			}
+			return Optional.of(program);
+		} catch (CancelException | IOException e) {
+			out.error("\nSDG creation cancelled.");
+			return Optional.empty();
+		} catch (ClassHierarchyException | UnsoundGraphException e) {
+			e.printStackTrace();
+			return Optional.empty();
+		}
+	}
+
+	public void setSDGProgramWithoutRecomputation(SDGProgram program) {
+		setSDGProgram(program);
+		recomputeSDG = false;
+	}
+
+	public void setSDGProgramWithoutRecomputation(SDGBuildPreparation.IntermediateSDG intermediateSDG, SDGConfig config) {
+		setSDGProgramWithoutRecomputation(createSDGProgram(Pair.make(intermediateSDG, config)).get());
 	}
 
 	private SDGConfig getSdgConfig() {
@@ -3142,6 +3204,10 @@ public class IFCConsole {
 
 				@Override public boolean requiresKnowledgeOnAnnotations() {
 					return false;
+				}
+
+				@Override public String getName() {
+					return "SearchSetValueAnnotations";
 				}
 			}).process(null, getSdgConfig(), "", classPath);
 		} catch (IOException e) {
@@ -3645,6 +3711,13 @@ public class IFCConsole {
 	public class AnalysisObject {
 		@CommandLine.Option(names = "--out", description = "Output file or '-' for standard out")
 		String out = "-";
+
+		public AnalysisObject(String out) {
+			this.out = out;
+		}
+
+		public AnalysisObject() {
+		}
 	}
 
 	/**
@@ -3680,5 +3753,62 @@ public class IFCConsole {
 
 	public void setAnnotateOverloadedMethods(boolean annotateOverloadedMethods) {
 		this.annotateOverloadedMethods = annotateOverloadedMethods;
+	}
+
+	public static IFCConsole forConsole(boolean logMore) {
+		return new IFCConsole(new BufferedReader(new InputStreamReader(System.in)), new IFCConsoleOutput() {
+
+			@Override
+			public void log(String logMessage) {
+				if (logMore) {
+					System.out.print(logMessage);
+				}
+			}
+
+			@Override
+			public void logln(String logMessage) {
+				if (logMore) {
+					System.out.println(logMessage);
+				}
+			}
+
+			@Override
+			public void info(String infoMessage) {
+				if (logMore) {
+					System.out.println(infoMessage);
+				}
+			}
+
+			@Override
+			public void error(String errorMessage) {
+				System.err.println(errorMessage);
+			}
+
+			@Override
+			public Answer question(String questionMessage) {
+				System.out.println(questionMessage);
+				try {
+					return new BufferedReader(new InputStreamReader(System.in)).readLine().contains("y")
+							? Answer.YES
+							: Answer.NO;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return null;
+			}
+
+			@Override
+			public PrintStream getPrintStream() {
+				return System.out;
+			}
+
+			@Override public PrintStream getDebugPrintStream() {
+				if (Logger.getGlobal().isLoggable(java.util.logging.Level.INFO)){
+					return getPrintStream();
+				}
+				return new NullPrintStream();
+			}
+		});
 	}
 }

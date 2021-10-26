@@ -7,17 +7,6 @@
  */
 package edu.kit.joana.wala.core;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jgrapht.EdgeFactory;
-
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
@@ -27,10 +16,12 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-
 import edu.kit.joana.util.graph.AbstractJoanaGraph;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import edu.kit.joana.util.graph.KnowsVertices;
+import org.jgrapht.EdgeFactory;
+
+import java.util.*;
 
 @SuppressWarnings("serial")
 public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGraph.Edge> {
@@ -106,7 +97,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 		private Node(CGNode node) {
 			this.node = node;
 		}
-		
+
 		@Override
 		public int getId() {
 			return node.getGraphNodeId();
@@ -163,7 +154,7 @@ public final class CallGraph extends AbstractJoanaGraph<CallGraph.Node, CallGrap
 			// single entry point
 			this.root = findOrCreate(orig.getEntrypointNodes().iterator().next());
 			assert root.node.getMethod() == entry;
-		}	
+		}
 	}
 
 	public com.ibm.wala.ipa.callgraph.CallGraph getOrig() {

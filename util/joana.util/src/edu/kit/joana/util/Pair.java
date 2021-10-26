@@ -8,14 +8,14 @@
 package edu.kit.joana.util;
 
 public class Pair<S, T> {
-	
+
 	public static enum Component {
 		/** for first component */
 		FIRST,
-		
+
 		/** for second component */
 		SECOND;
-		
+
 		/**
 		 * Returns whether the given pair matches the given object in this component
 		 * @param encInst pair to check
@@ -33,10 +33,10 @@ public class Pair<S, T> {
 			}
 		}
 	}
-	
+
 	/** first component of pair */
 	private final S fst;
-	
+
 	/** second component of pair */
 	private final T snd;
 
@@ -65,7 +65,7 @@ public class Pair<S, T> {
 	public final T getSecond() {
 		return snd;
 	}
-	
+
 	/**
 	 * Returns whether the given component of this pair matches the given object
 	 * @param c component of this pair to check
@@ -122,7 +122,7 @@ public class Pair<S, T> {
 	public static <S, T> Pair<S, T> pair(S fst, T snd) {
 		return new Pair<S, T>(fst, snd);
 	}
-	
+
 	/**
 	 * Static factory method for non-null pairs
 	 * @param fst first component of new pair
@@ -135,5 +135,22 @@ public class Pair<S, T> {
 			throw new NullPointerException();
 		}
 		return new Pair<S, T>(fst, snd);
+	}
+
+	public static <U,V> Pair<U, V> make(U x, V y) {
+		return new Pair<>(x,y);
+	}
+
+	public <U, V, E extends Throwable> Pair<U, V> map(ThrowingFunction<S, U, ? extends E> firstMap,
+			ThrowingFunction<T, V, ? extends E> secondMap) throws E {
+		return new Pair<>(firstMap.apply(fst), secondMap.apply(snd));
+	}
+
+	public <U, E extends Throwable> Pair<U, T> mapFirst(ThrowingFunction<S, U, E> firstMap) throws E {
+		return new Pair<>(firstMap.apply(fst), snd);
+	}
+
+	public <V, E extends Throwable> Pair<S, V> mapSecond(ThrowingFunction<T, V, E> secondMap) throws E {
+		return new Pair<>(fst, secondMap.apply(snd));
 	}
 }

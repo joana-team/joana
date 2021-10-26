@@ -85,7 +85,7 @@ public class PreProcPasses {
   }
 
   Path applyPass(IFCAnalysis ana, SDGConfig cfg, String libClassPath, Path classPath, Pass pass, Path baseDir, int passNumber) throws IOException {
-    String passName = pass.getClass().getSimpleName();
+    String passName = pass.getName();
     Path target = baseDir.resolve(String.format("%d_%s", passNumber, passName));
     target.toFile().mkdir();
     logger.info(String.format("Start pass %s (libClassPath='%s', classPath='%s', target='%s')",

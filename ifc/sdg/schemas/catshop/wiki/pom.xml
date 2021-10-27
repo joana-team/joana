@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.joana-team.catshop</groupId>
-    <artifactId>shop</artifactId>
+    <artifactId>wiki</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>cat shop</name>
-    <description>a shop microservice example</description>
+    <name>cat wiki</name>
+    <description>a wiki microservice example</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -187,15 +187,15 @@
                 <version>${openapi-generator-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>shop server</id>
+                        <id>wiki server</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/shop.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/wiki.yaml</inputSpec>
                             <generatorName>jaxrs-cxf</generatorName>
                             <modelPackage>io.github.joana-team.catshop.model</modelPackage>
-                            <apiPackage>io.github.joana-team.catshop.shop.server</apiPackage>
+                            <apiPackage>io.github.joana-team.catshop.wiki.server</apiPackage>
                             <output>${project.basedir}</output>
                             <generateSupportingFiles>true</generateSupportingFiles>
                             <configOptions>
@@ -205,15 +205,15 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>wiki client</id>
+                        <id>shop client</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/../wiki/wiki.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/../shop/shop.yaml</inputSpec>
                             <generatorName>java</generatorName>
                             <modelPackage>io.github.joana-team.catshop.model</modelPackage>
-                            <apiPackage>io.github.joana-team.catshop.wiki.client</apiPackage>
+                            <apiPackage>io.github.joana-team.catshop.shop.client</apiPackage>
                             <output>${project.basedir}</output>
                             <generateSupportingFiles>true</generateSupportingFiles>
                             <configOptions>
@@ -230,7 +230,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-                    <mainClass>io.github.joana_team.catshop.shop.Server</mainClass>
+                    <mainClass>io.github.joana_team.catshop.wiki.Server</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,0 +1,14 @@
+#! /bin/sh
+
+set -e
+
+cd "$(dirname "$0")"
+
+echo "build packages"
+./package
+
+echo "start servers"
+(cd shop; mvn exec:java) &
+(cd wiki; mvn exec:java) &
+
+trap 'jobs -p | xargs kill' EXIT

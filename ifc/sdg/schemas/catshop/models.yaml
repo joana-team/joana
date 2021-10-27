@@ -5,4 +5,23 @@ info:
   version: 1.0.0
 servers:
   - url: 'https'
-paths:
+components:
+  schemas:
+    Personality:
+      type: string
+      enum:
+        - wild
+        - calm
+        - active
+        - benevolent
+        - tidy
+        - playful
+    CatWithPersonalities:
+      type: object
+      properties:
+        species:
+          type: string
+        personalities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Personality'

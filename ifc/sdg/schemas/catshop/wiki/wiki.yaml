@@ -1,8 +1,118 @@
 openapi: 3.0.3
 info:
-  title: Title
-  description: Title
+  title: Wiki
+  description: A wiki for information on cats
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: http://localhost:9000/
+tags:
+  - name: wiki
+    description: Wiki with information on cat species
 paths:
+  /wiki/personalities/{species}:
+    get:
+      tags:
+        - wiki
+      summary: personalities of a cat
+      operationId: catPersonalities
+      parameters:
+        - name: species
+          in: path
+          description: cat species
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../models.yaml#/components/schemas/Personality'
+        400:
+          description: Invalid cat species
+          content: {}
+    put:
+      tags:
+        - wiki
+      operationId: setCatPersonalities
+      summary: set the personalities of a cat species
+      parameters:
+        - name: species
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: personalities
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '../models.yaml#/components/schemas/Personality'
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content: {}
+        400:
+          description: Species not known to the wiki
+          content: {}
+        401:
+          description: Wrong password
+          content: {}
+
+  /wiki/getShops/{species}:
+    get:
+      tags:
+        - wiki
+      summary: get shops that have the species of cats available
+      operationId: getShops
+      parameters:
+        - name: species
+          in: path
+          description: cat species
+          required: true
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        400:
+          description: Invalid cat species
+          content: {}
+  /wiki/registerShop:
+    get:
+      tags:
+        - wiki
+      summary: register a cat shop
+      operationId: registerShop
+      parameters:
+        - name: shopURL
+          in: query
+          description: url of shop
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+        400:
+          description: Invalid cat species
+          content: {}

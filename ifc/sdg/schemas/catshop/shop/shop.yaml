@@ -1,0 +1,67 @@
+openapi: 3.0.1
+info:
+  title: shop
+  description: A shop to buy cats
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: http://localhost:9001
+tags:
+  - name: shop
+    description: Shop to buy cats
+paths:
+  /catShop/availableSpecies:
+    get:
+      tags:
+        - shop
+      summary: gets the cats below a certain max price that are available, with their activity level
+      operationId: availableSpecies
+      parameters:
+        - name: maxPrice
+          in: query
+          description: maximum price in euros
+          schema:
+            type: integer
+            default: 100000
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../models.yaml#/components/schemas/CatWithPersonalities'
+    put:
+      tags:
+        - shop
+      operationId: addAvailableSpecies
+      summary: add a species to the shop
+      parameters:
+        - name: species
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: price
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content: {}
+        400:
+          description: Species not known to the wiki
+          content: {}
+        401:
+          description: Wrong password
+          content: {}

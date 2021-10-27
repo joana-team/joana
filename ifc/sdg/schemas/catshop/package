@@ -1,0 +1,9 @@
+#! /bin/sh
+set -e
+
+cd "$(dirname "$0")"
+cd shop
+mvn package
+cd ../wiki
+mvn package
+

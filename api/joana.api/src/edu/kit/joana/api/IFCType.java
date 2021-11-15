@@ -10,8 +10,7 @@ package edu.kit.joana.api;
 public enum IFCType {
 	CLASSICAL_NI, LSOD, RLSOD, iRLSOD,timingiRLSOD;
 
-	@Override
-	public String toString() {
+	public String getDescription() {
 		switch (this) {
 		case CLASSICAL_NI:
 			return "classical non-interference (extended to threads)";
@@ -29,14 +28,5 @@ public enum IFCType {
 		default:
 			throw new IllegalStateException("not all values of this enumeration are handeled!");
 		}
-	}
-	
-	public static IFCType fromString(String s) {
-		for (IFCType t : IFCType.values()) {
-			if (t.toString().equals(s)) {
-				return t;
-			}
-		}
-		throw new IllegalArgumentException("given string must match the return value of toString() of one of the enum values, but does not: " + s);
 	}
 }

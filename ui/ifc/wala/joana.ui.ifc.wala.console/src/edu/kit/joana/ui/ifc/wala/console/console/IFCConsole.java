@@ -146,7 +146,7 @@ public class IFCConsole {
 		DECLASS(		"declass", 				3, 		"<index> <level1> <level2>",
 							"Declassify specified node from <level1> to <level2>. <index> refers to the indices shown in the currently active method."),
 		RUN(			"run", 					0, 	2, 	" [type] ",
-							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be " + IFCTYPE_CLASSICAL_NI + ", " + IFCTYPE_LSOD + ", " + IFCTYPE_RLSOD + " or " + IFCTYPE_iRLSOD + ". If it is omitted, classical non-interference is used (or the type set via 'type')"),
+							"Run IFC analysis with specified data. The optional parameter type denotes the type of ifc analysis. It can be one of " + Arrays.toString(IFCType.values()) + ". If it is omitted, classical non-interference is used (or the type set via 'type')"),
 		RUN_YAML(			"runYaml", 					0, 	1, 	" [file or '-', the default] ",
 				"Run IFC analysis with specified data. Output result into the file as YAML."),
 		SET_TYPE("setType", 1, "<type>", "Type of the ifc analysis"),
@@ -328,11 +328,6 @@ public class IFCConsole {
 			return availCommands.get(cmdName).toString();
 		}
 	}
-
-	private static final String IFCTYPE_CLASSICAL_NI = "classical-ni";
-	private static final String IFCTYPE_LSOD = "lsod";
-	private static final String IFCTYPE_RLSOD = "rlsod";
-	private static final String IFCTYPE_iRLSOD = "irlsod";
 
 	public static final String LATTICE_BINARY = "BINARY";
 	public static final String LATTICE_TERNARY = "TERNARY";
@@ -843,7 +838,7 @@ public class IFCConsole {
 			boolean execute(String[] args) {
 				IFCType newType = parseIFCType(args[1]);
 				if (newType == null) {
-					out.error("'" + args[1] + "' is not a valid ifc type, use " + Arrays.toString(IFCType.values()));
+					out.error("'" + args[1] + "' is not a valid ifc type, use one of " + Arrays.toString(IFCType.values()));
 					return false;
 				}
 				type = newType;
@@ -919,12 +914,11 @@ public class IFCConsole {
 	}
 	
 	private IFCType parseIFCType(String s) {
-		for (IFCType t : IFCType.values()) {
-			if (t.name().equals(s)) {
-				return t;
-			}
+		try {
+			return IFCType.valueOf(s);
+		} catch (IllegalArgumentException e) {
+			return null;
 		}
-		return null;
 	}
 
 	private Command makeCommandReset() {
@@ -2851,18 +2845,7 @@ public class IFCConsole {
     }
 
 	public static String convertIFCType(IFCType ifcType) {
-		switch (ifcType) {
-		case CLASSICAL_NI:
-			return IFCTYPE_CLASSICAL_NI;
-		case LSOD:
-			return IFCTYPE_LSOD;
-		case RLSOD:
-			return IFCTYPE_RLSOD;
-		case iRLSOD:
-			return IFCTYPE_iRLSOD;
-		default:
-			throw new IllegalStateException("not all cases handled by this method!");
-		}
+		return ifcType.name();
 	}
 
 	public boolean showClasses() {

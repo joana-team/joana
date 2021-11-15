@@ -88,14 +88,26 @@ class SignalLight extends JPanel {
 }
 
 public class IFCReportAndRunPanel extends JPanel {
+	// used to get the IFCType descriptions into the typeCombo ComboBox
+	static class IFCTypeWrapper {
+		final IFCType ifcType;
+
+		IFCTypeWrapper(IFCType ifcType) {
+			this.ifcType = ifcType;
+		}
+
+		@Override
+		public String toString() {
+			return ifcType.getDescription();
+		}
+	}
 
 	private static final long serialVersionUID = -5605182653315520355L;
 
 	private final IFCConsoleGUI consoleGui;
 	private final JTextArea ifcParams = new JTextArea();
 	private final JButton runButton = new JButton("Run IFC Analysis");
-	@SuppressWarnings("rawtypes")
-	private final JComboBox typeCombo = new JComboBox();
+	private final JComboBox<IFCTypeWrapper> typeCombo = new JComboBox<>();
 	private final JCheckBox avoidTimeTravel = new JCheckBox("avoid time-travel");
 	private final SignalLight resultIndicator = new SignalLight();
 	private final JLabel resultText = new JLabel("<no analysis run yet>");
@@ -148,11 +160,11 @@ public class IFCReportAndRunPanel extends JPanel {
 //		add(dummy2, GUIUtil.mkgbc_nofill(7, 1, GridBagConstraints.REMAINDER, 1));
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void initIFCTypeCombo() {
-		MutableComboBoxModel cBoxModel = new DefaultComboBoxModel();
+		//this.typeCombo.setRenderer();
+		MutableComboBoxModel<IFCTypeWrapper> cBoxModel = new DefaultComboBoxModel<>();
 		for (IFCType ifcType : IFCType.values()) {
-			cBoxModel.addElement(ifcType);
+			cBoxModel.addElement(new IFCTypeWrapper(ifcType));
 		}
 		this.typeCombo.setModel(cBoxModel);
 	}
@@ -243,7 +255,7 @@ public class IFCReportAndRunPanel extends JPanel {
 	}
 
 	public IFCType getIFCType() {
-		return IFCType.fromString(typeCombo.getModel().getSelectedItem().toString());
+		return ((IFCTypeWrapper) typeCombo.getModel().getSelectedItem()).ifcType;
 	}
 	
 	public boolean getTimeSensitivity() {

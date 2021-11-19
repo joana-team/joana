@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 cd shop
-mvn package
+mvn clean package
 cd ../wiki
-mvn package
+mvn clean package
 

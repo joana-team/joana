@@ -18,6 +18,8 @@ import java.nio.file.Path;
  * This pass applies basic optimisations of OPAL, e.g. resolving INVOKEDYNAMIC
  *
  * Adapted from {@link org.opalj.support.tools.ProjectSerializer}.
+ *
+ * Without this analyzing code with lambdas is impossible.
  */
 public class OPALInvokeDynamicRectifierPass implements Pass {
 

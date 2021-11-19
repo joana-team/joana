@@ -363,6 +363,7 @@ public class IFCConsole {
 	private TObjectIntMap<IViolation<SDGProgramPart>> groupedIFlows = new TObjectIntHashMap<IViolation<SDGProgramPart>>();
 	private Set<edu.kit.joana.api.sdg.SDGInstruction> lastComputedChop = null;
 	private final EntryLocator loc = new EntryLocator();
+	private Annotation currentEntryPointAnnotation;
 	private final List<IFCConsoleListener> consoleListeners = new LinkedList<IFCConsoleListener>();
 	private IProgressMonitor monitor = NullProgressMonitor.INSTANCE;
 	private final SDGMethodSelector methodSelector = new SDGMethodSelector(this);
@@ -483,7 +484,7 @@ public class IFCConsole {
 			@Override
 			boolean execute(String[] args) {
 				return makeCommandSelectSetValues().execute(args)
-				    && selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0])))
+				    && selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0]))).successful()
 						&& makeCommandBuildSDGIfNeeded().execute(new String[] {"bla"})
 						&& makeCommandSelectSources().execute(args)
 						&& makeCommandSelectSinks().execute(args)
@@ -526,7 +527,7 @@ public class IFCConsole {
 
 			@Override
 			boolean execute(String[] args) {
-				return selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0])));
+				return selectEntryPoint(args[1], s -> ifcAnalysis.addSinkClasses(s.toArray(new String[0]))).successful();
 			}
 		};
 	}
@@ -1471,7 +1472,18 @@ public class IFCConsole {
 		return true;
 	}
 
-	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer, boolean printError) {
+	static enum SelectionResult {
+		/** selected entry, as it is valid and not the same */
+		SELECTED, SAME,
+		/** did not select, as it was invalid*/
+		INVALID;
+
+		public boolean successful() {
+			return this == SELECTED || this == SAME;
+		}
+	}
+
+	public SelectionResult selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer, boolean printError) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
 		Optional<List<Pair<IMethod, Annotation>>> result =
 				loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
@@ -1482,23 +1494,32 @@ public class IFCConsole {
 			if (printError){
 				out.error("Entry point '" + pattern + "' not found");
 			}
-			return false;
+			return SelectionResult.INVALID;
 		}
 		if (result.get().size() > 1) {
 			if (printError){
 				out.error("Entry point '" + pattern + "' is ambiguous");
 			}
-			return false;
+			return SelectionResult.INVALID;
 		}
 		Pair<IMethod, Annotation> p = result.get().get(0);
-		if (ifcAnalysis != null) {
-			ifcAnalysis.clearAllAnnotations();
-			recomputeSDG |= setValueStore.clear();
+
+		JavaMethodSignature newSelected = JavaMethodSignature.fromString(p.getFirst().getSignature());
+		if (newSelected.equals(oldSelected) && p.getSecond().equals(currentEntryPointAnnotation)) {
+			return SelectionResult.SAME;
 		}
-		return selectEntryPoint(JavaMethodSignature.fromString(p.getFirst().getSignature()), p.getSecond(), classSinkConsumer);
+		if (selectEntryPoint(newSelected, p.getSecond(), classSinkConsumer)) {
+			if (ifcAnalysis != null) {
+				ifcAnalysis.clearAllAnnotations();
+				recomputeSDG |= setValueStore.clear();
+			}
+			currentEntryPointAnnotation = p.getSecond();
+			return SelectionResult.SELECTED;
+		}
+		return SelectionResult.INVALID;
 	}
 
-	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer) {
+	public SelectionResult selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer) {
 		this.secLattice = IFCAnalysis.stdLattice;
 		return selectEntryPoint(pattern, classSinkConsumer, true);
 	}
@@ -1603,6 +1624,7 @@ public class IFCConsole {
 			return Optional.of(mapBuilder.build());
 		}
 		YamlSequenceBuilder flowsBuilder = Yaml.createYamlSequenceBuilder();
+		Set<String> flowYamls = new HashSet<>();
 		groupedIFlows = ifcAnalysis.groupByPPPart(vios, false);
 		out.logln("done, found " + groupedIFlows.size() + " security violation(s):");
 		Set<String> output = new TreeSet<String>();
@@ -1759,7 +1781,10 @@ public class IFCConsole {
 			output.add(String
 					.format("Security violation: %s (internal: %d security violations on the SDG node level)",
 							vio.toString(), groupedIFlows.get(vio)));
-			flowsBuilder = flowsBuilder.add(vioBuild[0].build());
+			YamlMapping s = vioBuild[0].build();
+			if (flowYamls.add(s.toString())) {
+				flowsBuilder = flowsBuilder.add(s);
+			}
 		}
 		for (String s : output) {
 			out.logln(s);
@@ -2746,8 +2771,9 @@ public class IFCConsole {
 	}
 
 	PreProcPasses createPasses() {
-		return createOptPasses()
+		return new PreProcPasses() //createOptPasses()  // TODO: not good
 				.addConditionally(valuesToSet.size() > 0, this::createSetValuePass)
+				.addConditionally(enableOpenApi, MicroServiceEndPointBCRemovalPass::new)
 				.addConditionally(enableOpenApi, this::createOpenApiPreProcessorPass);
 	}
 
@@ -3347,13 +3373,10 @@ public class IFCConsole {
     @Override public List<Pair<String, String>> getPossibleEntryPoints() {
       Pattern pat = new Pattern(".*", true, PatternType.ID);
       Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out, pat);
-      if (!result.isPresent()) {
-        return Collections.emptyList();
-      }
-      return result.get().stream()
-          .map(p -> Pair.pair(getEntryPointIdAttribute(p.getSecond()).orElse(""), p.getFirst().getSignature()))
-          .collect(Collectors.toList());
-    }
+			return result.map(pairs -> pairs.stream()
+					.map(p -> Pair.pair(getEntryPointIdAttribute(p.getSecond()).orElse(""), p.getFirst().getSignature()))
+					.collect(Collectors.toList())).orElse(Collections.emptyList());
+		}
 
     @Override public boolean setEntryMethod(String method) {
     	loc.doSearch(classPath, out, false, java.util.regex.Pattern.quote(method));
@@ -3367,9 +3390,13 @@ public class IFCConsole {
     }
 
     @Override public String setEntryPoint(String tag) {
-			if (IFCConsole.this.selectEntryPoint(tag, l -> l.forEach(s -> sinkClasses.add((SDGClass)ImprovedCLI.programPartFromString("L" + s.replace(".", "/") + ";"))))){
+			SelectionResult selectionResult = IFCConsole.this.selectEntryPoint(tag,
+					l -> l.forEach(s -> sinkClasses.add((SDGClass) ImprovedCLI.programPartFromString("L" + s.replace(".", "/") + ";"))));
+			if (selectionResult.successful()){
 				loc.selectEntry(0);
-				recomputeSDG = true;
+				if (selectionResult == SelectionResult.SELECTED) {
+					recomputeSDG = true;
+				}
 				return loc.getActiveEntry().toBCString();
 			} else {
 				return null;

@@ -1107,23 +1107,25 @@ public class ImprovedCLI {
     }
   }
 
-  interface RunEnabled<T> extends SinksAndSourcesEnabled, EntryPointEnabled, RunAnalysisEnabled<T> {
-    default boolean addAnnotations(String tag){
-      return setEntryPoint(tag) != null && selectSinkAnnotations(tag).size() > 0 && selectSourceAnnotations(tag).size() > 0 &&
-          (this instanceof DeclassificationEnabled ?
-              ((DeclassificationEnabled) this).selectDeclassificationAnnotations(tag) != null : true) &&
-          (this instanceof SetValueEnabled ? ((SetValueEnabled) this).selectSetValueAnnotations(tag) != null : true);
+  interface SelectAnnotationsEnabled extends SinksAndSourcesEnabled, EntryPointEnabled {
+    default boolean addAnnotations(String tag) {
+      return setEntryPoint(tag) != null && selectSinkAnnotations(tag).size() > 0 && selectSourceAnnotations(tag).size() > 0 && (this instanceof DeclassificationEnabled ?
+          ((DeclassificationEnabled) this).selectDeclassificationAnnotations(tag) != null :
+          true) && (this instanceof SetValueEnabled ? ((SetValueEnabled) this).selectSetValueAnnotations(tag) != null : true);
     }
-
-    T getMixin(RunCommand command);
 
     default boolean resetAnnotations() {
       return resetSinks() && resetSources();
     }
   }
 
+  interface RunEnabled<T> extends SelectAnnotationsEnabled, RunAnalysisEnabled<T> {
+    T getMixin(RunCommand command);
+  }
+
   @Command(name = "run", description = "Use annotations and entry point for a specific tag and run the analysis. "
-      + "Does not reset all previously set sinks and sources by default, use the `--reset` option to enforce this.")
+      + "Does not reset all previously set sinks and sources by default, use the `--reset` option to enforce this. "
+      + "Use the select command if you do not want to run the analysis.")
   static class RunCommand implements Callable<Integer> {
 
     RunEnabled state;
@@ -1152,6 +1154,32 @@ public class ImprovedCLI {
         return ExitCode.SOFTWARE;
       }
       return exit(state.run(mixin));
+    }
+  }
+
+  @Command(name = "select", description = "Use annotations and entry point for a specific tag. "
+      + "Does not reset all previously set sinks and sources by default, use the `--reset` option to enforce this.")
+  static class SelectAnnotationsCommand implements Callable<Integer> {
+
+    SelectAnnotationsEnabled state;
+
+    @Parameters
+    String tag;
+
+    @Option(names = "--reset",description = "resets all previously set sinks and sources")
+    boolean reset;
+
+    public SelectAnnotationsCommand(@State SelectAnnotationsEnabled state){
+      this.state = state;
+    }
+
+    @Override public Integer call() throws Exception {
+      if (reset) {
+        if (!state.resetAnnotations()){
+          return ExitCode.SOFTWARE;
+        }
+      }
+      return exit(state.addAnnotations(tag));
     }
   }
 
@@ -1215,6 +1243,9 @@ public class ImprovedCLI {
     @Parameters(paramLabel = "method", defaultValue = "", description = "Optional method, opens a tab in the viewer upon start")
     String method;
 
+    @Option(names = "--pause")
+    boolean pause = false;
+
     @Override public Integer call() throws Exception {
       new Thread(() -> {
         GraphViewer.launch(state.getSDG(), newInstance, () -> {
@@ -1225,6 +1256,9 @@ public class ImprovedCLI {
           }
         }, method.isEmpty());
       }).start();
+      if (pause) {
+        System.in.read();
+      }
       return exit(true);
     }
 

@@ -155,10 +155,12 @@ public class SDG extends JoanaGraph implements Cloneable {
         if (actual.getKind() == SDGNode.Kind.CALL) {
             return actual; // call nodes belong to their own call site
         } else {
+						long time = System.nanoTime();
+					System.out.println("here " + time);
             SDGNode n = actual;
             // follow control-dependence-expression edges from the source
             // node of 'edge' to the call node
-            while(true){
+            while(time != -1){
                 // the loop terminates because control-expression graphs are acyclic and because we
                 // ensured at the beginning of this method that a call node will be reached
                 for(SDGEdge e : incomingEdgesOf(n)){
@@ -171,6 +173,8 @@ public class SDG extends JoanaGraph implements Cloneable {
                     }
                  }
             }
+					System.out.println("out " + time);
+						return actual;
         }
     }
 

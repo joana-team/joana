@@ -7,12 +7,12 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 servers:
-  - url: http://localhost:9001
+  - url: http://localhost:9010
 tags:
   - name: shop
     description: Shop to buy cats
 paths:
-  /catShop/availableSpecies:
+  /shop/availableSpecies:
     get:
       tags:
         - shop

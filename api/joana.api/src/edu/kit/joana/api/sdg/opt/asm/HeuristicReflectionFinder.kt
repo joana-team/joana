@@ -70,8 +70,12 @@ class HeuristicReflectionFinder @JvmOverloads constructor(
     private fun processFile(path: Path) {
         val cr = ClassReader(Files.newInputStream(path))
         val vis = AnalysisVisitor()
-        cr.accept(vis, ClassReader.EXPAND_FRAMES)
-        foundTypes += vis.foundTypes
+        try {
+            cr.accept(vis, ClassReader.EXPAND_FRAMES)
+            foundTypes += vis.foundTypes
+        } catch (ex: IllegalArgumentException) {
+            throw IllegalArgumentException("Error in $path", ex);
+        }
     }
 
     internal inner class AnalysisVisitor : org.objectweb.asm.ClassVisitor(ASM8) {

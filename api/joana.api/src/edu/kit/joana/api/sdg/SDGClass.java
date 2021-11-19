@@ -7,12 +7,6 @@
  */
 package edu.kit.joana.api.sdg;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import edu.kit.joana.ifc.sdg.graph.SDG;
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
@@ -22,6 +16,8 @@ import edu.kit.joana.ifc.sdg.util.JavaType;
 import edu.kit.joana.ifc.sdg.util.JavaType.Format;
 import edu.kit.joana.util.Pair;
 import gnu.trove.map.hash.TIntObjectHashMap;
+
+import java.util.*;
 
 
 
@@ -66,10 +62,12 @@ public class SDGClass implements SDGProgramPart {
 			for (SDGNode entry : methodEntryNodes) {
 				boolean isStatic = true; // we have a static method unless there is a formal-in parameter with index 0 (--> this-pointer)
 				for (SDGNode formalIn : sdg.getFormalInsOfProcedure(entry)) {
-					int paramIndex = BytecodeLocation.getRootParamIndex(formalIn.getBytecodeName());
-					if (paramIndex == 0) {
-						isStatic = false;
-						break;
+					if (formalIn.getBytecodeName() != null) {
+						int paramIndex = BytecodeLocation.getRootParamIndex(formalIn.getBytecodeName());
+						if (paramIndex == 0) {
+							isStatic = false;
+							break;
+						}
 					}
 				}
 				SDGMethod m = new SDGMethod(JavaMethodSignature.fromString(entry.getBytecodeMethod()), entry.getClassLoader(), isStatic);
@@ -85,7 +83,7 @@ public class SDGClass implements SDGProgramPart {
 						m.addPhi(new SDGPhi(m, nInstr));
 					}
 				}
-				
+
 				final Set<String> localVariables = new HashSet<>();
 				for (SDGNode node : sdgByProc.get(entry.getProc())) {
 					if (node.getLocalDefNames() != null) {

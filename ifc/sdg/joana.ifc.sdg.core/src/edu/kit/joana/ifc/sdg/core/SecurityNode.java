@@ -52,6 +52,21 @@ public class SecurityNode extends SDGNode {
     	super(n.getId(), n.getOperation(), n.getLabel(), n.getProc(), n.getType(), n.getSourceLocation(), n.getBytecodeName(), n.getBytecodeIndex(), n.getLocalDefNames(), n.getLocalUseNames(), n.getUnresolvedCallTarget(), n.getAllocationSites(), n.getClassLoader());
     }
 
+    public SecurityNode(Kind kind, int id, Operation op, int proc, String label){
+        super(kind, id, op, proc, label);
+    }
+
+    /**
+     * A constructor for synthetic nodes that are added to an existing SDG.
+     * Receives only a kind, an ID and a procedure ID and sets the other attributes to default values.
+     * @param kind  The node's kind.
+     * @param id    The node's ID.
+     * @param proc  The procedure ID.
+     */
+    public SecurityNode(Kind kind, int id, int proc, String label){
+        this(kind, id, Operation.EMPTY, proc, label);
+    }
+
     public SecurityNode clone() {
         SecurityNode ret = new SecurityNode(0, getId(), operation, getLabel(), getProc(), getType(), getSourceLocation(), getBytecodeName(), getBytecodeIndex(), getLocalDefNames(), getLocalUseNames(), getUnresolvedCallTarget(), getAllocationSites(), getClassLoader());
         ret.setRequired(getRequired());
@@ -133,7 +148,7 @@ public class SecurityNode extends SDGNode {
     public boolean isInformationSink() {
         return (required != UNDEFINED && provided == UNDEFINED);
     }
-    
+
     /**
      * Returns whether this node is an information source or an information sink.
      * @return {@code true} if this node is an information source or an information sink, {@code false}

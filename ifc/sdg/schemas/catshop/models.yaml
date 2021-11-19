@@ -10,12 +10,12 @@ components:
     Personality:
       type: string
       enum:
-        - wild
-        - calm
-        - active
-        - benevolent
-        - tidy
-        - playful
+        - WILD
+        - CALM
+        - ACTIVE
+        - BENEVOLENT
+        - TIDY
+        - PLAYFUL
     CatWithPersonalities:
       type: object
       properties:

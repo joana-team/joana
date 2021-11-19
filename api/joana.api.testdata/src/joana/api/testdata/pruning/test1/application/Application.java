@@ -7,9 +7,10 @@
  */
 package joana.api.testdata.pruning.test1.application;
 
-import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 import joana.api.testdata.pruning.test1.library.CallbackInterface;
 import joana.api.testdata.pruning.test1.library.Library;
+
+import static edu.kit.joana.api.annotations.ToyTestsDefaultSourcesAndSinks.*;
 
 /**
  * @author Martin Hecker <martin.hecker@kit.edu>
@@ -36,4 +37,3 @@ class CallbackImplementation implements CallbackInterface {
 		return SECRET;
 	}
 }
-i

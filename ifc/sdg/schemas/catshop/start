@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 set -e
 
@@ -8,7 +8,11 @@ echo "build packages"
 ./package
 
 echo "start servers"
-(cd shop; mvn exec:java) &
-(cd wiki; mvn exec:java) &
 
-trap 'jobs -p | xargs kill' EXIT
+jobs=()
+trap 'kill $jobs' EXIT HUP TERM INT
+(cd shop; mvn exec:java) & jobs+=($!)
+(cd wiki; mvn exec:java) & jobs+=($!)
+
+
+sleep 100000

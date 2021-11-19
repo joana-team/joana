@@ -147,7 +147,6 @@ public class DummyGenerator {
     return name;
   }
 
-
   private void createDefaultConstructor(ClassWriter cw, String fullClassName) {
     MethodVisitor methodVisitor = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     methodVisitor.visitCode();

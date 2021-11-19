@@ -9,19 +9,23 @@ import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.google.common.collect.Iterables
 import com.ibm.wala.classLoader.IMethod
+import com.ibm.wala.ipa.callgraph.CGNode
 import com.ibm.wala.types.ClassLoaderReference
 import com.ibm.wala.types.TypeReference
 import edu.kit.joana.api.sdg.SDGBuildPreparation
 import edu.kit.joana.api.sdg.SDGConfig
 import edu.kit.joana.ifc.sdg.graph.SDG
 import edu.kit.joana.ifc.sdg.graph.SDG.FormalSummaryEdgeMap
+import edu.kit.joana.ifc.sdg.graph.SDGEdge
 import edu.kit.joana.ifc.sdg.graph.SDGNode
+import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind
+import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind.EXIT
 import edu.kit.joana.ui.annotations.openapi.InvokeAllRegisteredOpenApiServerMethods
 import edu.kit.joana.ui.annotations.openapi.ModifiedOpenApiClientMethod
 import edu.kit.joana.ui.annotations.openapi.RegisteredOpenApiServerMethod
-import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer
 import edu.kit.joana.ui.ifc.wala.console.console.IFCConsole
 import edu.kit.joana.ui.ifc.wala.console.console.ImprovedCLI
+import edu.kit.joana.util.Iterators
 import edu.kit.joana.util.TypeNameUtils
 import edu.kit.joana.wala.core.CallGraph
 import edu.kit.joana.wala.core.SDGBuilder
@@ -29,45 +33,299 @@ import edu.kit.joana.wala.core.SDGBuilder.SDGSummaryAdder
 import edu.kit.joana.wala.core.openapi.OpenApiClientDetector
 import edu.kit.joana.wala.core.openapi.OpenApiServerDetector
 import edu.kit.joana.wala.core.openapi.OperationId
+import org.jline.utils.Colors.s
 import org.junit.jupiter.api.fail
 import org.objectweb.asm.Type
-import java.util.* // ktlint-disable no-wildcard-imports
-import kotlin.collections.ArrayDeque
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+import java.sql.DriverManager.getConnection
+import java.util.Optional
+import java.util.Queue
+import java.util.Stack
+import java.util.stream.Collectors
 
 /**
  * Stores the supported operation ids (either server or client) and call graph id
  */
-class MappedOperationIds(val map: BiMap<OperationId, Int> = HashBiMap.create()) : BiMap<OperationId, Int> by map {
+data class MappedOperationIds(val map: BiMap<OperationId, Int> = HashBiMap.create()) : BiMap<OperationId, Int> by map {
 
     val cgIds: Set<Int>
         get() = values
 }
 
+typealias EdgePairs = Set<edu.kit.joana.util.Pair<SDGNode, SDGNode>>
+
+data class Connection(
+    val clientEntryNode: SDGNode,
+    val serverEntryNode: SDGNode,
+    val serverNodeToClientNode: Map<SDGNode, SDGNode>
+) {
+
+    fun getClientNode(serverNode: SDGNode) = serverNodeToClientNode[serverNode]
+}
+
+fun SDGNode.paramNumber(): Int? {
+    if (kind == EXIT) {
+        return -2
+    }
+    if (label == "this") {
+        return -1
+    }
+    if (label.startsWith("param ")) {
+        return label.split(" ")[1].toInt()
+    }
+    return null
+}
+
+fun Set<SDGNode>.getParameterNodes(): Map<Int, SDGNode> = filter { it.paramNumber() != null }
+    .associateBy { it.paramNumber()!! }
+
+val SDGNode.isMemory get() = label.contains("|UNIQ") || label.contains("|MERGE")
+
+val SDGNode.memoryVariable get() = label.split('|', limit = 3)[2].split("(", ")")[1]
+
+val SDGNode.isMemoryVariable
+    get() = isMemory && label.contains("(") && "([])" !in label
+
+fun SDG.getExceptionNode(entry: SDGNode): SDGNode? = getFormalOutsOfProcedure(entry).firstOrNull { it.isException }
+
+fun SDG.hasExceptionNode(entry: SDGNode) = getExceptionNode(entry) != null
+
+fun com.ibm.wala.ipa.callgraph.CallGraph.getTransitiveCallersAndSelf(node: CGNode): Set<CGNode> {
+    val nodes = mutableSetOf<CGNode>()
+    val queue: Queue<CGNode> = java.util.ArrayDeque()
+    queue.offer(node)
+    while (queue.isNotEmpty()) {
+        val cur = queue.poll()
+        if (cur !in nodes) {
+            nodes.add(cur)
+            getPredNodes(cur).forEach { queue.add(it) }
+        }
+    }
+    return nodes
+}
+
+class ExSDG(val sdg: SDG, val callGraph: CallGraph) {
+    fun getCGNode(entry: SDGNode) = callGraph.orig.getNode(sdg.getCGNodeId(entry))
+
+    fun getCGNodesUp(entry: SDGNode) = callGraph.orig.getTransitiveCallersAndSelf(getCGNode(entry))
+
+    fun getCallingCGNodes(cgNode: CGNode) = Iterators.stream(callGraph.orig.getPredNodes(cgNode)).collect(Collectors.toSet())
+
+    fun getCallSites(entry: SDGNode) = sdg.getCallers(entry).map { it to getCGNode(sdg.getEntry(it)) }
+
+    fun getEntryNode(cgNode: CGNode) = sdg.getSDGNode(cgNode.graphNodeId)
+}
+
 /**
  * Node in the multi SDG graph, referencing
  */
-class MultiSDGNode(
+data class MultiSDGNode(
     private val sdgAdder: SDGSummaryAdder,
     val server: MappedOperationIds,
     val client: MappedOperationIds,
+    /** problem: summary edges are set in the calling methods */
     val allInvokeNodeIds: Set<Int>
 ) {
+
+    /** clientEntryNode ⊗ serverEntryNode ↦ Connection */
+    private val clientServerConnections = mutableMapOf<Pair<SDGNode, SDGNode>, Connection>()
 
     val sdg: SDG
         get() = sdgAdder.sdg
 
-    fun compute(changedCgIds: Set<Int>?): SDGBuilder.SDGSummaryAdder.Result {
+    val callGraph: CallGraph
+        get() = sdgAdder.builder.callGraph
+
+    val exSDG = ExSDG(sdg, callGraph)
+
+    val propagation = Propagation(exSDG)
+
+    /** called on the client SDG for a specific API connection */
+    fun getConnection(clientEntryNode: SDGNode, serverSDG: SDG, serverEntryNode: SDGNode) = clientServerConnections.getOrPut(Pair(clientEntryNode, serverEntryNode)) {
+        createConnection(
+            clientEntryNode,
+            serverSDG,
+            serverEntryNode
+        )
+    }
+
+    /**
+     * called on the client SDG for a specific API connection
+     *
+     * @param clientEntryNode the entry node of the client method (e.g. the Api.bla method for ApiImpl.bla)
+     */
+    fun createConnection(clientEntryNode: SDGNode, serverSDG: SDG, serverEntryNode: SDGNode): Connection {
+        // TODO
+        //   consider the memory formal ins and outs of server methods → add new nodes to all methods up the call tree
+
+        data class MatchResult(
+            /** client to server node */
+            val matching: Map<SDGNode, SDGNode>,
+            val unmatchedClientNodes: Set<SDGNode>,
+            val unmatchedServerNodes: Set<SDGNode>
+        )
+
+        fun match(accessor: (SDG, SDGNode) -> Set<SDGNode>): MatchResult {
+            val clientNodes = accessor(sdg, clientEntryNode)
+            val serverNodes = accessor(serverSDG, serverEntryNode)
+            val matches = mutableMapOf<SDGNode, SDGNode>()
+
+            fun addMatch(clientNode: SDGNode, serverNode: SDGNode) {
+                println("      match ${clientNode.label} → ${serverNode.label}")
+                matches[clientNode] = serverNode
+            }
+
+            val clientParameters = clientNodes.getParameterNodes()
+            val serverParameters = serverNodes.getParameterNodes()
+
+            serverNodes.forEach { serverNode ->
+                val paramNumber = serverNode.paramNumber()
+                if (paramNumber != null) {
+                    addMatch(clientParameters[paramNumber]!!, serverNode)
+                }
+            }
+            return MatchResult(
+                matches, clientNodes.filter { it !in matches }.toSet(),
+                matches.values.toSet().let { set -> serverNodes.filter { it !in set }.toSet() }
+            )
+        }
+
+        data class EqualPairs(
+            /** (name, fi, fo) */
+            val pairs: List<Triple<String, SDGNode, SDGNode>>,
+            val unmatchedFis: Set<SDGNode>,
+            val unmatchedFos: Set<SDGNode>,
+            /** variable name to node */
+            val unmatchedMemoryFis: Map<String, SDGNode>,
+            /** variable name to node */
+            val unmatchedMemoryFos: Map<String, SDGNode>,
+            /** always a Fo but unmatched */ val exception: SDGNode?
+        )
+
+        fun toPreprocessedLabelMap(nodes: Iterable<SDGNode>) = nodes.associateBy {
+            return@associateBy if (it.isMemoryVariable) {
+                it.memoryVariable
+            } else {
+                it.label
+            }
+        }
+
+        /* * matched based on label */
+        fun matchNodes(fis: Iterable<SDGNode>, fos: Iterable<SDGNode>): EqualPairs {
+            val fiLabelMap = toPreprocessedLabelMap(fis)
+            val foLabelMap = toPreprocessedLabelMap(fos)
+            val fisUnmatched = mutableSetOf<SDGNode>()
+
+            var exception: SDGNode? = null
+            val fosUnmatched = fos.filter {
+                if (it.isException) {
+                    assert(exception == null)
+                    exception = it
+                    false
+                } else {
+                    true
+                }
+            }.toMutableSet()
+            val pairs = fiLabelMap.map { entry ->
+                foLabelMap[entry.key]?.let {
+                    fosUnmatched.remove(it)
+                    return@map Triple(entry.key, entry.value, it)
+                } ?: run {
+                    fisUnmatched.add(entry.value)
+                    null
+                }
+            }.filterNotNull()
+
+            fun removeAndStoreMem(unmatched: MutableSet<SDGNode>): Map<String, SDGNode> {
+                val res = mutableMapOf<String, SDGNode>()
+                unmatched.removeIf {
+                    if (it.isMemoryVariable) {
+                        res[it.memoryVariable] = it
+                        true
+                    } else {
+                        false
+                    }
+                }
+                return res
+            }
+
+            val unmatchedMemoryFis = removeAndStoreMem(fisUnmatched)
+            val unmatchedMemoryFos = removeAndStoreMem(fosUnmatched)
+
+            return EqualPairs(
+                pairs, fisUnmatched, fosUnmatched, unmatchedMemoryFis, unmatchedMemoryFos, exception
+            )
+        }
+
+        val fiMatches = match { sdg, sdgNode -> sdg.getFormalInsOfProcedure(sdgNode) }
+        assert(fiMatches.unmatchedClientNodes.isEmpty())
+        val foMatches = match { sdg, sdgNode -> sdg.getFormalOutsOfProcedure(sdgNode) }
+        assert(foMatches.unmatchedClientNodes.all { it.isException })
+
+        val matchedServerFiFos = matchNodes(fiMatches.unmatchedServerNodes, foMatches.unmatchedServerNodes)
+
+        matchedServerFiFos.pairs.forEach { (x, y, z) -> println("    unmatched pair (${y.label}, ${z.label})") }
+        matchedServerFiFos.unmatchedFis.forEach { x -> println("      unmatched single fi ${x.label}") }
+        matchedServerFiFos.unmatchedFos.forEach { x -> println("      unmatched single fo ${x.label}") }
+        matchedServerFiFos.unmatchedMemoryFis.values.forEach { x -> println("      unmatched single memory fi ${x.label}") }
+        matchedServerFiFos.unmatchedMemoryFos.values.forEach { x -> println("      unmatched single memory fo ${x.label}") }
+
+        val variablesToPropagate = (matchedServerFiFos.unmatchedMemoryFis.keys + matchedServerFiFos.unmatchedMemoryFos.keys + matchedServerFiFos.pairs.filter { it.second.isMemoryVariable }.map { it.second.memoryVariable }.toSet())
+        println("        variables to propagate $variablesToPropagate")
+
+        propagation.propagateSDGNodesForVariables(clientEntryNode, variablesToPropagate, matchedServerFiFos.exception != null)
+
+        val mapping = mutableMapOf<SDGNode, SDGNode>() // server node → client node
+        fiMatches.matching.forEach { (c, s) -> mapping[s] = c }
+        foMatches.matching.forEach { (c, s) -> mapping[s] = c }
+        serverSDG.getExceptionNode(serverEntryNode)?.let { ex ->
+            mapping[ex] = sdg.getExceptionNode(clientEntryNode)!!
+        }
+        // now add the newly created
+        fiMatches.unmatchedServerNodes.forEach { node ->
+            if (node.isMemoryVariable) {
+                propagation.getFiNode(sdg, clientEntryNode, node.memoryVariable)?.let {
+                    mapping[node] = it
+                }
+            }
+        }
+        foMatches.unmatchedServerNodes.forEach { node ->
+            if (node.isMemoryVariable) {
+                propagation.getFoNode(sdg, clientEntryNode, node.memoryVariable)?.let {
+                    mapping[node] = it
+                }
+            }
+        }
+
+        /**
+         * Idea:
+         * create
+         */
+
+        return Connection(clientEntryNode, serverEntryNode, mapping)
+    }
+
+    fun compute(changedCgIds: Set<Int>?): SDGSummaryAdder.Result {
         return sdgAdder.compute(
             allInvokeNodeIds,
             Optional.ofNullable(if (changedCgIds.isNullOrEmpty()) null else changedCgIds)
-        )/*.also {
-            GraphViewer.launch(sdg)
-            readLine()
-        }*/
+        ).also {
+         /*   GraphViewer.launch(sdg)
+            readLine()*/
+        }
     }
 
+    /** add summary edges */
+    fun addEdges(clientCgId: Int, clientEntryNode: SDGNode, serverSDG: SDG, serverEntryNode: SDGNode, serverEdges: EdgePairs) {
+        val connection = getConnection(clientEntryNode, serverSDG, serverEntryNode)
+        serverEdges.forEach { (fi, fo) ->
+            connection.getClientNode(fi)?.let { ai ->
+                connection.getClientNode(fo)?.let { ao ->
+                    sdg.addEdge(SDGEdge.Kind.SUMMARY.newEdge(ai, ao))
+                    println("$serverEntryNode:   ${ai.label} → ${ao.label}")
+                }
+            }
+        }
+    }
     companion object {
 
         @JvmStatic
@@ -86,7 +344,7 @@ class MultiSDGNode(
             val allInvokeNodeIds = builder.callGraph.getMethodsWithAnnotation(Type.getType(InvokeAllRegisteredOpenApiServerMethods::class.java))
                 .map { (node, _) -> node.id }.toSet()
             return MultiSDGNode(
-                SDGBuilder.SDGSummaryAdder(builder, serverMap.values),
+                SDGSummaryAdder(builder, serverMap.values),
                 MappedOperationIds(serverMap), MappedOperationIds(clientMap),
                 allInvokeNodeIds
             )
@@ -184,12 +442,13 @@ fun String.toIFCConsoleWithMore(ignoreDots: Boolean = false): IFCConsoleWithMore
 }
 
 /** runs the commands that should be run before the "..." (or all commands with ignoreDots=true)*/
-fun Iterable<String>.toIFCConsoleWithMore(ignoreDots: Boolean = false): List<IFCConsoleWithMore> = map {
-    println(it.split(";")[0])
-    println("-".repeat(50))
-    it.toIFCConsoleWithMore(ignoreDots)
+fun Iterable<String>.toIFCConsoleWithMore(ignoreDots: Boolean = false, parallel: Boolean = true): List<IFCConsoleWithMore> {
+    return (if (parallel) toList().parallelStream() else toList().stream()).map {
+        println(it.split(";")[0])
+        println("-".repeat(50))
+        it.toIFCConsoleWithMore(ignoreDots)
+    }.collect(Collectors.toList())
 }
-
 fun IFCConsole.printSeparator() {
     println(classPath)
     println("-".repeat(50))
@@ -244,16 +503,20 @@ class MultiSDGComputer private constructor(private val nodes: Map<MultiSDGNode, 
         node: MultiSDGNode,
         difference: FormalSummaryEdgeMap,
         func: (
-            node: MultiSDGNode,
-            cgId: Int,
-            otherEntryNode: SDGNode,
-            otherEdges: Set<edu.kit.joana.util.Pair<SDGNode, SDGNode>>
+            clientMultiNode: MultiSDGNode,
+            clientCgId: Int,
+            clientEntryNode: SDGNode,
+            serverEntryNode: SDGNode,
+            serverEdges: EdgePairs
         ) -> Unit
     ) {
         difference.map.forEach { (entryNode, edges) ->
             val cgId = node.sdg.getCGNodeId(entryNode)
             val operation = node.server.inverse()[cgId]!!
-            getClients(operation).forEach { func(it, it.client[operation]!!, entryNode, edges) }
+            getClients(operation).forEach {
+                println("------ clientEntryNode = ${it.sdg.getSDGNode(it.client[operation]!!).label}")
+                func(it, it.client[operation]!!, it.sdg.getSDGNode(it.client[operation]!!), entryNode, edges)
+            }
         }
     }
 
@@ -279,9 +542,13 @@ class MultiSDGComputer private constructor(private val nodes: Map<MultiSDGNode, 
         while (!worklist.isEmpty()) {
             val (cur, affectedCgIds) = worklist.removeFirst()
             cur.compute(affectedCgIds).let { sums ->
-                pushEdges(cur, sums.difference()) { node, cgId, otherEntryNode, otherEdges ->
-                    push(node, setOf(cgId))
-                    System.err.println("found $otherEntryNode $otherEdges")
+                // setting: we found edges related to call node of an all invoke method
+                // the compute method already converted them into formal in → formal out edges
+                // we now have to set these edges in the client method
+                // e.g. we found an edge   x → ret  in ServerImpl.func(x)  =>  we push an edge to every client
+
+                pushEdges(cur, sums.difference()) { clientMultiNode, clientCgId, clientEntryNode, serverEntryNode, serverEdges ->
+                    clientMultiNode.addEdges(clientCgId, clientEntryNode, cur.sdg, serverEntryNode, serverEdges)
                 }
             }
         }

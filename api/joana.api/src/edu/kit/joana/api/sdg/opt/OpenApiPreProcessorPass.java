@@ -24,7 +24,6 @@ import edu.kit.joana.wala.core.openapi.OpenApiClientDetector;
 import io.github.classgraph.*;
 import nonapi.io.github.classgraph.classpath.SystemJarFinder;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
@@ -472,6 +471,7 @@ public class OpenApiPreProcessorPass implements FilePass {
     /** important: "L$klass;" is the real internal name */
     private String klass;
     private String javaKlassName;
+    private boolean isOpenApiClientClass;
     private Set<String> usedMethodNames;
     /** used for all-method-invokes on server objects */
     private final Map<ClassInfo, MethodDescriptor> allInvokeMethods = new HashMap<>();
@@ -488,6 +488,7 @@ public class OpenApiPreProcessorPass implements FilePass {
     @Override public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
       this.klass = name;
       this.javaKlassName = TypeNameUtils.toJavaClassName("L" + name + ";");
+      this.isOpenApiClientClass = openApiClientClasses.contains(javaKlassName);
       ClassInfo classInfo = classInfoMap.get(javaKlassName);
       this.usedMethodNames = classInfo != null ? new HashSet<>(classInfo.getMethodInfo().getNames()) : new HashSet<>();
       super.visit(version, access, name, signature, superName, interfaces);
@@ -526,14 +527,19 @@ public class OpenApiPreProcessorPass implements FilePass {
         return getServerMethodTransformer(access, descriptor, descr,
             cv.visitMethod(access, methodName, descriptor, signature, exceptions));
       }
-      if (openApiClientClasses.contains(javaKlassName) && methodName.equals("<init>") && config.deleteConstructorBody) { // a constructor
-        return new DeletingMethodVisitor(api, true);
+      if (isOpenApiClientClass && methodName.equals("<init>") && config.deleteConstructorBody) { // a constructor
+        MethodVisitor mv = super.visitMethod(access, methodName, descriptor, signature, exceptions);
+        mv.visitCode();
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+        return null;
       }
-      if (!isCalled(descr) && !debug2) {
+      if (!isCalled(descr) && !debug2 && !isOpenApiClientClass) {
         return cv.visitMethod(access, methodName, descriptor, signature, exceptions);
       }
       boolean isOpenApiClientMethod =
-          openApiClientClasses.contains(javaKlassName) && (access & ACC_PUBLIC) != 0 && (access & ACC_STATIC) == 0
+          isOpenApiClientClass && (access & ACC_PUBLIC) != 0 && (access & ACC_STATIC) == 0
               && (access & ACC_ABSTRACT) == 0 && (access & ACC_NATIVE) == 0 && detector.isWrappableOpenApiMethod(javaKlassName,
               methodName, descriptor, signature, exceptions);
       boolean isServerEndPointCallingMethod = serverDetector.isPossibleEndpointCallingMethod(descr);
@@ -554,78 +560,36 @@ public class OpenApiPreProcessorPass implements FilePass {
      * Create visitor to transform the body of OpenApi client methods:
      * They then return a newly created return object without a dependency on any method parameter
      */
-    @NotNull private DeletingMethodVisitor getClientMethodTransformer(int access, String descriptor, MethodDescriptor descr,
+    private MethodVisitor getClientMethodTransformer(int access, String descriptor, MethodDescriptor descr,
         MethodVisitor cvVis) {
-      return new DeletingMethodVisitor(api, new LocalVariablesSorter(access, descriptor, cvVis), config.deleteRestOfMethod) {
+      LocalVariablesSorter mv = new LocalVariablesSorter(access, descriptor, cvVis);
+      Type returnType = Type.getReturnType(descriptor);
+      mv.visitAnnotation(Type.getType(ModifiedOpenApiClientMethod.class).toString(), true).visitEnd();
+      mv.visitCode();
+      if (returnType == Type.VOID_TYPE) {
+        mv.visitInsn(RETURN);
+      } else {
+        callDummyMethod(mv, descr);
+        mv.visitInsn(returnType.getOpcode(IRETURN));
+      }
+      mv.visitMaxs(1, 2);
+      mv.visitEnd();
+      return null;
+    }
 
-        @Nullable
-        BaseMethodDescriptor dummyMethod = null;
-        int lastInstruction = -1;
-        private final Label start = new Label();
-        private final Label end = new Label();
-        private final Label handler = new Label();
+    private void callDummyMethod(MethodVisitor mv, MethodDescriptor callingMethod) {
+      BaseMethodDescriptor dummyMethod = createDummyMethod(callingMethod);
+      mv.visitMethodInsn(INVOKESTATIC, TypeNameUtils.toInternalNameWithoutSemicolonAndL(dummyMethod.methodClass),
+          dummyMethod.methodName, dummyMethod.methodDescriptor, false);
+    }
 
-        @Override public void visitCode() {
-          dummyMethod = null;
-          mv.visitAnnotation(Type.getType(ModifiedOpenApiClientMethod.class).toString(), true).visitEnd();
-          mv.visitCode();
-          if (!config.deleteRestOfMethod) {
-            mv.visitTryCatchBlock(start, end, handler, "java/lang/Throwable");
-            mv.visitLabel(start);
-          }
-        }
+    private BaseMethodDescriptor createDummyMethod(MethodDescriptor callingMethod) {
+      Set<Type> retTypes = getReturnTypesWoReflection(callingMethod);//findImplementingTypes(getReturnTypes(descr));
+      //assert retTypes.size() > 0; // TODO: might happen with serialization, darn reflection :(
 
-        @Override public void visitMaxs(int maxStack, int maxLocals) {
-          closeTryCatch();
-          mv.visitMaxs(maxStack, maxLocals);
-        }
-
-        boolean closedTryCatchAlready = false;
-
-        void closeTryCatch() {
-          if (!closedTryCatchAlready && !config.deleteRestOfMethod) {
-            mv.visitLabel(end);
-            mv.visitLabel(handler);
-            mv.visitInsn(NOP);
-            Label handlerEnd = new Label();
-            mv.visitJumpInsn(GOTO, handlerEnd);
-            mv.visitLabel(handlerEnd);
-            mv.visitInsn(NOP);
-            closedTryCatchAlready = true;
-          }
-        }
-
-        @Override public void visitInsn(int opcode) {
-          if (opcode == IRETURN || opcode == DRETURN || opcode == LRETURN || opcode == FRETURN || opcode == ARETURN) {
-            closeTryCatch();
-            if (!config.deleteRestOfMethod) {
-              mv.visitInsn(POP);
-            }
-            callDummyMethod();
-            mv.visitInsn(opcode);
-          } else if (!config.deleteRestOfMethod) {
-            mv.visitInsn(opcode);
-          }
-          lastInstruction = opcode;
-        }
-
-        private void callDummyMethod() {
-          if (dummyMethod == null) {
-            dummyMethod = createDummyMethod();
-          }
-          mv.visitMethodInsn(INVOKESTATIC, TypeNameUtils.toInternalNameWithoutSemicolonAndL(dummyMethod.methodClass),
-              dummyMethod.methodName, dummyMethod.methodDescriptor, false);
-        }
-
-        private BaseMethodDescriptor createDummyMethod() {
-          Set<Type> retTypes = getReturnTypesWoReflection(descr);//findImplementingTypes(getReturnTypes(descr));
-          //assert retTypes.size() > 0; // TODO: might happen with serialization, darn reflection :(
-
-          PossibleConstructors possibleConstructors = possibleConstructorsCalledIn(descr);
-          return dummyGeneratorStore.createDummyCreatorMethodForTypes(possibleConstructors,
-              Type.getReturnType(descr.methodDescriptor), Optional.of(retTypes));
-        }
-      };
+      PossibleConstructors possibleConstructors = possibleConstructorsCalledIn(callingMethod);
+      return dummyGeneratorStore.createDummyCreatorMethodForTypes(possibleConstructors,
+          Type.getReturnType(callingMethod.methodDescriptor), Optional.of(retTypes));
     }
 
 
@@ -757,6 +721,9 @@ public class OpenApiPreProcessorPass implements FilePass {
 
     private Set<MethodDescriptor> possibleEndPointMethods;
 
+    /** subset of possibleEndPointMethods */
+    private Set<MethodDescriptor> endPointMethodsForByteCodeRemoval;
+
     private Set<MethodDescriptor> possibleEndPointCallers;
 
     public void setup(CallGraph cg, Collection<ClassInfo> klasses) {
@@ -769,10 +736,13 @@ public class OpenApiPreProcessorPass implements FilePass {
               .filter(apiClasses::contains)
               .collect(Collectors.toSet())));
       possibleEndPointMethods = getPossibleEndPointMethods(klasses);
+      endPointMethodsForByteCodeRemoval = getEndPointMethodsForByteCodeRemoval(possibleEndPointMethods);
       possibleEndPointCallers = getCallersOfMethods(possibleEndPointMethods, cg);
+
       if (debug) {
-        System.out.println("possibleEndPointMethods = " + possibleEndPointMethods);
-        System.out.println("possibleEndPointCallers = " + possibleEndPointCallers);
+        System.out.println("possibleEndPointMethods  = " + possibleEndPointMethods);
+        System.out.println("ePMethodsForBCodeRemoval = " + endPointMethodsForByteCodeRemoval);
+        System.out.println("possibleEndPointCallers  = " + possibleEndPointCallers);
         System.out.println("apiClasses = " + apiClasses);
         System.out.println("implementingClasses = " + implementingClasses);
       }
@@ -780,8 +750,21 @@ public class OpenApiPreProcessorPass implements FilePass {
 
     private Set<MethodDescriptor> getPossibleEndPointMethods(Collection<ClassInfo> klasses) {
       return klasses.stream().filter(this::isPossibleEndPointClass)
-          .flatMap(k -> k.getDeclaredMethodInfo().stream().filter(this::isPossibleEndPointMethod))
+          .flatMap(k -> k.getDeclaredMethodAndConstructorInfo().stream().filter(this::isPossibleEndPointMethod))
           .map(MethodDescriptor::new).collect(Collectors.toSet());
+    }
+
+    /** microservice-helper related methods that are marked so that the removal of their bytecode is possible */
+    private Set<MethodDescriptor> getEndPointMethodsForByteCodeRemoval(Set<MethodDescriptor> methods) {
+      return methods.stream().filter(this::isEndPointMethodForByteCodeRemoval_).collect(Collectors.toSet());
+    }
+
+    private boolean isEndPointMethodForByteCodeRemoval_(MethodDescriptor method) {
+      return isEndPointMethodForByteCodeRemoval(method.toMethodInfo());
+    }
+
+    private boolean isEndPointMethodForByteCodeRemoval(MethodInfo method) {
+      return method.hasAnnotation("edu.kit.joana.microservices.EndpointMethod");
     }
 
     private Set<MethodDescriptor> getCallersOfMethods(Set<MethodDescriptor> endpoints, CallGraph cg) {
@@ -791,16 +774,21 @@ public class OpenApiPreProcessorPass implements FilePass {
               .orElse(Stream.empty()))
           .flatMap(node -> Iterators.stream(cg.getPredNodes(node)))
           .map(MethodDescriptor::new)
+          //.filter(m -> Objects.requireNonNull(m.toMethodInfo()).isConstructor() && Objects.requireNonNull(m.toMethodInfo())
+           //   .getClassInfo().getPackageName().startsWith("org.apache.cxf.jaxrs.lifecycle"))
           .collect(Collectors.toSet());
     }
 
     private boolean isPossibleEndPointClass(ClassInfo klass) {
-      return klass.getPackageName().startsWith("javax.xml.ws") && !klass.isAnnotation();
+      return (klass.getPackageName().startsWith("javax.xml.ws") ||
+          klass.implementsInterface("org.apache.cxf.jaxrs.lifecycle.ResourceProvider") ||
+          klass.getName().startsWith("edu.kit.joana.microservices.")) && !klass.isAnnotation();
     }
 
     private boolean isPossibleEndPointMethod(MethodInfo method) {
-      return Arrays.stream(method.getParameterInfo()).anyMatch(p -> p.getTypeDescriptor().toString().equals("java.lang.Object")) &&
-          !Modifier.isPrivate(method.getModifiers());
+      return (Arrays.stream(method.getParameterInfo()).anyMatch(p -> p.getTypeDescriptor().toString().equals("java.lang.Object")) &&
+          !Modifier.isPrivate(method.getModifiers()) && !method.getName().contains("releaseInstance")) &&
+          (!method.getClassInfo().getName().startsWith("edu.kit.joana.microservices.") || isEndPointMethodForByteCodeRemoval(method));
     }
 
     /** checks both class and method. End point methods are methods that belong to the javax.xml.ws package,
@@ -838,12 +826,15 @@ public class OpenApiPreProcessorPass implements FilePass {
       return methodInfo != null && isPossibleImplMethod(methodInfo);
     }
 
+    public boolean isEndPointMethodForByteCodeRemoval(MethodDescriptor method) {
+      return endPointMethodsForByteCodeRemoval.contains(method);
+    }
+
     public boolean isPossibleImplMethod(MethodInfo method) {
       ClassInfo klass = method.getClassInfo();
       return implementingClasses.getOrDefault(klass.getName(), Collections.emptySet()).stream().map(classInfoMap::get)
           .anyMatch(inter -> inter.getDeclaredMethodInfo().get(method.getName()).stream()
-              .anyMatch(m -> method.getTypeDescriptor().equals(m.getTypeDescriptor()) && isApiMethod(m)));
+              .anyMatch(m -> method.getTypeDescriptorStr().equals(m.getTypeDescriptorStr()) && isApiMethod(m)));
     }
-
   }
 }

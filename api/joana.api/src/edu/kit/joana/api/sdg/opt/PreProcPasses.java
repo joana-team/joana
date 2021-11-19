@@ -96,7 +96,7 @@ public class PreProcPasses {
   }
 
   void storeClassPathInFolder(String classPath, Path targetFolder) throws IOException {
-    logger.info(String.format("Store classes from '%s' into '%s'", classPath, targetFolder));
+    logger.fine(String.format("Store classes from '%s' into '%s'", classPath, targetFolder));
     if (classPath == null) {
       throw new IllegalArgumentException("null classPath");
     }
@@ -138,7 +138,7 @@ public class PreProcPasses {
       if (jar.getManifest() != null) {
         String cp = jar.getManifest().getMainAttributes().getValue("Class-Path");
         if (cp != null) {
-          for(String cpEntry : cp.split("")) {
+          for(String cpEntry : cp.split(" ")) {
             storeClassPathInFolder(path.getParent() + File.separator + cpEntry, targetFolder.resolve(cpEntry));
           }
         } else {

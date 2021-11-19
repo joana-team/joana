@@ -7,7 +7,6 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.annotations.Annotation;
 import edu.kit.joana.api.sdg.SDGProgramPart;
 import edu.kit.joana.ifc.sdg.util.JavaType;
-import edu.kit.joana.ui.annotations.Id;
 
 /**
  * Manage the mapping of identified program parts.
@@ -21,7 +20,7 @@ public class IdManager {
 
   public IdManager(){
     this.identifiedProgramParts = HashBiMap.create();
-    this.idTypeName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString(Id.class.getCanonicalName()).toBCString(false));
+    this.idTypeName = TypeName.findOrCreate(JavaType.parseSingleTypeFromString("edu.kit.joana.ui.annotations.Id").toBCString(false));
   }
 
   public void clear(){

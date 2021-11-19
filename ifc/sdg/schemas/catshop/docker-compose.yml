@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+    swagger-ui:
+        image: swaggerapi/swagger-ui
+        container_name: swagger_ui_container
+        ports:
+            - "8080:8080"
+        volumes:
+          - ./shop:/usr/share/nginx/html/blub/shop
+          - ./wiki:/usr/share/nginx/html/blub/wiki
+          - .:/usr/share/nginx/html/blub
+        environment:
+            # API_URL: doc/openapi.yaml
+          URLS: "[{ url: \"blub/shop/shop.yaml\", name: \"Cat Shop\" },
+                    { url: \"blub/wiki/wiki.yaml\", name: \"Cat Wiki\" },
+                ]"

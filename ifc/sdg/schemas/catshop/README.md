@@ -11,3 +11,4 @@ Parts
     - `build`: builds both the shop and the wiki
     - `./package` build both folders
     - `./start` start servers
+    - `sudo docker-compose up`: create a swagger ui at http://localhost:8080

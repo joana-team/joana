@@ -72,12 +72,12 @@ paths:
           description: Wrong password
           content: {}
 
-  /wiki/getShops/{species}:
+  /wiki/shops/{species}:
     get:
       tags:
         - wiki
       summary: get shops that have the species of cats available
-      operationId: getShops
+      operationId: shops
       parameters:
         - name: species
           in: path

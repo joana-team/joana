@@ -7,38 +7,22 @@
  */
 package edu.kit.joana.ui.ifc.sdg.graphviewer.view;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.swing.BorderFactory;
-import javax.swing.ToolTipManager;
-
-import org.jgraph.JGraph;
-import org.jgraph.graph.ConnectionSet;
-import org.jgraph.graph.DefaultGraphCell;
-import org.jgraph.graph.DefaultGraphModel;
-import org.jgraph.graph.DefaultPort;
-import org.jgraph.graph.GraphCell;
-import org.jgraph.graph.GraphConstants;
-import org.jgraph.graph.GraphLayoutCache;
-import org.jgraph.graph.GraphModel;
-import org.jgrapht.ext.JGraphModelAdapter;
-
 import edu.kit.joana.ifc.sdg.graph.SDGEdge;
 import edu.kit.joana.ifc.sdg.graph.SDGNode;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.layout.PDGConstants;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.ClonedSDGNode;
 import edu.kit.joana.ui.ifc.sdg.graphviewer.model.MethodGraph;
+import org.jgraph.JGraph;
+import org.jgraph.graph.*;
+import org.jgrapht.ext.JGraphModelAdapter;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.List;
+import java.util.*;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class MethodGraphView extends JGraph {
@@ -368,6 +352,9 @@ public final class MethodGraphView extends JGraph {
 	 * @return the escaped string
 	 */
 	private static String escapeHTML(String in) {
+		if (in == null) {
+			System.err.println("hey");
+		}
 		String out = in.replace("&", "&amp;");
 		out = out.replace("<", "&lt;");
 		return out.replace(">", "&gt;");

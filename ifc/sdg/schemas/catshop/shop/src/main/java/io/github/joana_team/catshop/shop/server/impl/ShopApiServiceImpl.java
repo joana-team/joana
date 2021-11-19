@@ -1,5 +1,8 @@
 package io.github.joana_team.catshop.shop.server.impl;
 
+import edu.kit.joana.ui.annotations.ReturnValue;
+import edu.kit.joana.ui.annotations.Sink;
+import edu.kit.joana.ui.annotations.Source;
 import io.github.joana_team.catshop.model.CatWithPersonalities;
 import io.github.joana_team.catshop.model.Personality;
 import io.github.joana_team.catshop.shop.server.ShopApi;
@@ -7,11 +10,7 @@ import io.github.joana_team.catshop.wiki.ApiException;
 import io.github.joana_team.catshop.wiki.client.WikiApi;
 
 import javax.ws.rs.NotAllowedException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * shop
@@ -44,11 +43,23 @@ public class ShopApiServiceImpl implements ShopApi {
      * gets the cats below a certain max price that are available, with their activity level
      *
      */
-    public List<CatWithPersonalities> availableSpecies(Integer maxPrice) {
-        return speciesWithPrice.entrySet().stream()
+    @ReturnValue(sinks = @Sink)
+    public List<CatWithPersonalities> availableSpecies(@Source Integer maxPrice) {
+        if (maxPrice == 1){
+            return null;
+        }
+        List<CatWithPersonalities> cats = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : speciesWithPrice.entrySet()) {
+            if (entry.getValue() <= maxPrice) {
+                cats.add(new CatWithPersonalities().species(entry.getKey())
+                    .personalities(getPersonalities(entry.getKey())));
+            }
+        }
+        return cats;
+        /*return speciesWithPrice.entrySet().stream()
             .filter(e -> e.getValue() <= maxPrice).map(e -> new CatWithPersonalities().species(e.getKey())
                 .personalities(getPersonalities(e.getKey()))).collect(
-            Collectors.toList());
+            Collectors.toList());*/
     }
 
     private List<Personality> getPersonalities(String species) {

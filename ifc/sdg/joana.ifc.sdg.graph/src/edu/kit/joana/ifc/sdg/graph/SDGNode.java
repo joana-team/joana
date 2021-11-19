@@ -11,14 +11,13 @@
  */
 package edu.kit.joana.ifc.sdg.graph;
 
-import java.lang.reflect.Array;
-import java.util.Comparator;
-
 import edu.kit.joana.util.SourceLocation;
 import edu.kit.joana.util.collections.Arrays;
 import edu.kit.joana.util.graph.IntegerIdentifiable;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+
+import java.util.Comparator;
 
 /**
  * <p>Title: SDGNode</p>
@@ -306,14 +305,14 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
     /* used for call nodes where there is no pdg for the call target */
     private final String unresolvedCallTarget;
-    
+
     /* for nodes defining a value that correspond to a definition of local variables, the names of the corresponding
-     * local variables; 
+     * local variables;
      */
     private final String[] localDefNames;
 
     /* for nodes using a value that correspond to a definition of local variables, the names of the corresponding
-     * local variables; 
+     * local variables;
      */
     private final String[] localUseNames;
 
@@ -353,6 +352,23 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
         assert this.kind == kind;
     }
 
+    public SDGNode(Kind kind, int id, Operation op, int proc, String label){
+      this.kind = kind;
+      this.id = id;
+      this.operation = op;
+      this.proc = proc;
+      this.label = label == null ? null : label.intern();
+      this.sourceLocation = SourceLocation.UNKNOWN;
+      this.type = null;
+      this.bcName = "";
+      this.bcIndex = -1;
+      this.localDefNames = null;
+      this.localUseNames = null;
+      this.unresolvedCallTarget = null;
+      this.allocationSites = null;
+      this.clsLoader = null;
+    }
+
     /**
      * A constructor for synthetic nodes that are added to an existing SDG.
      * Receives only a kind, an ID and a procedure ID and sets the other attributes to default values.
@@ -361,31 +377,16 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      * @param proc  The procedure ID.
      */
     public SDGNode(Kind kind, int id, int proc, String label){
-        this.kind = kind;
-        this.operation = Operation.EMPTY;
-        this.id = id;
-        this.proc = proc;
-        this.label = label == null ? null : label.intern();
-        
-        this.sourceLocation = SourceLocation.UNKNOWN;
-        this.type = null;
-        this.bcName = null;
-        this.bcIndex = -1;
-        this.localDefNames = null;
-        this.localUseNames = null;
-        this.unresolvedCallTarget = null;
-        this.allocationSites = null;
-        this.clsLoader = null;
+      this(kind, id, Operation.EMPTY, proc, label);
     }
-
 
     /**
      * Returns a _shallow_ copy of the node.
      */
     public SDGNode clone() {
-      return clone(this.getId(), this.getProc());	
+      return clone(this.getId(), this.getProc());
     }
-    
+
     public SDGNode clone(int newId, int newProc) {
     	return clone(newId, newProc, getKind(), getOperation());
     }
@@ -414,28 +415,28 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     	} else {
     		localUseNames = null;
     	}
-    	
+
     	SDGNode ret = new SDGNode(newKind, id, newOp, label, proc, type, sourceLocation, bcName, bcIndex, localDefNames, localUseNames, unresolvedCallTarget, allocationSites, clsLoader);
 
     	return ret;
     }
 
-    
+
     /**
      * @return The names of local variables defined at this nodes.
      */
     public String[] getLocalDefNames() {
        return this.localDefNames;
     }
-    
-    
+
+
     /**
      * @return The names of local variables used at this nodes.
      */
     public String[] getLocalUseNames() {
        return this.localUseNames;
     }
-    
+
 
     /**
      * If available, this method returns the ids of the nodes, at which the object, on
@@ -444,10 +445,10 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
      *
      * Specifically, these allocation Sites for calls of Thread.start() or Thread.join() or a method overriding Thread.run()
      * if the SDG was built with {@code computeInterference} enabled,
-     * or for all call nodes if built with {@code computeAllocationSites} enabled. 
+     * or for all call nodes if built with {@code computeAllocationSites} enabled.
      *
      * @return possible allocation sites, if this node represents a call node,
-     * and if the allocationSites were computed during SDG creation, 
+     * and if the allocationSites were computed during SDG creation,
      * or {@code null} otherwise
      */
     public int[] getAllocationSites() {
@@ -599,7 +600,7 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
     public String getSource() {
         return sourceLocation.getSourceFile();
     }
-    
+
     /**
 	 * @return the sourceLocation
 	 */
@@ -671,16 +672,28 @@ public class SDGNode implements Cloneable, IntegerIdentifiable {
 
         return java.util.Arrays.binarySearch(threadNumbers, t) >= 0;
     }
-    
+
     /**
      * Returns true iff this node is a "cloned" node of another node already present in the graph.
-     * 
+     *
      * The only sane case where this may occur is for the purpose of displaying one node in two different places in some
      * rendering of the graph (e.g.: graphviewr defines a sub class CoonledSDGNode of SDGNode for such purposes).
-     * 
-     * @return true iff this node is a "cloned" node of another node already present in the graph. 
+     *
+     * @return true iff this node is a "cloned" node of another node already present in the graph.
      */
     public boolean isGraphicalClone() {
     	return false;
+    }
+
+    public boolean isException() {
+      return kind == Kind.FORMAL_OUT ? label.startsWith("_exception_") : (kind == Kind.ACTUAL_OUT && label.startsWith("ret _exception_"));
+    }
+
+    public boolean isFormalOut() {
+      return kind == Kind.FORMAL_OUT;
+    }
+
+    public boolean isActualOut() {
+      return kind == Kind.ACTUAL_OUT;
     }
 }

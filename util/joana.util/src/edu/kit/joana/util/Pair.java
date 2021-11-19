@@ -9,7 +9,7 @@ package edu.kit.joana.util;
 
 public class Pair<S, T> {
 
-	public static enum Component {
+  public static enum Component {
 		/** for first component */
 		FIRST,
 
@@ -152,5 +152,13 @@ public class Pair<S, T> {
 
 	public <V, E extends Throwable> Pair<S, V> mapSecond(ThrowingFunction<T, V, E> secondMap) throws E {
 		return new Pair<>(fst, secondMap.apply(snd));
+	}
+
+	public S component1() {
+		return fst;
+	}
+
+	public T component2() {
+		return snd;
 	}
 }

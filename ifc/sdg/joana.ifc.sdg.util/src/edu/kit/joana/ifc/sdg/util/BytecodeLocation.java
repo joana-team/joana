@@ -7,12 +7,11 @@
  */
 package edu.kit.joana.ifc.sdg.util;
 
+import edu.kit.joana.ifc.sdg.graph.SDGNode;
+import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import edu.kit.joana.ifc.sdg.graph.SDGNode;
-import edu.kit.joana.ifc.sdg.graph.SDGNode.Kind;
 
 /**
  * Represents a location in the bytecode. For most nodes this maps to an instruction
@@ -105,7 +104,7 @@ public final class BytecodeLocation {
 	public static boolean isPhiNode(SDGNode n) {
 		return n.getBytecodeIndex() == PHI;
 	}
-	
+
 	public static boolean isCallRetNode(SDGNode n) {
 		return n.getBytecodeIndex() == CALL_RET;
 	}
@@ -118,12 +117,13 @@ public final class BytecodeLocation {
 	 * negative number otherwise
 	 */
 	public static int getRootParamIndex(String paramLabel) {
-		Matcher m = ROOT_PARAM_LABEL_PATTERN.matcher(paramLabel);
-		if (m.matches()) {
-			return Integer.parseInt(m.group(1));
-		} else {
-			return -1;
+		if (paramLabel != null) {
+			Matcher m = ROOT_PARAM_LABEL_PATTERN.matcher(paramLabel);
+			if (m.matches()) {
+				return Integer.parseInt(m.group(1));
+			}
 		}
+		return -1;
 	}
 
 	public static final String ROOT_PARAM_PREFIX = "<param> ";
@@ -137,6 +137,6 @@ public final class BytecodeLocation {
 	public static final String PHI_NODE = "<phi>";
 
 
-	
+
 
 }

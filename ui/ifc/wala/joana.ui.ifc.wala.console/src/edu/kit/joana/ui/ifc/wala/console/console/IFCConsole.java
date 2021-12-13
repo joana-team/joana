@@ -1453,10 +1453,10 @@ public class IFCConsole {
 
 	public boolean selectEntryPoint(String pattern, Consumer<List<String>> classSinkConsumer, boolean printError) {
 		JavaMethodSignature oldSelected = loc.getActiveEntry();
-		Optional<List<Pair<IMethod, Annotation>>> result =
-				loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
+		Optional<List<Pair<IMethod, Annotation>>> result = loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, false, PatternType.ID, PatternType.SIGNATURE));
+				
 		if (!result.isPresent() || result.get().size() != 1) {
-			result = loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, false, PatternType.ID, PatternType.SIGNATURE));
+			result = loc.doSearchForEntryPointAnnotated(classPath, out, new Pattern(pattern, true, PatternType.ID, PatternType.SIGNATURE));
 		}
 		if (!result.isPresent()) {
 			if (printError){

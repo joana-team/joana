@@ -1,6 +1,5 @@
 package edu.kit.joana.api.sdg.openapi
 
-import edu.kit.joana.api.sdg.SDGProgram.createSDGBuilder
 import edu.kit.joana.api.sdg.openapi.CLI.BareCommand
 import edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer
 import picocli.CommandLine
@@ -29,7 +28,7 @@ class CLI : Runnable {
 
     @Command(
         name = "bare",
-        description = ["Run all arguments as individuals, one after another, ignoring \"...\""],
+        description = ["Run every even argument as individuals, one after another, ignoring \"...\", the preceding argument is always the name"],
         mixinStandardHelpOptions = true
     )
     class BareCommand : Runnable {
@@ -61,11 +60,13 @@ class CLI : Runnable {
         var addException = true
 
         override fun run() {
-            val ifcConsoleWithMore = console.toIFCConsoleWithMore()
+            val ifcConsoleWithMore = console.toIFCConsoleWithMore("")
             ifcConsoleWithMore.ifcConsole.createSDGBuilder().get().let {
                 val builder = it.first.builder
                 val exSDG = ExSDG(builder.sdg, builder.callGraph)
-                val entry = exSDG.getEntryNode(builder.callGraph.vertexSet().first { node -> node.node.method.name.toString().equals(entry) }.node)
+                val entry = exSDG.getEntryNode(
+                    builder.callGraph.vertexSet().first { node -> node.node.method.name.toString().equals(entry) }.node
+                )
                 println("Entry node is ${entry.label}")
                 Propagation(exSDG).propagateSDGNodesForVariables(entry, setOf(variable), addException)
                 GraphViewer.launch(exSDG.sdg)
@@ -76,7 +77,7 @@ class CLI : Runnable {
 
     @Command(
         name = "multi",
-        description = ["Run the commands and use the MultiSDGComputation"],
+        description = ["Run every even argument together with the multi sdg computation, one after another, ignoring \"...\", the preceding argument is always the name"],
         mixinStandardHelpOptions = true
     )
     class MultiCommand : Runnable {

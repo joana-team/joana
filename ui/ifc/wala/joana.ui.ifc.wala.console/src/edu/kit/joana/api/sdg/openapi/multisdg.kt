@@ -119,6 +119,7 @@ class ExSDG(val sdg: SDG, val callGraph: CallGraph) {
  * Node in the multi SDG graph, referencing
  */
 data class MultiSDGNode(
+    val name: String,
     private val sdgAdder: SDGSummaryAdder,
     val server: MappedOperationIds,
     val client: MappedOperationIds,
@@ -138,6 +139,8 @@ data class MultiSDGNode(
     val exSDG = ExSDG(sdg, callGraph)
 
     val propagation = Propagation(exSDG)
+
+    override fun toString() = name
 
     /** called on the client SDG for a specific API connection */
     fun getConnection(clientEntryNode: SDGNode, serverSDG: SDG, serverEntryNode: SDGNode) = clientServerConnections.getOrPut(Pair(clientEntryNode, serverEntryNode)) {
@@ -321,7 +324,7 @@ data class MultiSDGNode(
             connection.getClientNode(fi)?.let { ai ->
                 connection.getClientNode(fo)?.let { ao ->
                     sdg.addEdge(SDGEdge.Kind.SUMMARY.newEdge(ai, ao))
-                    println("$serverEntryNode:   ${ai.label} → ${ao.label}")
+                    println("    add edge: $serverEntryNode ${serverEntryNode.label}:   $ai ${ai.label} → $ao ${ao.label}")
                 }
             }
         }
@@ -329,7 +332,7 @@ data class MultiSDGNode(
     companion object {
 
         @JvmStatic
-        fun create(builder: SDGBuilder.SDGSummaryBuilder): MultiSDGNode {
+        fun create(name: String, builder: SDGBuilder.SDGSummaryBuilder): MultiSDGNode {
             val clientDetector = OpenApiClientDetector()
             val serverDetector = OpenApiServerDetector()
 
@@ -344,6 +347,7 @@ data class MultiSDGNode(
             val allInvokeNodeIds = builder.callGraph.getMethodsWithAnnotation(Type.getType(InvokeAllRegisteredOpenApiServerMethods::class.java))
                 .map { (node, _) -> node.id }.toSet()
             return MultiSDGNode(
+                name,
                 SDGSummaryAdder(builder, serverMap.values),
                 MappedOperationIds(serverMap), MappedOperationIds(clientMap),
                 allInvokeNodeIds
@@ -360,7 +364,7 @@ fun CallGraph.getMethodsWithAnnotation(type: Type): List<Pair<CallGraph.Node, IM
     return vertexSet().map { n -> Pair(n, n.node.method) }.filter { (_, m) -> m.annotations.any { a -> a.type == typeRef } }
 }
 
-data class IFCConsoleWithMore(val ifcConsole: IFCConsole, val miscCommands: List<String>) {
+data class IFCConsoleWithMore(val name: String, val ifcConsole: IFCConsole, val miscCommands: List<String>) {
     fun runMiscCommands() {
         ImprovedCLI.process(Iterables.toArray(miscCommands, String::class.java), ifcConsole.createWrapper())
     }
@@ -428,25 +432,28 @@ fun String.splitIntoCommands(quotationMarks: Set<Char> = setOf('"', '\''), separ
     }
 }
 
-fun String.toIFCConsoleWithMore(ignoreDots: Boolean = false): IFCConsoleWithMore {
+fun String.toIFCConsoleWithMore(name: String, ignoreDots: Boolean = false): IFCConsoleWithMore {
     val parts = this.splitIntoCommands().map { it.trim() }
     if ("..." in parts) {
         assert(parts.count { it == "..." } == 1)
         val mid = parts.indexOf("...")
         if (ignoreDots) {
-            return IFCConsoleWithMore((parts.subList(0, mid) + parts.subList(mid + 1, parts.size)).toIFCConsole(), emptyList())
+            return IFCConsoleWithMore(name, (parts.subList(0, mid) + parts.subList(mid + 1, parts.size)).toIFCConsole(), emptyList())
         }
-        return IFCConsoleWithMore(parts.subList(0, mid).toIFCConsole(), parts.subList(mid + 1, parts.size))
+        return IFCConsoleWithMore(name, parts.subList(0, mid).toIFCConsole(), parts.subList(mid + 1, parts.size))
     }
-    return IFCConsoleWithMore(parts.toIFCConsole(), emptyList())
+    return IFCConsoleWithMore(name, parts.toIFCConsole(), emptyList())
 }
 
-/** runs the commands that should be run before the "..." (or all commands with ignoreDots=true)*/
+/** runs the commands that should be run before the "..." (or all commands with ignoreDots=true),
+ * uneven ones are the descriptions of even ones*/
 fun Iterable<String>.toIFCConsoleWithMore(ignoreDots: Boolean = false, parallel: Boolean = true): List<IFCConsoleWithMore> {
-    return (if (parallel) toList().parallelStream() else toList().stream()).map {
-        println(it.split(";")[0])
+    return (if (parallel) toList().chunked(2).parallelStream() else toList().chunked(2).stream()).map {
+        val name = it[0]!!
+        val command = it[1]!!
+        println(name)
         println("-".repeat(50))
-        it.toIFCConsoleWithMore(ignoreDots)
+        command.toIFCConsoleWithMore(name, ignoreDots)
     }.collect(Collectors.toList())
 }
 fun IFCConsole.printSeparator() {
@@ -463,14 +470,14 @@ fun Iterable<IFCConsole>.run(tag: String? = null) {
     }
 }
 
-fun Iterable<IFCConsoleWithMore>.toMultiSDGComputer() = MultiSDGComputer.create(map { it.ifcConsole })
+fun Iterable<IFCConsoleWithMore>.toMultiSDGComputer() = MultiSDGComputer.create(map { it.name to it.ifcConsole })
 
 fun Iterable<IFCConsoleWithMore>.runWithMultiSDGComputatation() {
     toMultiSDGComputer().compute()
-    for ((ifcConsole, miscCommands) in iterator()) {
+    for ((name, ifcConsole, miscCommands) in iterator()) {
         ifcConsole.printSeparator()
         if (!ifcConsole.process(miscCommands)) {
-            fail("Error for $this")
+            fail("Error for $name")
         }
     }
 }
@@ -485,11 +492,11 @@ class MultiSDGComputer private constructor(private val nodes: Map<MultiSDGNode, 
 
     companion object {
         @JvmStatic
-        fun create(ifcConsoles: List<IFCConsole>): MultiSDGComputer {
+        fun create(ifcConsoles: List<Pair<String, IFCConsole>>): MultiSDGComputer {
             return MultiSDGComputer(
-                ifcConsoles.associate { ifcConsole ->
+                ifcConsoles.associate { (name, ifcConsole) ->
                     ifcConsole.createSDGBuilder().get().let {
-                        MultiSDGNode.create(it.first.builder) to MiscSDGProperties(ifcConsole, it.first, it.second)
+                        MultiSDGNode.create(name, it.first.builder) to MiscSDGProperties(ifcConsole, it.first, it.second)
                     }
                 }
             )
@@ -536,11 +543,15 @@ class MultiSDGComputer private constructor(private val nodes: Map<MultiSDGNode, 
                     worklist.add(it)
                 }
             }
-            affectedCgIds?.let { alreadyConsidered[n]!!.affectedCgIds.addAll(it) }
+            //affectedCgIds?.let { alreadyConsidered[n]!!.affectedCgIds.addAll(it) }
+        }
+        fun pop(): WorklistEntry {
+            return worklist.removeFirst().also { alreadyConsidered.remove(it.node) }
         }
         nodes.keys.forEach(::push)
         while (!worklist.isEmpty()) {
-            val (cur, affectedCgIds) = worklist.removeFirst()
+            val (cur, affectedCgIds) = pop()
+            System.err.println("\n-----> compute ${cur.name}")
             cur.compute(affectedCgIds).let { sums ->
                 // setting: we found edges related to call node of an all invoke method
                 // the compute method already converted them into formal in → formal out edges
@@ -549,6 +560,8 @@ class MultiSDGComputer private constructor(private val nodes: Map<MultiSDGNode, 
 
                 pushEdges(cur, sums.difference()) { clientMultiNode, clientCgId, clientEntryNode, serverEntryNode, serverEdges ->
                     clientMultiNode.addEdges(clientCgId, clientEntryNode, cur.sdg, serverEntryNode, serverEdges)
+                    System.err.println("\n-----> push $clientMultiNode ($clientCgId)")
+                    push(clientMultiNode, setOf(clientCgId))
                 }
             }
         }

@@ -156,7 +156,6 @@ public class SDG extends JoanaGraph implements Cloneable {
             return actual; // call nodes belong to their own call site
         } else {
 						long time = System.nanoTime();
-					System.out.println("here " + time);
             SDGNode n = actual;
             // follow control-dependence-expression edges from the source
             // node of 'edge' to the call node

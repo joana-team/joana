@@ -378,6 +378,9 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
             		continue;
             	}
 
+							if (initialWorklistEntries.isPresent() && !initialWorklistEntries.get().contains(n.getProc())) {
+								continue;
+							}
                 assert pathEdge.add(new Edge(n,n));
                 assert n.customData == null || (!(n.customData instanceof RememberReachedBitVector));
                 n.customData = new PathEdgeReachedNodesBitvector(proc2nodes.get(n.getProc()).size());
@@ -388,9 +391,8 @@ public class SummaryComputation3< G extends DirectedGraph<SDGNode, SDGEdge> & Ef
                 	workList.add(new Edge(n,n));
                 	return workList;
                 });
-								if (!initialWorklistEntries.isPresent() || initialWorklistEntries.get().contains(n.getProc())) {
+
 									procedureWorkSet.add(n.getProc());
-								}
             }
 
             if (n.getKind() == SDGNode.Kind.ACTUAL_OUT) {

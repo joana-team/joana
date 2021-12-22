@@ -1,15 +1,11 @@
 package io.github.joana_team.catshop.shop.server.impl;
 
-import edu.kit.joana.ui.annotations.ReturnValue;
-import edu.kit.joana.ui.annotations.Sink;
-import edu.kit.joana.ui.annotations.Source;
 import io.github.joana_team.catshop.model.CatWithPersonalities;
 import io.github.joana_team.catshop.model.Personality;
 import io.github.joana_team.catshop.shop.server.ShopApi;
 import io.github.joana_team.catshop.wiki.ApiException;
 import io.github.joana_team.catshop.wiki.client.WikiApi;
 
-import javax.ws.rs.NotAllowedException;
 import java.util.*;
 
 /**
@@ -22,6 +18,8 @@ public class ShopApiServiceImpl implements ShopApi {
 
     private final String PASSWORD = "PASSWORD";
 
+    private String xyz = "";
+
     private Map<String, Integer> speciesWithPrice = new HashMap<>();
     {
         speciesWithPrice.put("norwegian", 1000);
@@ -33,33 +31,18 @@ public class ShopApiServiceImpl implements ShopApi {
      *
      */
     public void addAvailableSpecies(String species, Integer price, String password) {
-        if (!password.equals(PASSWORD)) {
-            throw new NotAllowedException("Wrong password");
-        }
-        speciesWithPrice.put(species, price);
+        xyz = species;
     }
 
     /**
      * gets the cats below a certain max price that are available, with their activity level
      *
      */
-    @ReturnValue(sinks = @Sink)
-    public List<CatWithPersonalities> availableSpecies(@Source Integer maxPrice) {
-        if (maxPrice == 1){
-            return null;
+    public List<CatWithPersonalities> availableSpecies(Integer maxPrice) {
+        if (xyz.equals("asd")) {
+            return Collections.emptyList();
         }
-        List<CatWithPersonalities> cats = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : speciesWithPrice.entrySet()) {
-            if (entry.getValue() <= maxPrice) {
-                cats.add(new CatWithPersonalities().species(entry.getKey())
-                    .personalities(getPersonalities(entry.getKey())));
-            }
-        }
-        return cats;
-        /*return speciesWithPrice.entrySet().stream()
-            .filter(e -> e.getValue() <= maxPrice).map(e -> new CatWithPersonalities().species(e.getKey())
-                .personalities(getPersonalities(e.getKey()))).collect(
-            Collectors.toList());*/
+        return null;
     }
 
     private List<Personality> getPersonalities(String species) {

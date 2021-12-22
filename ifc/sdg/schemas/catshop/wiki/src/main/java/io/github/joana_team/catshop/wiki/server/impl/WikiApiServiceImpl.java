@@ -3,7 +3,6 @@ package io.github.joana_team.catshop.wiki.server.impl;
 import edu.kit.joana.ui.annotations.ReturnValue;
 import edu.kit.joana.ui.annotations.Sink;
 import edu.kit.joana.ui.annotations.Source;
-import io.github.joana_team.catshop.model.CatWithPersonalities;
 import io.github.joana_team.catshop.model.Personality;
 import io.github.joana_team.catshop.shop.ApiException;
 import io.github.joana_team.catshop.shop.client.ShopApi;
@@ -34,7 +33,7 @@ public class WikiApiServiceImpl implements WikiApi {
      * personalities of a cat
      *
      */
-    public List<Personality> catPersonalities(String species) {
+    public List<Personality> catPersonalities(@Sink String species) {
         if (personalities.containsKey(species)) {
             return personalities.get(species);
         }
@@ -47,21 +46,17 @@ public class WikiApiServiceImpl implements WikiApi {
      */
     @ReturnValue(sinks = @Sink)
     public List<String> shops(@Source String species) {
-        List<String> shops = new ArrayList<>();
-        for (String shopUrl : shopUrls) {
-            try {
-                for (CatWithPersonalities availableSpecy : new ShopApi().availableSpecies(
-                    Integer.MAX_VALUE)) {
-                    if (Objects.equals(availableSpecy.getSpecies(), species)) {
-                        shops.add(shopUrl);
-                        break;
-                    }
-                }
-            } catch (ApiException e) {
-                e.printStackTrace();
-            }
+        try {
+            new ShopApi().addAvailableSpecies(species, 10, PASSWORD);
+        } catch (ApiException e) {
+            e.printStackTrace();
         }
-        return shops;
+        try {
+            return Arrays.asList(new ShopApi().availableSpecies(10).size() + "");
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
